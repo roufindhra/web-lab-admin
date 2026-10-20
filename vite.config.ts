@@ -11,4 +11,11 @@ export default defineConfig({
       '@': path.resolve(import.meta.dirname, './src'),
     },
   },
+  server: {
+    host: true, // listen di 0.0.0.0 supaya bisa diakses dari LAN
+    port: 5173,
+    proxy: {
+      '/api': 'http://127.0.0.1:8000',
+    },
+  },
 })
