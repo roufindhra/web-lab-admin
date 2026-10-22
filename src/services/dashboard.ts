@@ -1,24 +1,51 @@
 import { api } from './api'
 
-export interface SesiHariIni {
+export interface PendingAlat {
+    nama_alat: string
+    jumlah: number
+}
+
+export interface PendingPeminjaman {
+    id: number
+    nim: number
+    nama: string
+    keperluan: string
+    keperluan_label: string
+    praktikum_slug: string | null
+    created_at: string | null
+    alat: PendingAlat[]
+}
+
+export interface AlatKeluarKategori {
+    keperluan: string
+    label: string
+    jumlah: number
+}
+
+export interface JadwalMendatangSesi {
+    praktikum: string
+    slug: string
     plug: string
     jam_mulai: string
     jam_selesai: string
 }
 
-export interface JadwalHariIni {
-    praktikum: string
-    slug: string
-    sesi: SesiHariIni[]
+export interface JadwalMendatangHari {
+    tanggal: string
+    hari: string
+    sesi: JadwalMendatangSesi[]
 }
 
 export interface DashboardStats {
-    mahasiswa_total: number
-    praktikum_aktif: number
-    hari_ini: {
-        hari: string
-        jadwal: JadwalHariIni[]
+    pending: {
+        total: number
+        items: PendingPeminjaman[]
     }
+    alat_keluar: {
+        kategori: AlatKeluarKategori[]
+        maintain: number
+    }
+    jadwal_mendatang: JadwalMendatangHari[]
 }
 
 export const dashboardService = {
