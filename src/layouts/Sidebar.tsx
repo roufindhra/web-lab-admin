@@ -15,6 +15,7 @@ const STATIC_MENU_ITEMS = [
   { id: "sidebar-inventaris", label: "Inventaris Alat", path: "/alat" },
   { id: "sidebar-riwayat", label: "Riwayat Alat", path: "/alat-log" },
   { id: "sidebar-peminjaman", label: "Peminjaman", path: "/peminjaman" },
+  { id: "sidebar-kurikulum", label: "Kurikulum", path: "/kurikulum" },
 ];
 
 export const Sidebar: React.FC<SideBarProps> = ({ isOpen, onClose }) => {
