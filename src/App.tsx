@@ -9,6 +9,8 @@ import AlatLogPage from '@/pages/AlatLog'
 import PeminjamanPage from '@/pages/Peminjaman'
 import PraktikumPage from '@/pages/Praktikum'
 import PraktikumDetail from '@/pages/PraktikumDetail'
+import Kurikulum from '@/pages/Kurikulum'
+import KurikulumDetail from '@/pages/KurikulumDetail'
 
 export default function App() {
   return (
@@ -30,6 +32,8 @@ export default function App() {
           <Route path="peminjaman" element={<PeminjamanPage />} />
           <Route path="praktikum" element={<PraktikumPage />} />
           <Route path="praktikum/:slug" element={<PraktikumDetail />} />
+          <Route path="kurikulum" element={<Kurikulum />} />
+          <Route path="kurikulum/:slug" element={<KurikulumDetail />} />
         </Route>
       </Routes>
     </BrowserRouter>
