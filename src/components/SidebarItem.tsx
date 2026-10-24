@@ -19,8 +19,10 @@ export const SidebarItem: React.FC<SidebarItemProps> = ({ item }) => {
           <NavLink
             to={item.path ?? "/"}
             className={({ isActive }) =>
-              `flex-1 rounded-md px-4 py-2 text-sm font-medium hover:bg-gray-700 ${
-                isActive ? "text-white" : "text-gray-300"
+              `flex items-center rounded-(--md-sys-shape-corner-full) px-4 py-2.5 text-sm font-medium hover:bg-gray-500 transition-colors ${
+                isActive
+                  ? "bg-(--md-sys-color-primary-container) text-(--md-sys-color-on-primary-container) font-semibold"
+                  : "hover:bg-(--md-sys-color-primary-container)"
               }`
             }
           >
@@ -50,8 +52,10 @@ export const SidebarItem: React.FC<SidebarItemProps> = ({ item }) => {
       id={elementId}
       to={item.path ?? "/"}
       className={({ isActive }) =>
-        `block px-3 py-2 text-sm ${
-          isActive ? "text-white" : "text-gray-300 hover:text-white"
+        `flex items-center rounded-(--md-sys-shape-corner-full) px-4 py-2.5 text-sm font-medium hover:bg-gray-500 transition-colors ${
+          isActive
+            ? "bg-(--md-sys-color-primary-container) text-(--md-sys-color-on-primary-container) font-semibold"
+            : "hover:bg-(--md-sys-color-primary-container)"
         }`
       }
     >
