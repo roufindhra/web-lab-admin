@@ -169,7 +169,12 @@ export default function PeminjamanPage() {
                       <span className="font-medium">{peminjaman.nama}</span>
                       <span className="block font-mono text-xs text-gray-500">{peminjaman.nim}</span>
                     </td>
-                    <td className="max-w-48 px-4 py-3">{peminjaman.keperluan}</td>
+                    <td className="max-w-48 px-4 py-3">
+                      {peminjaman.keperluan_label}
+                      {peminjaman.praktikum_slug && (
+                        <span className="block font-mono text-xs text-gray-500">{peminjaman.praktikum_slug}</span>
+                      )}
+                    </td>
                     <td className="px-4 py-3">
                       <ul className="space-y-0.5">
                         {peminjaman.items.map((item) => (

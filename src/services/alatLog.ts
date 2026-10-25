@@ -1,7 +1,7 @@
 import { api } from './api'
 import type { KondisiEntry, AlatListMeta } from './alat'
 
-export type AlatLogStatus = 'keluar' | 'masuk'
+export type AlatLogStatus = 'pengajuan' | 'keluar' | 'masuk' | 'tambah' | 'hapus' | 'edit'
 
 export interface AlatLog {
   id: number

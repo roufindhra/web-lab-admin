@@ -10,13 +10,21 @@ import {
 const SEARCH_DEBOUNCE_MS = 400
 
 const STATUS_LABELS: Record<AlatLogStatus, string> = {
+  pengajuan: 'Pengajuan',
   keluar: 'Keluar',
   masuk: 'Masuk',
+  tambah: 'Tambah',
+  hapus: 'Hapus',
+  edit: 'Edit',
 }
 
 const STATUS_BADGE_CLASSES: Record<AlatLogStatus, string> = {
+  pengajuan: 'bg-blue-100 text-blue-800',
   keluar: 'bg-yellow-100 text-yellow-800',
   masuk: 'bg-green-100 text-green-800',
+  tambah: 'bg-emerald-100 text-emerald-800',
+  hapus: 'bg-red-100 text-red-800',
+  edit: 'bg-gray-100 text-gray-800',
 }
 
 const formatWaktu = (waktu: string) =>
@@ -159,7 +167,7 @@ export default function AlatLogPage() {
                 <tr key={log.id} className="hover:bg-gray-50">
                   <td className="px-4 py-3 whitespace-nowrap text-gray-600">{formatWaktu(log.waktu)}</td>
                   <td className="px-4 py-3 font-mono">{log.id_log}</td>
-                  <td className="px-4 py-3 uppercase">{log.keperluan}</td>
+                  <td className="px-4 py-3">{log.keperluan}</td>
                   <td className="px-4 py-3">
                     {log.nim_pic ? (
                       <>

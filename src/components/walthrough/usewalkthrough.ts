@@ -1,20 +1,8 @@
-import { useState, useEffect } from "react";
-
-const STORAGE_KEY = "lab_sgg_walkthrough_completed_v1";
+import { useState } from "react";
 
 export function useWalkthrough(totalSteps: number) {
-  const [isOpen, setIsOpen] = useState<boolean>(true);
+  const [isOpen, setIsOpen] = useState<boolean>(false);
   const [currentStep, setCurrentStep] = useState<number>(0);
-  const [hasCompleted, setHasCompleted] = useState<boolean>(false);
-
-  useEffect(() => {
-    const isCompleted = localStorage.getItem(STORAGE_KEY) === "true";
-    setHasCompleted(isCompleted);
-    
-    if (!isCompleted) {
-      setIsOpen(true);
-    }
-  }, []);
 
   const nextStep = () => {
     if (currentStep < totalSteps - 1) {
@@ -31,8 +19,6 @@ export function useWalkthrough(totalSteps: number) {
   };
 
   const completeWalkthrough = () => {
-    localStorage.setItem(STORAGE_KEY, "true");
-    setHasCompleted(true);
     setIsOpen(false);
     setCurrentStep(0);
   };
@@ -45,7 +31,6 @@ export function useWalkthrough(totalSteps: number) {
   return {
     isOpen,
     currentStep,
-    hasCompleted,
     nextStep,
     prevStep,
     completeWalkthrough,

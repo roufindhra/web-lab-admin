@@ -23,6 +23,8 @@ export interface Peminjaman {
   nim: number
   nama: string
   keperluan: string
+  keperluan_label: string
+  praktikum_slug: string | null
   status: PeminjamanStatus
   catatan: string | null
   approved_by: string | null

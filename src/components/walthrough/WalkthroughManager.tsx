@@ -8,7 +8,6 @@ export const WalkthroughManager: React.FC = () => {
   const {
     isOpen,
     currentStep,
-    hasCompleted,
     nextStep,
     prevStep,
     completeWalkthrough,
@@ -33,7 +32,7 @@ export const WalkthroughManager: React.FC = () => {
 
       <WalkthroughFab
         onClick={reopenWalkthrough}
-        isVisible={hasCompleted && !isOpen}
+        isVisible={!isOpen}
       />
     </>
   );
