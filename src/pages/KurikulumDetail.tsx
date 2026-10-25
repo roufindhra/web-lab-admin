@@ -7,7 +7,7 @@ import {
   type KurikulumMateri,
   type Praktikum,
 } from '@/services'
-import MateriFormModal from './Kurikulum/_components/MateriFormModal'
+import MateriFormModal from '../components/MateriFormModal'
 
 export default function KurikulumDetail() {
   const { slug } = useParams<{ slug: string }>()
