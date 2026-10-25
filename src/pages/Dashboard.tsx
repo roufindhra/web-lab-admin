@@ -58,7 +58,7 @@ export default function Dashboard() {
       {!isLoading && stats && (
         <div className="mt-6 grid grid-cols-1 gap-4 lg:grid-cols-3">
           <Link
-            to="/peminjaman"
+            to="/alat-peminjaman"
             className="flex h-80 flex-col rounded-lg border bg-white p-6 transition-colors hover:bg-gray-50"
           >
             <p className="shrink-0 text-sm text-gray-600">
