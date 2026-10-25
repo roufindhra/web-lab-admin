@@ -1,7 +1,9 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import {
   praktikumService,
+  kurikulumService,
   ApiError,
+  type KurikulumMateri,
   type Pertemuan,
   type PertemuanPayload,
   type ParameterPenilaian,
@@ -9,7 +11,7 @@ import {
 
 interface FormState {
   nomor: string
-  topik: string
+  materi: string
   tanggal: string
   bobot: string
   parameter: { nama: string; bobot: string }[]
@@ -17,7 +19,7 @@ interface FormState {
 
 const EMPTY_FORM: FormState = {
   nomor: '',
-  topik: '',
+  materi: '',
   tanggal: '',
   bobot: '1',
   parameter: [{ nama: '', bobot: '' }],
@@ -40,7 +42,27 @@ export default function PenilaianSection({
   const [error, setError] = useState<string | null>(null)
   const [deletingId, setDeletingId] = useState<number | null>(null)
 
+  const [materiList, setMateriList] = useState<KurikulumMateri[]>([])
+  const [isLoadingMateri, setIsLoadingMateri] = useState(false)
+
   const totalBobot = form.parameter.reduce((sum, p) => sum + (Number(p.bobot) || 0), 0)
+
+  // Dropdown hanya memuat materi yang dideklarasikan di kurikulum praktikum ini
+  // (endpoint sudah terscope per praktikum & terurut materi_id).
+  useEffect(() => {
+    setIsLoadingMateri(true)
+    kurikulumService
+      .getAll(slug)
+      .then(setMateriList)
+      .catch(() => setMateriList([]))
+      .finally(() => setIsLoadingMateri(false))
+  }, [slug])
+
+  // Materi pilihan: aktif, plus materi pertemuan yang sedang diedit
+  // (bisa saja sudah diarsipkan tapi pertemuannya masih ada).
+  const materiOptions = materiList.filter(
+    (m) => m.is_active || (editingId !== null && m.id === Number(form.materi)),
+  )
 
   const openCreate = () => {
     setEditingId(null)
@@ -53,7 +75,7 @@ export default function PenilaianSection({
     setEditingId(item.id)
     setForm({
       nomor: String(item.nomor),
-      topik: item.topik ?? '',
+      materi: item.materi ? String(item.materi.id) : '',
       tanggal: item.tanggal ?? '',
       bobot: String(item.bobot),
       parameter: item.parameter.map((p) => ({ nama: p.nama, bobot: String(p.bobot) })),
@@ -72,7 +94,7 @@ export default function PenilaianSection({
 
     const payload: PertemuanPayload = {
       nomor: Number(form.nomor),
-      topik: form.topik.trim() || null,
+      materi_id: Number(form.materi),
       tanggal: form.tanggal || null,
       bobot: Number(form.bobot),
       parameter,
@@ -128,7 +150,7 @@ export default function PenilaianSection({
           <thead className="border-b bg-gray-50 text-xs uppercase text-gray-500">
             <tr>
               <th className="px-4 py-3">No.</th>
-              <th className="px-4 py-3">Topik</th>
+              <th className="px-4 py-3">Materi</th>
               <th className="px-4 py-3">Tanggal</th>
               <th className="px-4 py-3">Bobot</th>
               <th className="px-4 py-3">Parameter</th>
@@ -146,7 +168,16 @@ export default function PenilaianSection({
               pertemuan.map((item) => (
                 <tr key={item.id} className="hover:bg-gray-50">
                   <td className="px-4 py-3 font-medium">{item.nomor}</td>
-                  <td className="px-4 py-3">{item.topik ?? <span className="text-gray-400">-</span>}</td>
+                  <td className="px-4 py-3">
+                    {item.materi ? (
+                      <span>
+                        <span className="mr-1.5 font-mono text-xs text-gray-500">M{item.materi.materi_id}</span>
+                        {item.materi.materi_nama}
+                      </span>
+                    ) : (
+                      <span className="text-gray-400">-</span>
+                    )}
+                  </td>
                   <td className="px-4 py-3">{item.tanggal ?? <span className="text-gray-400">-</span>}</td>
                   <td className="px-4 py-3">{item.bobot}%</td>
                   <td className="px-4 py-3">
@@ -227,14 +258,27 @@ export default function PenilaianSection({
             </div>
 
             <div className="mt-3">
-              <label className="block text-sm font-medium text-gray-700">Topik</label>
-              <input
-                type="text"
-                value={form.topik}
-                onChange={(event) => setForm((c) => ({ ...c, topik: event.target.value }))}
-                placeholder="mis. Pengukuran Poligon"
-                className="mt-1 w-full rounded-md border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-gray-900"
-              />
+              <label className="block text-sm font-medium text-gray-700">Materi Kurikulum</label>
+              {materiOptions.length === 0 ? (
+                <p className="mt-1 text-sm text-red-600">
+                  Belum ada materi aktif di kurikulum praktikum ini. Deklarasikan materi terlebih dulu
+                  di menu Kurikulum.
+                </p>
+              ) : (
+                <select
+                  value={form.materi}
+                  onChange={(event) => setForm((c) => ({ ...c, materi: event.target.value }))}
+                  disabled={isLoadingMateri}
+                  className="mt-1 w-full rounded-md border bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-gray-900 disabled:opacity-50"
+                >
+                  <option value="">{isLoadingMateri ? 'Memuat materi...' : 'Pilih materi...'}</option>
+                  {materiOptions.map((m) => (
+                    <option key={m.id} value={m.id}>
+                      {m.materi_id}. {m.materi_nama}
+                    </option>
+                  ))}
+                </select>
+              )}
             </div>
 
             <div className="mt-4">
@@ -323,7 +367,12 @@ export default function PenilaianSection({
               <button
                 onClick={handleSave}
                 disabled={
-                  !form.nomor || !form.bobot || form.parameter.some((p) => !p.nama || !p.bobot) || totalBobot !== 100 || isSaving
+                  !form.materi ||
+                  !form.nomor ||
+                  !form.bobot ||
+                  form.parameter.some((p) => !p.nama || !p.bobot) ||
+                  totalBobot !== 100 ||
+                  isSaving
                 }
                 className="rounded-md bg-gray-900 px-4 py-2 text-sm font-medium text-white hover:bg-gray-700 disabled:cursor-not-allowed disabled:opacity-40"
               >

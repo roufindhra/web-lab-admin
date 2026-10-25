@@ -159,7 +159,12 @@ export default function NilaiSidePanel({
                   >
                     <div>
                       <span className="font-medium">Pertemuan {item.nomor}</span>
-                      {item.topik && <span className="ml-2 text-sm text-gray-600">{item.topik}</span>}
+                      {item.materi && (
+                        <span className="ml-2 text-sm text-gray-600">
+                          <span className="mr-1 font-mono text-xs">M{item.materi.materi_id}</span>
+                          {item.materi.materi_nama}
+                        </span>
+                      )}
                       <div className="mt-1 flex flex-wrap gap-1">
                         {item.parameter.map((p) => (
                           <span

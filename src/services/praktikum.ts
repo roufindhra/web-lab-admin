@@ -35,10 +35,18 @@ export interface ParameterPenilaian {
     bobot: number
 }
 
+export interface PertemuanMateri {
+    id: number
+    praktikum_id: number
+    materi_id: number
+    materi_nama: string
+    is_active: boolean
+}
+
 export interface Pertemuan {
     id: number
     nomor: number
-    topik: string | null
+    materi: PertemuanMateri | null
     tanggal: string | null
     bobot: number
     parameter: ParameterPenilaian[]
@@ -46,7 +54,7 @@ export interface Pertemuan {
 
 export interface PertemuanPayload {
     nomor: number
-    topik: string | null
+    materi_id: number
     tanggal: string | null
     bobot: number
     parameter: ParameterPenilaian[]
