@@ -12,6 +12,7 @@ interface SideBarProps {
 const STATIC_MENU_ITEMS = [
   { id: "sidebar-dashboard", label: "Dashboard", path: "/" },
   { id: "sidebar-mahasiswa", label: "Mahasiswa", path: "/mahasiswa" },
+  { id: "sidebar-kurikulum", label: "Kurikulum", path: "/kurikulum" },
 ];
 
 const ALAT_MENU_ITEMS: MenuItem = {
