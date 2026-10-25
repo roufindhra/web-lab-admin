@@ -12,11 +12,18 @@ interface SideBarProps {
 const STATIC_MENU_ITEMS = [
   { id: "sidebar-dashboard", label: "Dashboard", path: "/" },
   { id: "sidebar-mahasiswa", label: "Mahasiswa", path: "/mahasiswa" },
-  { id: "sidebar-inventaris", label: "Inventaris Alat", path: "/alat" },
-  { id: "sidebar-riwayat", label: "Riwayat Alat", path: "/alat-log" },
-  { id: "sidebar-peminjaman", label: "Peminjaman", path: "/peminjaman" },
-  { id: "sidebar-kurikulum", label: "Kurikulum", path: "/kurikulum" },
 ];
+
+const ALAT_MENU_ITEMS: MenuItem = {
+  id: 1,
+  label: "Alat",
+  path: "/alat",
+  children: [
+    { id: 1, label: "Inventaris Alat", path: "/alat" },
+    { id: 2, label: "Riwayat Alat", path: "/alat-log" },
+    { id: 3, label: "Peminjaman Alat", path: "/peminjaman" },
+  ],
+};
 
 export const Sidebar: React.FC<SideBarProps> = ({ isOpen, onClose }) => {
   const [praktikumMenu, setPraktikumMenu] = useState<MenuItem | null>(null);
@@ -104,6 +111,8 @@ export const Sidebar: React.FC<SideBarProps> = ({ isOpen, onClose }) => {
               {item.label}
             </NavLink>
           ))}
+
+          <SidebarItem item={ALAT_MENU_ITEMS} />
 
           {isLoading ? (
             <div className="px-4 py-2 text-xs text-gray-400 animate-pulse">
