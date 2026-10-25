@@ -52,11 +52,6 @@ export default function Dashboard() {
         </div>
       )}
 
-      {/* {isLoading && (
-        <p className="mt-6 text-sm text-gray-500">Memuat statistik...</p>
-      )}
-      {error && <p className="mt-6 text-sm text-red-600">{error}</p>} */}
-
       {isLoading && <DashboardSkeleton />}
       {error && <p className="mt-6 text-sm text-red-600">{error}</p>}
 
