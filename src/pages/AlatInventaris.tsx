@@ -9,9 +9,9 @@ import {
   type KondisiStatus,
   type KetersediaanStatus,
 } from '@/services'
-import AlatFormModal from './_components/AlatFormModal'
-import DeleteConfirmModal from './_components/DeleteConfirmModal'
-import KondisiDetailModal from './_components/KondisiDetailModal'
+import AlatFormModal from '../components/AlatFormModal'
+import DeleteConfirmModal from '../components/DeleteConfirmModal'
+import KondisiDetailModal from '../components/KondisiDetailModal'
 
 const SEARCH_DEBOUNCE_MS = 400
 
