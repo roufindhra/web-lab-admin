@@ -64,9 +64,9 @@ export default function Dashboard() {
             <p className="shrink-0 text-sm text-gray-600">
               Pengajuan Menunggu Persetujuan
             </p>
-            <p className="mt-2 shrink-0 text-3xl font-bold">
+            {/* <p className="mt-2 shrink-0 text-3xl font-bold">
               {stats.pending.total}
-            </p>
+            </p> */}
             {stats.pending.items.length > 0 && (
               <ul className="mt-3 flex-1 overflow-y-auto space-y-2 pr-1">
                 {stats.pending.items.map((item) => (

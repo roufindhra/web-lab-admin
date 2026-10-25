@@ -21,8 +21,8 @@ const ALAT_MENU_ITEMS: MenuItem = {
   path: "/alat",
   children: [
     { id: 1, label: "Inventaris Alat", path: "/alat-invent" },
-    { id: 2, label: "Riwayat Alat", path: "/alat-log" },
-    { id: 3, label: "Peminjaman Alat", path: "/alat-peminjaman" },
+    { id: 2, label: "Peminjaman Alat", path: "/alat-peminjaman" },
+    { id: 3, label: "Riwayat Alat", path: "/alat-log" },
   ],
 };
 
