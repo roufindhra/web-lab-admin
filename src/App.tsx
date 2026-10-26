@@ -7,6 +7,7 @@ import Students from '@/pages/Students'
 import AlatInventPage from '@/pages/AlatInventaris'
 import AlatLogPage from '@/pages/AlatLog'
 import PeminjamanPage from '@/pages/AlatPeminjaman'
+import HargaSewaPage from '@/pages/HargaSewa'
 import PraktikumPage from '@/pages/Praktikum'
 import PraktikumDetail from '@/pages/PraktikumDetail'
 import Kurikulum from '@/pages/Kurikulum'
@@ -30,6 +31,7 @@ export default function App() {
           <Route path="alat-invent" element={<AlatInventPage />} />
           <Route path="alat-log" element={<AlatLogPage />} />
           <Route path="alat-peminjaman" element={<PeminjamanPage />} />
+          <Route path="harga-sewa" element={<HargaSewaPage />} />
           <Route path="praktikum" element={<PraktikumPage />} />
           <Route path="praktikum/:slug" element={<PraktikumDetail />} />
           <Route path="kurikulum" element={<Kurikulum />} />

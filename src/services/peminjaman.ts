@@ -20,11 +20,16 @@ export interface PeminjamanItem {
 
 export interface Peminjaman {
   id: number
-  nim: number
+  nim: number | null
   nama: string
   keperluan: string
   keperluan_label: string
   praktikum_slug: string | null
+  no_hp: string | null
+  institusi: string | null
+  email: string | null
+  tanggal_pinjam: string | null
+  tanggal_kembali: string | null
   status: PeminjamanStatus
   catatan: string | null
   approved_by: string | null
@@ -42,6 +47,18 @@ export interface KembalikanItemPayload {
 
 export interface KembalikanPayload {
   items: KembalikanItemPayload[]
+}
+
+export interface AlatOption {
+  id: number
+  nama_alat: string
+  inventaris: string
+  jumlah: number
+}
+
+export interface RevisiItemPayload {
+  alat_id: number
+  jumlah: number
 }
 
 export interface PeminjamanListParams {
@@ -66,6 +83,18 @@ export const peminjamanService = {
 
     const qs = query.toString()
     return api<PeminjamanListResponse>(`/api/admin/peminjaman${qs ? `?${qs}` : ''}`)
+  },
+
+  async alatOptions(): Promise<AlatOption[]> {
+    const response = await api<{ data: AlatOption[] }>('/api/admin/peminjaman/alat-options')
+    return response.data
+  },
+
+  async revisiItems(id: number, items: RevisiItemPayload[]): Promise<Peminjaman> {
+    return api<Peminjaman>(`/api/admin/peminjaman/${id}/items`, {
+      method: 'PUT',
+      body: JSON.stringify({ items }),
+    })
   },
 
   async setujui(id: number): Promise<Peminjaman> {

@@ -9,6 +9,7 @@ import {
 } from '@/services'
 import ConfirmActionModal from '../components/ConfirmActionModal'
 import KembalikanModal from '../components/KembalikanModal'
+import RevisiModal from '../components/RevisiModal'
 import TolakModal from '../components/TolakModal'
 
 const SEARCH_DEBOUNCE_MS = 400;
@@ -50,6 +51,7 @@ export default function PeminjamanPage() {
   const [kembalikanTarget, setKembalikanTarget] = useState<Peminjaman | null>(
     null,
   );
+  const [revisiTarget, setRevisiTarget] = useState<Peminjaman | null>(null);
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -183,9 +185,16 @@ export default function PeminjamanPage() {
                     </td>
                     <td className="px-4 py-3">
                       <span className="font-medium">{peminjaman.nama}</span>
-                      <span className="block font-mono text-xs text-gray-500">
-                        {peminjaman.nim}
-                      </span>
+                      {peminjaman.keperluan === "penyewaan_komersil" ? (
+                        <span className="block text-xs text-gray-500">
+                          {peminjaman.no_hp ?? "-"}
+                          {peminjaman.institusi && ` · ${peminjaman.institusi}`}
+                        </span>
+                      ) : (
+                        <span className="block font-mono text-xs text-gray-500">
+                          {peminjaman.nim}
+                        </span>
+                      )}
                     </td>
                     <td className="max-w-48 px-4 py-3">
                       {peminjaman.keperluan_label}
@@ -194,6 +203,13 @@ export default function PeminjamanPage() {
                           {peminjaman.praktikum_slug}
                         </span>
                       )}
+                      {peminjaman.keperluan === "penyewaan_komersil" &&
+                        peminjaman.tanggal_pinjam &&
+                        peminjaman.tanggal_kembali && (
+                          <span className="block text-xs text-gray-500">
+                            {peminjaman.tanggal_pinjam} → {peminjaman.tanggal_kembali}
+                          </span>
+                        )}
                     </td>
                     <td className="px-4 py-3">
                       <ul className="space-y-0.5">
@@ -238,6 +254,12 @@ export default function PeminjamanPage() {
                               className="text-sm font-medium text-green-700 underline hover:text-green-600"
                             >
                               Setujui
+                            </button>
+                            <button
+                              onClick={() => setRevisiTarget(peminjaman)}
+                              className="text-sm text-gray-600 underline hover:text-gray-900"
+                            >
+                              Revisi
                             </button>
                             <button
                               onClick={() => setTolakTarget(peminjaman)}
@@ -295,7 +317,7 @@ export default function PeminjamanPage() {
       {approveTarget && (
         <ConfirmActionModal
           title="Setujui Pengajuan"
-          description={`Setujui peminjaman ${approveTarget.items.length} alat oleh ${approveTarget.nama} (${approveTarget.nim})? Stok alat akan dicek dan log pengeluaran tercatat otomatis.`}
+          description={`Setujui peminjaman ${approveTarget.items.length} alat oleh ${approveTarget.nama}${approveTarget.nim !== null ? ` (${approveTarget.nim})` : ''}? Stok alat akan dicek dan log pengeluaran tercatat otomatis.`}
           confirmLabel="Setujui"
           confirmClass="bg-green-600 hover:bg-green-500"
           onConfirm={() =>
@@ -304,6 +326,17 @@ export default function PeminjamanPage() {
           onClose={() => setApproveTarget(null)}
           onSuccess={() => {
             setApproveTarget(null);
+            setRefreshKey((key) => key + 1);
+          }}
+        />
+      )}
+
+      {revisiTarget && (
+        <RevisiModal
+          peminjaman={revisiTarget}
+          onClose={() => setRevisiTarget(null)}
+          onSuccess={() => {
+            setRevisiTarget(null);
             setRefreshKey((key) => key + 1);
           }}
         />
