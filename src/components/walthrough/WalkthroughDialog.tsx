@@ -5,7 +5,7 @@ import React, {
   useCallback,
 } from "react";
 import { createPortal } from "react-dom";
-import { Button } from "../../ui/Buttons";
+import { Button } from "../ui/Buttons";
 
 interface AnchoredDialogProps {
   isOpen: boolean;

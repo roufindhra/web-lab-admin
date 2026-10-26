@@ -7,9 +7,9 @@ import {
   type Peminjaman,
   type PeminjamanStatus,
 } from '@/services'
-import ConfirmActionModal from '../components/ConfirmActionModal'
-import KembalikanModal from '../components/KembalikanModal'
-import TolakModal from '../components/TolakModal'
+import ConfirmActionModal from '../components/modals/ConfirmActionModal'
+import KembalikanModal from '../components/modals/KembalikanModal'
+import TolakModal from '../components/modals/TolakModal'
 
 const SEARCH_DEBOUNCE_MS = 400;
 

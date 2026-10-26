@@ -1,6 +1,5 @@
 @layer components {
-
-    /* BUTTONS */
+  /* BUTTONS */
 
   .md-button-filled {
     background-color: var(--md-sys-color-primary);
@@ -8,10 +7,16 @@
     border-radius: var(--md-sys-shape-corner-full);
     padding: 0.625rem 1.5rem;
     font-weight: 500;
-    transition: background-color 0.2s, box-shadow 0.2s;
+    transition:
+      background-color 0.2s,
+      box-shadow 0.2s;
   }
   .md-button-filled:hover {
-    background-color: color-mix(in srgb, var(--md-sys-color-primary) 92%, black);
+    background-color: color-mix(
+      in srgb,
+      var(--md-sys-color-primary) 92%,
+      black
+    );
   }
 
   .md-button-text {
@@ -21,7 +26,11 @@
     font-weight: 500;
   }
   .md-button-text:hover {
-    background-color: color-mix(in srgb, var(--md-sys-color-primary) var(--md-sys-state-hover-opacity), transparent);
+    background-color: color-mix(
+      in srgb,
+      var(--md-sys-color-primary) var(--md-sys-state-hover-opacity),
+      transparent
+    );
   }
 
   .md-button-outlined {
@@ -31,11 +40,17 @@
     border-radius: var(--md-sys-shape-corner-full);
     padding: 0.625rem 1.5rem;
     font-weight: 500;
-    transition: background-color 0.2s, border-color 0.2s;
+    transition:
+      background-color 0.2s,
+      border-color 0.2s;
   }
-  
+
   .md-button-outlined:hover {
-    background-color: color-mix(in srgb, var(--md-sys-color-primary) var(--md-sys-state-hover-opacity), transparent);
+    background-color: color-mix(
+      in srgb,
+      var(--md-sys-color-primary) var(--md-sys-state-hover-opacity),
+      transparent
+    );
   }
 
   .md-button-outlined:focus-visible {
@@ -44,27 +59,31 @@
   }
 
   .md-button-outlined:disabled {
-    border-color: color-mix(in srgb, var(--md-sys-color-on-surface) 12%, transparent);
+    border-color: color-mix(
+      in srgb,
+      var(--md-sys-color-on-surface) 12%,
+      transparent
+    );
     color: color-mix(in srgb, var(--md-sys-color-on-surface) 38%, transparent);
     pointer-events: none;
   }
 
-
   /* FAB */
-  
+
   .md-fab {
     background-color: var(--md-sys-color-primary-container);
     color: var(--md-sys-color-on-primary-container);
     border-radius: var(--md-sys-shape-corner-large);
     box-shadow: var(--md-sys-elevation-3);
-    transition: border-radius 0.2s, box-shadow 0.2s;
+    transition:
+      border-radius 0.2s,
+      box-shadow 0.2s;
   }
   .md-fab:hover {
     box-shadow: var(--md-sys-elevation-1);
     border-radius: calc(var(--md-sys-shape-corner-large) + 4px);
   }
 
-  
   /* CARDS */
 
   .md-card-filled {
@@ -83,9 +102,12 @@
   .md-card-outlined {
     background-color: var(--md-sys-color-surface);
     color: var(--md-sys-color-on-surface);
-    border: var(--md-sys-border-width-small) solid var(--md-sys-color-outline-variant);
+    border: var(--md-sys-border-width-small) solid
+      var(--md-sys-color-outline-variant);
     border-radius: var(--md-sys-shape-corner-large);
-    transition: border-color 0.2s, box-shadow 0.2s;
+    transition:
+      border-color 0.2s,
+      box-shadow 0.2s;
   }
 
   .md-card-outlined:hover {
@@ -94,12 +116,11 @@
   }
 }
 
-
 /* DIALOG */
 
-  .md-dialog-container {
-    background-color: var(--md-sys-color-surface-container-high);
-    border-radius: var(--md-sys-shape-corner-large);
-    box-shadow: var(--md-sys-elevation-3);
-    color: var(--md-sys-color-on-surface);
-  }
+.md-dialog-container {
+  background-color: var(--md-sys-color-surface-container-high);
+  border-radius: var(--md-sys-shape-corner-large);
+  box-shadow: var(--md-sys-elevation-3);
+  color: var(--md-sys-color-on-surface);
+}
