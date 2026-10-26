@@ -12,6 +12,7 @@ import PraktikumPage from '@/pages/Praktikum'
 import PraktikumDetail from '@/pages/PraktikumDetail'
 import Kurikulum from '@/pages/Kurikulum'
 import KurikulumDetail from '@/pages/KurikulumDetail'
+import DashboardAlat from './pages/Alat'
 
 export default function App() {
   return (
@@ -28,6 +29,7 @@ export default function App() {
         >
           <Route index element={<Dashboard />} />
           <Route path="mahasiswa" element={<Students />} />
+          <Route path="alat" element={<DashboardAlat />} />
           <Route path="alat-invent" element={<AlatInventPage />} />
           <Route path="alat-log" element={<AlatLogPage />} />
           <Route path="alat-peminjaman" element={<PeminjamanPage />} />
