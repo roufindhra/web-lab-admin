@@ -1,6 +1,6 @@
 import { createContext, useContext, useEffect, useState } from 'react'
-import { adminAuthService, getToken } from '@/services'
-import type { AdminUser } from '@/services'
+import { adminAuthService, alatTokenService, getToken } from '@/services'
+import type { AdminUser, AlatPermission } from '@/services'
 
 interface AdminAuthContextValue {
   user: AdminUser | null
@@ -14,6 +14,11 @@ interface AdminAuthContextValue {
   ampuPlugs: Record<string, string[]>
   canAccessPraktikum: (slug: string | undefined) => boolean
   canAmpuPlug: (slug: string | undefined, plug: string | undefined) => boolean
+  alatPermissions: AlatPermission[]
+  alatTokenExpiresAt: string | null
+  canAlat: (permission: AlatPermission) => boolean
+  refreshUser: () => Promise<void>
+  claimAlatToken: (code: string) => Promise<void>
 }
 
 const AdminAuthContext = createContext<AdminAuthContextValue | null>(null)
@@ -55,11 +60,23 @@ export function AdminAuthProvider({ children }: { children: React.ReactNode }) {
   const isDosen = user?.role === 'dosen'
   const ampuPraktikum = user?.pengampu_praktikum ?? []
   const ampuPlugs = user?.pengampu_plug ?? {}
+  const alatPermissions = (user?.alat_permissions ?? []) as AlatPermission[]
+  const alatTokenExpiresAt = user?.alat_token_expires_at ?? null
   const canAccessPraktikum = (slug: string | undefined) =>
     isDosen || (slug !== undefined && ampuPraktikum.includes(slug))
   const canAmpuPlug = (slug: string | undefined, plug: string | undefined) =>
     isDosen ||
     (slug !== undefined && plug !== undefined && (ampuPlugs[slug] ?? []).includes(plug))
+  const canAlat = (permission: AlatPermission) => isDosen || alatPermissions.includes(permission)
+
+  const refreshUser = async () => {
+    setUser(await adminAuthService.getUser())
+  }
+
+  const claimAlatToken = async (code: string) => {
+    await alatTokenService.claim(code)
+    await refreshUser()
+  }
 
   return (
     <AdminAuthContext.Provider
@@ -75,6 +92,11 @@ export function AdminAuthProvider({ children }: { children: React.ReactNode }) {
         ampuPlugs,
         canAccessPraktikum,
         canAmpuPlug,
+        alatPermissions,
+        alatTokenExpiresAt,
+        canAlat,
+        refreshUser,
+        claimAlatToken,
       }}
     >
       {children}

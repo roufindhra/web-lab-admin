@@ -6,7 +6,6 @@ import Login from '@/pages/Login'
 import Dashboard from '@/pages/Dashboard'
 import Students from '@/pages/Students'
 import AsistenPage from '@/pages/Asisten'
-import AlatInventPage from '@/pages/AlatInventaris'
 import AlatLogPage from '@/pages/AlatLog'
 import PeminjamanPage from '@/pages/AlatPeminjaman'
 import HargaSewaPage from '@/pages/HargaSewa'
@@ -15,6 +14,7 @@ import PraktikumDetail from '@/pages/PraktikumDetail'
 import Kurikulum from '@/pages/Kurikulum'
 import KurikulumDetail from '@/pages/KurikulumDetail'
 import DashboardAlat from './pages/Alat'
+import AlatInventarisPage from '@/pages/AlatInventaris'
 
 export default function App() {
   return (
@@ -39,15 +39,8 @@ export default function App() {
               </DosenRoute>
             }
           />
-          <Route
-            path="alat"
-            element={
-              <DosenRoute>
-                <DashboardAlat />
-              </DosenRoute>
-            }
-          />
-          <Route path="alat-invent" element={<AlatInventPage />} />
+          <Route path="alat" element={<DashboardAlat />} />
+          <Route path="alat-invent" element={<AlatInventarisPage />} />
           <Route
             path="alat-log"
             element={

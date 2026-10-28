@@ -1,6 +1,7 @@
 export * from './api'
 export * from './alat'
 export * from './alatLog'
+export * from './alatToken'
 export * from './auth'
 export * from './dashboard'
 export * from './kurikulum'
