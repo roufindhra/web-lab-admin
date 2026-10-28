@@ -3,6 +3,7 @@ import { Link, useParams } from 'react-router-dom'
 import { praktikumService, ApiError, type Praktikum, type AssignMahasiswa, type Pertemuan } from '@/services'
 import PenilaianSection from '@/components/PenilaianSection'
 import NilaiSidePanel from '@/components/NilaiSidePanel'
+import { useAdminAuth } from '@/contexts/AdminAuthContext'
 
 function KelompokInput({
   slug,
@@ -51,6 +52,7 @@ export default function PraktikumDetail() {
 }
 
 function Detail({ slug }: { slug?: string }) {
+  const { canAmpuPlug } = useAdminAuth()
   const [praktikum, setPraktikum] = useState<Praktikum | null>(null)
   const [pertemuan, setPertemuan] = useState<Pertemuan[]>([])
   const [isLoading, setIsLoading] = useState(true)
@@ -74,7 +76,7 @@ function Detail({ slug }: { slug?: string }) {
     setMahasiswaError(null)
 
     praktikumService
-      .listMahasiswa(current.id, plugName, true)
+      .listMahasiswa(current.slug, plugName, true)
       .then((students) => setMahasiswa(students))
       .catch((err) => {
         setMahasiswaError(err instanceof ApiError ? err.message : 'Gagal memuat daftar mahasiswa.')
@@ -196,7 +198,9 @@ function Detail({ slug }: { slug?: string }) {
                 <div className="flex gap-2">
                   <button
                     onClick={() => setPanelPlug(jadwal.plug)}
-                    className="rounded-md border px-3 py-1.5 text-xs font-medium hover:bg-gray-100"
+                    disabled={!canAmpuPlug(slug, jadwal.plug)}
+                    title={canAmpuPlug(slug, jadwal.plug) ? undefined : 'Di luar plug ampuan Anda'}
+                    className="rounded-md border px-3 py-1.5 text-xs font-medium hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-40 hover:disabled:bg-transparent"
                   >
                     Input Nilai
                   </button>
@@ -268,6 +272,7 @@ function Detail({ slug }: { slug?: string }) {
           key={panelPlug}
           praktikum={{ id: praktikum.id, slug: praktikum.slug, label: praktikum.label }}
           plug={panelPlug}
+          canEdit={canAmpuPlug(slug, panelPlug)}
           pertemuan={pertemuan}
           onClose={() => setPanelPlug(null)}
           onSaved={() => {

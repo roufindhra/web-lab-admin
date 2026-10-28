@@ -7,6 +7,8 @@ export interface AdminUser {
   nim?: number
   surel: string | null
   role: 'dosen' | 'asisten'
+  pengampu_praktikum?: string[]
+  pengampu_plug?: Record<string, string[]>
 }
 
 interface LoginResponse {

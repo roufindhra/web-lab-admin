@@ -9,6 +9,11 @@ interface AdminAuthContextValue {
   login: (nomorInduk: string, password: string) => Promise<void>
   logout: () => Promise<void>
   hasRole: (role: string) => boolean
+  isDosen: boolean
+  ampuPraktikum: string[]
+  ampuPlugs: Record<string, string[]>
+  canAccessPraktikum: (slug: string | undefined) => boolean
+  canAmpuPlug: (slug: string | undefined, plug: string | undefined) => boolean
 }
 
 const AdminAuthContext = createContext<AdminAuthContextValue | null>(null)
@@ -47,6 +52,14 @@ export function AdminAuthProvider({ children }: { children: React.ReactNode }) {
   }
 
   const hasRole = (role: string) => user?.role === role
+  const isDosen = user?.role === 'dosen'
+  const ampuPraktikum = user?.pengampu_praktikum ?? []
+  const ampuPlugs = user?.pengampu_plug ?? {}
+  const canAccessPraktikum = (slug: string | undefined) =>
+    isDosen || (slug !== undefined && ampuPraktikum.includes(slug))
+  const canAmpuPlug = (slug: string | undefined, plug: string | undefined) =>
+    isDosen ||
+    (slug !== undefined && plug !== undefined && (ampuPlugs[slug] ?? []).includes(plug))
 
   return (
     <AdminAuthContext.Provider
@@ -57,6 +70,11 @@ export function AdminAuthProvider({ children }: { children: React.ReactNode }) {
         login,
         logout,
         hasRole,
+        isDosen,
+        ampuPraktikum,
+        ampuPlugs,
+        canAccessPraktikum,
+        canAmpuPlug,
       }}
     >
       {children}

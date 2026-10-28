@@ -110,15 +110,15 @@ export const praktikumService = {
             body: JSON.stringify(data),
         })
     },
-    async listMahasiswa(id: number, plug: string, assignedOnly = false): Promise<AssignMahasiswa[]> {
+    async listMahasiswa(slug: string, plug: string, assignedOnly = false): Promise<AssignMahasiswa[]> {
         const query = assignedOnly ? '?assigned=1' : ''
         const response = await api<{ data: AssignMahasiswa[] }>(
-            `/api/admin/praktikum/${id}/plugs/${encodeURIComponent(plug)}/mahasiswa${query}`,
+            `/api/admin/praktikum/${encodeURIComponent(slug)}/plugs/${encodeURIComponent(plug)}/mahasiswa${query}`,
         )
         return response.data
     },
-    async assignMahasiswa(id: number, plug: string, mahasiswaIds: number[]): Promise<void> {
-        await api<void>(`/api/admin/praktikum/${id}/plugs/${encodeURIComponent(plug)}/mahasiswa`, {
+    async assignMahasiswa(slug: string, plug: string, mahasiswaIds: number[]): Promise<void> {
+        await api<void>(`/api/admin/praktikum/${encodeURIComponent(slug)}/plugs/${encodeURIComponent(plug)}/mahasiswa`, {
             method: 'PUT',
             body: JSON.stringify({ mahasiswa_ids: mahasiswaIds }),
         })
