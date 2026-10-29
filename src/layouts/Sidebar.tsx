@@ -143,6 +143,22 @@ export const Sidebar: React.FC<SideBarProps> = ({ isOpen, onClose }) => {
             praktikumMenu && <SidebarItem item={praktikumMenu} />
           )}
         </nav>
+
+        <div className="border-t border-(--md-sys-color-on-primary)/20 p-3">
+          <NavLink
+            id="sidebar-pengaturan-akun"
+            to="/pengaturan-akun"
+            className={({ isActive }) =>
+              `flex items-center rounded-(--md-sys-shape-corner-full) px-4 py-2.5 text-sm font-medium transition-colors ${
+                isActive
+                  ? "bg-(--md-sys-color-primary-container) text-(--md-sys-color-on-primary-container) font-semibold"
+                  : "hover:bg-(--md-sys-color-primary-container)"
+              }`
+            }
+          >
+            Pengaturan Akun
+          </NavLink>
+        </div>
       </aside>
     </>
   );

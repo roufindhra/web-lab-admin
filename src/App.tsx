@@ -13,6 +13,7 @@ import PraktikumPage from '@/pages/Praktikum'
 import PraktikumDetail from '@/pages/PraktikumDetail'
 import Kurikulum from '@/pages/Kurikulum'
 import KurikulumDetail from '@/pages/KurikulumDetail'
+import PengaturanAkun from '@/pages/PengaturanAkun'
 import DashboardAlat from './pages/Alat'
 import AlatInventarisPage from '@/pages/AlatInventaris'
 
@@ -83,6 +84,13 @@ export default function App() {
               </DosenRoute>
             }
           />
+          <Route
+            path="pengaturan-akun"
+            element={
+              <PengaturanAkun />
+            }
+          />
+           
         </Route>
       </Routes>
     </BrowserRouter>
