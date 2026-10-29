@@ -12,6 +12,7 @@ import PraktikumPage from '@/pages/Praktikum'
 import PraktikumDetail from '@/pages/PraktikumDetail'
 import Kurikulum from '@/pages/Kurikulum'
 import KurikulumDetail from '@/pages/KurikulumDetail'
+import PengaturanAkun from '@/pages/PengaturanAkun'
 import DashboardAlat from './pages/Alat'
 
 export default function App() {
@@ -38,6 +39,7 @@ export default function App() {
           <Route path="praktikum/:slug" element={<PraktikumDetail />} />
           <Route path="kurikulum" element={<Kurikulum />} />
           <Route path="kurikulum/:slug" element={<KurikulumDetail />} />
+          <Route path="pengaturan-akun" element={<PengaturanAkun />} />
         </Route>
       </Routes>
     </BrowserRouter>
