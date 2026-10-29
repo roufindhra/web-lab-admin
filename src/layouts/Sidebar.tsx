@@ -3,6 +3,7 @@ import { NavLink } from "react-router-dom";
 import { SidebarItem } from "../components/SidebarItem";
 import type { MenuItem } from "./types";
 import { praktikumService } from "@/services";
+import { useAdminAuth } from "@/contexts/AdminAuthContext";
 
 interface SideBarProps {
   isOpen: boolean;
@@ -12,6 +13,7 @@ interface SideBarProps {
 const STATIC_MENU_ITEMS = [
   { id: "sidebar-dashboard", label: "Dashboard", path: "/" },
   { id: "sidebar-mahasiswa", label: "Mahasiswa", path: "/mahasiswa" },
+  { id: "sidebar-asisten", label: "Asisten", path: "/asisten" },
   { id: "sidebar-kurikulum", label: "Kurikulum", path: "/kurikulum" },
 ];
 
@@ -28,6 +30,7 @@ const ALAT_MENU_ITEMS: MenuItem = {
 };
 
 export const Sidebar: React.FC<SideBarProps> = ({ isOpen, onClose }) => {
+  const { isDosen } = useAdminAuth();
   const [praktikumMenu, setPraktikumMenu] = useState<MenuItem | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -65,6 +68,22 @@ export const Sidebar: React.FC<SideBarProps> = ({ isOpen, onClose }) => {
     };
   }, []);
 
+  const staticMenuItems = isDosen
+    ? STATIC_MENU_ITEMS
+    : STATIC_MENU_ITEMS.filter(
+        (item) => item.path !== "/asisten" && item.path !== "/kurikulum",
+      );
+
+  const alatMenuItems: MenuItem = isDosen
+    ? ALAT_MENU_ITEMS
+    : {
+        ...ALAT_MENU_ITEMS,
+        children: ALAT_MENU_ITEMS.children?.filter(
+          (child) =>
+            child.path === "/alat-invent" || child.path === "/alat-peminjaman",
+        ),
+      };
+
   return (
     <>
       {isOpen && (
@@ -97,7 +116,7 @@ export const Sidebar: React.FC<SideBarProps> = ({ isOpen, onClose }) => {
         </div>
 
         <nav className="flex-1 overflow-y-auto p-3 space-y-1">
-          {STATIC_MENU_ITEMS.map((item) => (
+          {staticMenuItems.map((item) => (
             <NavLink
               key={item.path}
               id={item.id}
@@ -114,7 +133,7 @@ export const Sidebar: React.FC<SideBarProps> = ({ isOpen, onClose }) => {
             </NavLink>
           ))}
 
-          <SidebarItem item={ALAT_MENU_ITEMS} />
+          <SidebarItem item={alatMenuItems} />
 
           {isLoading ? (
             <div className="px-4 py-2 text-xs text-gray-400 animate-pulse">

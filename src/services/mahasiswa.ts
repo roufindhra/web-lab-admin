@@ -9,15 +9,16 @@ export interface Mahasiswa {
   praktikum: string[] | null
   praktikum_plug: Record<string, string> | null
   is_asisten: boolean
+  is_active_asisten: boolean
   pengampu_praktikum: string[] | null
-  pengampu_plug: Record<string, string> | null
+  pengampu_plug: Record<string, string[]> | null
   role: 'asisten' | 'mahasiswa'
 }
 
 export interface MahasiswaListParams {
   search?: string
   angkatan?: number
-  role?: 'asisten' | 'mahasiswa'
+  role?: 'asisten' | 'asisten_all' | 'mahasiswa'
   page?: number
   perPage?: number
   sortDirection?: 'asc' | 'desc'
@@ -68,6 +69,21 @@ export const mahasiswaService = {
     data: { praktikum: string[]; praktikum_plug: Record<string, string> },
   ): Promise<Mahasiswa> {
     return api<Mahasiswa>(`/api/admin/mahasiswa/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    })
+  },
+
+  async updateAsisten(
+    id: number,
+    data: {
+      is_asisten: boolean
+      is_active_asisten: boolean
+      pengampu_praktikum: string[]
+      pengampu_plug: Record<string, string[]>
+    },
+  ): Promise<Mahasiswa> {
+    return api<Mahasiswa>(`/api/admin/mahasiswa/${id}/asisten`, {
       method: 'PUT',
       body: JSON.stringify(data),
     })

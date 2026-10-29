@@ -36,6 +36,9 @@ interface EntryDraft {
 interface AlatFormModalProps {
   alat?: Alat | null;
   isOpen?: boolean;
+  canCrud?: boolean;
+  canEditKondisi?: boolean;
+  canEditStatus?: boolean;
   onClose: () => void;
   onSuccess: () => void;
 }
@@ -54,6 +57,9 @@ function draftFromAlat(alat: Alat | null | undefined): EntryDraft[] {
 export default function AlatFormModal({
   alat,
   isOpen = true,
+  canCrud = true,
+  canEditKondisi = true,
+  canEditStatus = true,
   onClose,
   onSuccess,
 }: AlatFormModalProps) {
@@ -216,6 +222,7 @@ export default function AlatFormModal({
           value={inventaris}
           onChange={(e) => setInventaris(e.target.value)}
           placeholder="Misal: INV/SGG/2026/001"
+          disabled={!canCrud}
         />
 
         <Input
@@ -223,6 +230,7 @@ export default function AlatFormModal({
           value={namaAlat}
           onChange={(e) => setNamaAlat(e.target.value)}
           placeholder="Misal: Total Station Hi-Target"
+          disabled={!canCrud}
         />
 
         <div className="grid grid-cols-2 gap-3">
@@ -231,12 +239,14 @@ export default function AlatFormModal({
             value={merk}
             onChange={(e) => setMerk(e.target.value)}
             placeholder="Misal: Topcon / Leica"
+            disabled={!canCrud}
           />
           <Input
             label="Tipe"
             value={tipe}
             onChange={(e) => setTipe(e.target.value)}
             placeholder="Misal: HTS-420R"
+            disabled={!canCrud}
           />
         </div>
 
@@ -245,6 +255,7 @@ export default function AlatFormModal({
           value={serialNumber}
           onChange={(e) => setSerialNumber(e.target.value)}
           placeholder="Nomor Seri Perangkat"
+          disabled={!canCrud}
         />
 
         <Input
@@ -252,6 +263,7 @@ export default function AlatFormModal({
           value={lokasiPenyimpanan}
           onChange={(e) => setLokasiPenyimpanan(e.target.value)}
           placeholder="Misal: Lemari A3 Lab SGG"
+          disabled={!canCrud}
         />
 
         <Input
@@ -260,6 +272,7 @@ export default function AlatFormModal({
           min={1}
           value={jumlah}
           onChange={(e) => setJumlah(e.target.value)}
+          disabled={!canCrud}
         />
 
         {/* --- KONDISI PER UNIT SECTION --- */}
@@ -282,7 +295,8 @@ export default function AlatFormModal({
                         status: e.target.value as KondisiStatus,
                       })
                     }
-                    className="flex-1 rounded-(--md-sys-shape-corner-medium) border border-(--md-sys-color-outline) bg-(--md-sys-color-surface) px-2.5 py-1.5 text-xs text-(--md-sys-color-on-surface) focus:outline-none focus:ring-1 focus:ring-(--md-sys-color-primary)"
+                    disabled={!canEditKondisi}
+                    className="flex-1 rounded-(--md-sys-shape-corner-medium) border border-(--md-sys-color-outline) bg-(--md-sys-color-surface) px-2.5 py-1.5 text-xs text-(--md-sys-color-on-surface) focus:outline-none focus:ring-1 focus:ring-(--md-sys-color-primary) disabled:opacity-50"
                   >
                     {KONDISI_STATUSES.map((status) => (
                       <option key={status} value={status}>
@@ -300,9 +314,10 @@ export default function AlatFormModal({
                     }
                     placeholder="Jumlah"
                     className="w-24 text-xs"
+                    disabled={!canEditKondisi}
                   />
 
-                  {entries.length > 1 && (
+                  {entries.length > 1 && canEditKondisi && (
                     <Button
                       type="button"
                       variant="text"
@@ -331,6 +346,7 @@ export default function AlatFormModal({
                           }
                           placeholder="Komponen"
                           className="w-32 shrink-0 text-xs" // Gunakan w-32 shrink-0 agar tidak menyusut/gepeng
+                          disabled={!canEditKondisi}
                         />
                         <Input
                           value={catatan.keterangan}
@@ -341,6 +357,7 @@ export default function AlatFormModal({
                           }
                           placeholder="Keterangan kerusakan"
                           className="flex-1 min-w-0 text-xs" // flex-1 min-w-0 agar mengambil sisa ruang dengan aman
+                          disabled={!canEditKondisi}
                         />
                         <button
                           type="button"
@@ -356,27 +373,33 @@ export default function AlatFormModal({
                   </div>
                 )}
 
-                <Button
-                  type="button"
-                  variant="text"
-                  onClick={() => addCatatan(entryIndex)}
-                  className="px-0 text-[11px] underline"
-                >
-                  + Tambah Catatan Komponen
-                </Button>
+                {canEditKondisi && (
+                  <Button
+                    type="button"
+                    variant="text"
+                    onClick={() => addCatatan(entryIndex)}
+                    className="px-0 text-[11px] underline"
+                  >
+                    + Tambah Catatan Komponen
+                  </Button>
+                )}
               </div>
             ))}
           </div>
 
           <div className="flex items-center justify-between pt-1">
-            <Button
-              type="button"
-              variant="outlined"
-              onClick={addEntry}
-              className="px-3 py-1 text-xs"
-            >
-              + Kelompok Kondisi
-            </Button>
+            {canEditKondisi ? (
+              <Button
+                type="button"
+                variant="outlined"
+                onClick={addEntry}
+                className="px-3 py-1 text-xs"
+              >
+                + Kelompok Kondisi
+              </Button>
+            ) : (
+              <span />
+            )}
 
             <p
               className={`text-xs font-semibold ${
@@ -398,7 +421,8 @@ export default function AlatFormModal({
             onChange={(e) =>
               setKetersediaan(e.target.value as KetersediaanStatus)
             }
-            className="w-full rounded-(--md-sys-shape-corner-medium) border border-(--md-sys-color-outline) bg-(--md-sys-color-surface) px-3 py-2 text-sm text-(--md-sys-color-on-surface) focus:border-(--md-sys-color-primary) focus:outline-none focus:ring-1 focus:ring-(--md-sys-color-primary)"
+            disabled={!canEditStatus}
+            className="w-full rounded-(--md-sys-shape-corner-medium) border border-(--md-sys-color-outline) bg-(--md-sys-color-surface) px-3 py-2 text-sm text-(--md-sys-color-on-surface) focus:border-(--md-sys-color-primary) focus:outline-none focus:ring-1 focus:ring-(--md-sys-color-primary) disabled:opacity-50"
           >
             {KETERSEDIAAN_STATUSES.map((status) => (
               <option key={status} value={status}>

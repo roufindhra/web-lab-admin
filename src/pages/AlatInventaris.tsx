@@ -12,6 +12,7 @@ import {
 import AlatFormModal from '../components/modals/AlatFormModal'
 import DeleteConfirmModal from '../components/modals/DeleteConfirmModal'
 import KondisiDetailModal from '../components/modals/KondisiDetailModal'
+import { useAdminAuth } from '@/contexts/AdminAuthContext'
 
 const SEARCH_DEBOUNCE_MS = 400
 
@@ -35,6 +36,12 @@ const KETERSEDIAAN_BADGE_CLASSES: Record<KetersediaanStatus, string> = {
 }
 
 export default function AlatPage() {
+  const { canAlat } = useAdminAuth()
+  const canCrud = canAlat('crud_inventaris')
+  const canEditKondisi = canAlat('edit_kondisi')
+  const canEditStatus = canAlat('edit_status')
+  const canEditSomething = canCrud || canEditKondisi || canEditStatus
+
   const [alatList, setAlatList] = useState<Alat[]>([])
   const [meta, setMeta] = useState<AlatListMeta | null>(null)
   const [search, setSearch] = useState('')
@@ -108,7 +115,9 @@ export default function AlatPage() {
       <div className="mt-4 flex flex-wrap items-center gap-3">
         <button
           onClick={() => setFormTarget(null)}
-          className="rounded-md bg-gray-900 px-4 py-2 text-sm font-medium text-white hover:bg-gray-700"
+          disabled={!canCrud}
+          title={canCrud ? undefined : 'Klaim token izin untuk mengedit'}
+          className="rounded-md bg-gray-900 px-4 py-2 text-sm font-medium text-white hover:bg-gray-700 disabled:cursor-not-allowed disabled:opacity-40"
         >
           Tambah Alat
         </button>
@@ -223,13 +232,17 @@ export default function AlatPage() {
                     <div className="flex gap-2">
                       <button
                         onClick={() => setFormTarget(alat)}
-                        className="text-sm text-gray-600 underline hover:text-gray-900"
+                        disabled={!canEditSomething}
+                        title={canEditSomething ? undefined : 'Klaim token izin untuk mengedit'}
+                        className="text-sm text-gray-600 underline hover:text-gray-900 disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:text-gray-600"
                       >
                         Edit
                       </button>
                       <button
                         onClick={() => setDeleteTarget(alat)}
-                        className="text-sm text-red-600 underline hover:text-red-500"
+                        disabled={!canCrud}
+                        title={canCrud ? undefined : 'Klaim token izin untuk mengedit'}
+                        className="text-sm text-red-600 underline hover:text-red-500 disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:text-red-600"
                       >
                         Hapus
                       </button>
@@ -270,7 +283,14 @@ export default function AlatPage() {
       )}
 
       {formTarget !== undefined && (
-        <AlatFormModal alat={formTarget} onClose={handleCloseForm} onSuccess={handleFormSuccess} />
+        <AlatFormModal
+          alat={formTarget}
+          canCrud={canCrud}
+          canEditKondisi={canEditKondisi}
+          canEditStatus={canEditStatus}
+          onClose={handleCloseForm}
+          onSuccess={handleFormSuccess}
+        />
       )}
 
       {detailTarget && <KondisiDetailModal alat={detailTarget} onClose={() => setDetailTarget(null)} />}

@@ -25,6 +25,7 @@ export interface Peminjaman {
   keperluan: string
   keperluan_label: string
   praktikum_slug: string | null
+  can_process: boolean
   no_hp: string | null
   institusi: string | null
   email: string | null

@@ -7,6 +7,10 @@ export interface AdminUser {
   nim?: number
   surel: string | null
   role: 'dosen' | 'asisten'
+  pengampu_praktikum?: string[]
+  pengampu_plug?: Record<string, string[]>
+  alat_permissions?: string[]
+  alat_token_expires_at?: string | null
 }
 
 interface LoginResponse {

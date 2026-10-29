@@ -19,12 +19,14 @@ export default function NilaiSidePanel({
   praktikum,
   plug,
   pertemuan,
+  canEdit,
   onClose,
   onSaved,
 }: {
   praktikum: PraktikumInfo
   plug: string
   pertemuan: Pertemuan[]
+  canEdit: boolean
   onClose: () => void
   onSaved: () => void
 }) {
@@ -40,7 +42,7 @@ export default function NilaiSidePanel({
     let cancelled = false
 
     Promise.all([
-      praktikumService.listMahasiswa(praktikum.id, plug, true),
+      praktikumService.listMahasiswa(praktikum.slug, plug, true),
       praktikumService.listNilaiPlug(praktikum.slug, plug),
     ])
       .then(([studentList, nilaiList]) => {
@@ -206,11 +208,12 @@ export default function NilaiSidePanel({
                                       min={0}
                                       max={100}
                                       step="0.5"
+                                      disabled={!canEdit}
                                       value={getInput(student.id, item.id, p.nama)}
                                       onChange={(event) =>
                                         setInput(student.id, item.id, p.nama, event.target.value)
                                       }
-                                      className="w-24 rounded-md border px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-gray-900"
+                                      className="w-24 rounded-md border px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-gray-900 disabled:cursor-not-allowed disabled:bg-gray-100"
                                     />
                                   </td>
                                 ))}
@@ -226,10 +229,10 @@ export default function NilaiSidePanel({
                         )}
                         <button
                           onClick={() => handleSave(item)}
-                          disabled={savingId === item.id}
+                          disabled={!canEdit || savingId === item.id}
                           className="rounded-md bg-gray-900 px-4 py-1.5 text-sm font-medium text-white hover:bg-gray-700 disabled:cursor-not-allowed disabled:opacity-40"
                         >
-                          {savingId === item.id ? 'Menyimpan...' : 'Simpan Nilai'}
+                          {!canEdit ? 'Hanya lihat' : savingId === item.id ? 'Menyimpan...' : 'Simpan Nilai'}
                         </button>
                       </div>
                     </div>

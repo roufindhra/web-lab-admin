@@ -247,36 +247,46 @@ export default function PeminjamanPage() {
                     </td>
                     <td className="px-4 py-3">
                       <div className="flex flex-wrap gap-2">
-                        {peminjaman.status === "pending" && (
-                          <>
+                        {peminjaman.status === "pending" &&
+                          (peminjaman.can_process ? (
+                            <>
+                              <button
+                                onClick={() => setApproveTarget(peminjaman)}
+                                className="text-sm font-medium text-green-700 underline hover:text-green-600"
+                              >
+                                Setujui
+                              </button>
+                              <button
+                                onClick={() => setRevisiTarget(peminjaman)}
+                                className="text-sm text-gray-600 underline hover:text-gray-900"
+                              >
+                                Revisi
+                              </button>
+                              <button
+                                onClick={() => setTolakTarget(peminjaman)}
+                                className="text-sm text-red-600 underline hover:text-red-500"
+                              >
+                                Tolak
+                              </button>
+                            </>
+                          ) : (
+                            <span className="text-xs text-gray-400" title="Di luar plug ampuan Anda">
+                              Menunggu persetujuan dosen
+                            </span>
+                          ))}
+                        {sedangBerjalan &&
+                          (peminjaman.can_process ? (
                             <button
-                              onClick={() => setApproveTarget(peminjaman)}
-                              className="text-sm font-medium text-green-700 underline hover:text-green-600"
-                            >
-                              Setujui
-                            </button>
-                            <button
-                              onClick={() => setRevisiTarget(peminjaman)}
+                              onClick={() => setKembalikanTarget(peminjaman)}
                               className="text-sm text-gray-600 underline hover:text-gray-900"
                             >
-                              Revisi
+                              Konfirmasi Pengembalian
                             </button>
-                            <button
-                              onClick={() => setTolakTarget(peminjaman)}
-                              className="text-sm text-red-600 underline hover:text-red-500"
-                            >
-                              Tolak
-                            </button>
-                          </>
-                        )}
-                        {sedangBerjalan && (
-                          <button
-                            onClick={() => setKembalikanTarget(peminjaman)}
-                            className="text-sm text-gray-600 underline hover:text-gray-900"
-                          >
-                            Konfirmasi Pengembalian
-                          </button>
-                        )}
+                          ) : (
+                            <span className="text-xs text-gray-400" title="Di luar plug ampuan Anda">
+                              Menunggu dosen
+                            </span>
+                          ))}
                       </div>
                     </td>
                   </tr>

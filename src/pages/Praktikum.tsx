@@ -6,6 +6,7 @@ import {
   type JadwalInput,
   type AssignMahasiswa,
 } from "@/services";
+import { useAdminAuth } from "@/contexts/AdminAuthContext";
 
 interface FormState {
   praktikum_label: string;
@@ -50,6 +51,7 @@ function slugify(label: string): string {
 }
 
 export default function PraktikumPage() {
+  const { isDosen } = useAdminAuth();
   const [items, setItems] = useState<Praktikum[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -204,7 +206,7 @@ export default function PraktikumPage() {
     setSelectedIds(new Set());
 
     praktikumService
-      .listMahasiswa(editingId, jadwal.plug)
+      .listMahasiswa(form.praktikum_slug, jadwal.plug)
       .then((students) => {
         setAssignStudents(students);
         setSelectedIds(
@@ -249,7 +251,7 @@ export default function PraktikumPage() {
     setAssignError(null);
 
     praktikumService
-      .assignMahasiswa(editingId, assignPlug, Array.from(selectedIds))
+      .assignMahasiswa(form.praktikum_slug, assignPlug, Array.from(selectedIds))
       .then(() => {
         closeAssign();
         setRefreshKey((key) => key + 1);
@@ -270,14 +272,16 @@ export default function PraktikumPage() {
     <div>
       <h1 className="text-2xl font-bold">Daftar Praktikum</h1>
 
-      <div className="mt-4 flex items-center gap-3">
-        <button
-          onClick={openCreate}
-          className="rounded-md bg-gray-900 px-4 py-2 text-sm font-medium text-white hover:bg-gray-700"
-        >
-          Tambah Praktikum
-        </button>
-      </div>
+      {isDosen && (
+        <div className="mt-4 flex items-center gap-3">
+          <button
+            onClick={openCreate}
+            className="rounded-md bg-gray-900 px-4 py-2 text-sm font-medium text-white hover:bg-gray-700"
+          >
+            Tambah Praktikum
+          </button>
+        </div>
+      )}
 
       {error && <p className="mt-4 text-sm text-red-600">{error}</p>}
 
@@ -349,19 +353,23 @@ export default function PraktikumPage() {
                     </span>
                   </td>
                   <td className="px-4 py-3 text-right">
-                    <button
-                      onClick={() => openEdit(item)}
-                      className="rounded-md border px-3 py-1.5 text-xs hover:bg-gray-100"
-                    >
-                      Edit
-                    </button>
-                    <button
-                      onClick={() => handleDelete(item)}
-                      disabled={deletingId === item.id}
-                      className="ml-2 rounded-md border border-red-200 px-3 py-1.5 text-xs text-red-600 hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-40"
-                    >
-                      {deletingId === item.id ? "Menghapus..." : "Hapus"}
-                    </button>
+                    {isDosen && (
+                      <>
+                        <button
+                          onClick={() => openEdit(item)}
+                          className="rounded-md border px-3 py-1.5 text-xs hover:bg-gray-100"
+                        >
+                          Edit
+                        </button>
+                        <button
+                          onClick={() => handleDelete(item)}
+                          disabled={deletingId === item.id}
+                          className="ml-2 rounded-md border border-red-200 px-3 py-1.5 text-xs text-red-600 hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-40"
+                        >
+                          {deletingId === item.id ? "Menghapus..." : "Hapus"}
+                        </button>
+                      </>
+                    )}
                   </td>
                 </tr>
               ))
