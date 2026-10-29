@@ -35,63 +35,80 @@ export default function DashboardAlat() {
 
   const [isTokenModalOpen, setIsTokenModalOpen] = useState(false);
 
+  const hasActivePermission =
+    alatPermissions.length > 0 && alatTokenExpiresAt !== null;
+
   return (
     <div className="space-y-6">
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h1 className="text-xl font-bold text-(--md-sys-color-on-surface)">
-            Manajemen Alat Laboratorium
-          </h1>
-          <p className="text-xs text-gray-500">
-            Otorisasi akses edit sementara lewat token. Tabel alat ada di menu{" "}
-            <a
-              href="/alat-invent"
-              className="underline hover:text-(--md-sys-color-on-surface)"
-            >
-              Inventaris Alat
-            </a>
-            .
-          </p>
-        </div>
-
-        {isDosen && (
-          <Button variant="filled" onClick={() => setIsTokenModalOpen(true)}>
-            + Generate Token Admin
-          </Button>
-        )}
+      <div>
+        <h1 className="text-xl font-bold text-(--md-sys-color-on-surface)">
+          Manajemen Alat Laboratorium
+        </h1>
+        <p className="text-xs text-gray-500">
+          Otorisasi akses edit sementara lewat token. Tabel alat ada di menu{" "}
+          <a
+            href="/alat-invent"
+            className="underline hover:text-(--md-sys-color-on-surface)"
+          >
+            Inventaris Alat
+          </a>
+          .
+        </p>
       </div>
 
-      {!isDosen && (
-        <Card variant="outlined" className="bg-amber-50/20 border-amber-200">
-          <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-            <div>
-              <p className="text-xs font-bold text-(--md-sys-color-on-surface)">
-                Izin Edit Memerlukan Token Otorisasi
-              </p>
-              <p className="text-[11px] text-gray-500">
-                Masukkan kode token dari Super Admin untuk mengaktifkan akses
-                edit data alat.
-              </p>
-            </div>
-            <ClaimTokenForm onClaimed={claimAlatToken} />
+      <Card variant="filled">
+        <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+          <div>
+            <p className="text-xs font-bold text-(--md-sys-color-on-surface)">
+              Otorisasi Akses Edit
+            </p>
+            <p className="text-[11px] text-gray-500">
+              {isDosen
+                ? "Terbitkan kode token untuk memberi asisten akses edit data alat sementara."
+                : "Masukkan kode token dari dosen untuk mengaktifkan akses edit data alat."}
+            </p>
           </div>
-        </Card>
-      )}
+          {isDosen ? (
+            <Button variant="filled" onClick={() => setIsTokenModalOpen(true)}>
+              + Generate Token Admin
+            </Button>
+          ) : (
+            <ClaimTokenForm onClaimed={claimAlatToken} />
+          )}
+        </div>
+      </Card>
 
-      {alatPermissions.length > 0 && alatTokenExpiresAt && (
-        <Card
-          variant="outlined"
-          className="border-emerald-200 bg-emerald-50/40"
-        >
-          <p className="text-xs font-semibold text-emerald-800">
-            Izin edit aktif:{" "}
+      <Card
+        variant="outlined"
+        className="flex items-center justify-between gap-3"
+      >
+        {isDosen ? (
+          <p className="text-xs text-(--md-sys-color-on-surface-variant)">
+            Kamu memiliki akses penuh sebagai dosen.
+          </p>
+        ) : hasActivePermission ? (
+          <p className="text-xs text-(--md-sys-color-on-surface-variant)">
+            Izin edit:{" "}
             {alatPermissions
               .map((permission) => ALAT_PERMISSION_LABELS[permission])
               .join(", ")}{" "}
             — berlaku hingga {formatWaktu(alatTokenExpiresAt)}
           </p>
-        </Card>
-      )}
+        ) : (
+          <p className="text-xs text-(--md-sys-color-on-surface-variant)">
+            Belum ada izin edit aktif.
+          </p>
+        )}
+        <span
+          className={`shrink-0 rounded-full px-2 py-0.5 text-[10px] font-semibold ${
+            isDosen || hasActivePermission
+              ? "bg-emerald-100 text-emerald-800"
+              : "bg-gray-100 text-gray-600"
+          }`}
+        >
+          {isDosen || hasActivePermission ? "Aktif" : "Nonaktif"}
+        </span>
+      </Card>
 
       {isTokenModalOpen && (
         <TokenAdminDialog onClose={() => setIsTokenModalOpen(false)} />
@@ -290,14 +307,14 @@ function TokenAdminDialog({ onClose }: { onClose: () => void }) {
         </Button>
 
         {generatedToken && (
-          <div className="rounded-(--md-sys-shape-corner-medium) border border-emerald-300 bg-emerald-50 p-3 text-center">
-            <p className="text-[11px] text-emerald-700">
+          <div className="rounded-(--md-sys-shape-corner-medium) border border-(--md-sys-color-outline-variant) bg-(--md-sys-color-surface-container-high) p-3 text-center">
+            <p className="text-[11px] font-semibold text-(--md-sys-color-primary)">
               Kode Token Berhasil Diterbitkan:
             </p>
-            <p className="my-1 font-mono text-xl font-bold text-emerald-900 select-all">
+            <p className="my-1 font-mono text-xl font-bold text-(--md-sys-color-on-surface) select-all">
               {generatedToken}
             </p>
-            <p className="text-[10px] text-emerald-600">
+            <p className="text-[10px] text-(--md-sys-color-on-surface-variant)">
               Salin dan berikan kepada Admin yang sedang bertugas.
             </p>
           </div>
