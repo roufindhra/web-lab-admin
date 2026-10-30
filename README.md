@@ -1,75 +1,89 @@
-# React + TypeScript + Vite
+# Developer and Architecture Guide
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Karena sudah terlalu sering kita semua kebolak-balik antar project dan antar aplikasi, maka dibuatlah dokumentasi ini sebagai acuan developer untuk membangun, mengembangkan, dan (nantinya?) memelihara lab-sgg-admin milik Laboratorium Survei Geodesi dan Geometri UPNVY.
 
-Currently, two official plugins are available:
+## Tech Stack
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+lab_sgg-admin dibangun berbasis React 19, Vite, Tailwind v4, dan TypeScript.
+| App | Version |
+| React | 19.2.x |
+| Vite | 8.2.x |
+| TypeScript | ~6.0.2 (strict mode) |
+| React Router DOM | 7.18.x |
+| Tailwind CSS | v4.3.x |
 
-## React Compiler
+Digunakan juga TipTap Editor, Material Design 3 UI components, `clsx`, dan `tailwind-merge`
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## Naming Convention
 
-## Expanding the ESLint configuration
+Konsistensi penamaan file penting banget nget agar struktur proyek tidak kacau balau ketika website ini semakin berkembang. Mohon untuk dipertahikan:
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+### 1. Penamaan *file* dan *directory*
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+- **React Components dan Pages** menggunakan PascalCase (mis. ServiceCard.tsx, RequestDetailModal.tsx, adminDashboard.tsx)
+- **Custom Hooks** menggunakan camelCase (mis. useAuthSession.ts, useRequestStatus.ts)
+- **Utilities, services, dan file helper** menggunakan kebab-case (mis. format-date.ts, api-admin.ts, cn.ts)
+- **Types dan interface** pakai PascalCase (mis. SurveyRequest.ts, UserRole.ts)
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+### 2. Struktur component
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+Setiap komponen yang membutuhkan file terpisah disarankan menggunakan struktur berikut:
+    
+components/
+└── walkthrough/
+    ├── useWalkthrough.ts
+    ├── walkthrough-data.ts
+    ├── WalkthroughDialog.tsx
+    ├── WalkthroughFAB.tsx
+    └── WalkthroughManager.tsx
 
-```
+## Version Control dan Git Convention
 
-You can also install [eslint-plugin-react-x](https://npmx.dev/package/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://npmx.dev/package/eslint-plugin-react-dom) for React-specific lint rules:
+Gunakan penamaan berikut agar riwayat versi, commit, dan branch jelas serta mudah dilacak demi hajat hidup orang banyak.
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+### 1. Branch
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+main/
+├── fix/
+├── feat/
+├── refractor/
+├── style/
+└── docs/
 
-```
+(ingyah kita tidak punya primary integration branch; semua langsung ke main)
+
+Di mana masing-masing <type> adalah:
+
+1. fix: perbaikan *bug*
+2. feat: penambahan fitur baru
+3. refractor: restrukturisasi kode tanpa mengubah fungsionalitas
+4. style: perubahan UI atau styling (CSS, tailwind, MD3 tokens) tanpa mengubah logic
+5. docs: perubahan dokumentasi (README.md atau komentar di kode)
+
+
+### 2. Commit message
+
+Format penulisan commit adalah `<type>(<scope>): <short summary>`
+
+- fix(admin): resolve laout overflow on mobile viewport
+- feat(admin): tambahan Radix select dropdown di formulir request alat
+- refractor(admin): extract cn helper using clsx and tailwind-merge
+- style(admin): update MD3 primary color tokens in tokens.css
+- docs: update git branching guidelines in README
+
+## Quick Start for New Developers
+
+Untuk bergabung mengembangkan dan maintain project web-lab-admin ini:
+
+1. Clone repository
+
+`git clone https://github.com/roufindhra/web-lab-admin.git`
+`cd web-lab-admin/`
+
+2. Install dependencies
+
+`npm install`
+
+3. Run development server
+
+`npm run dev`
