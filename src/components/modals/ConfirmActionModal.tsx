@@ -50,7 +50,7 @@ export default function ConfirmActionModal({
       className="max-w-md"
     >
       <div className="space-y-4">
-        <p className="text-sm text-(--md-sys-color-on-surface) opacity-80">
+        <p className="text-sm text-(--md-sys-color-on-surface-variant) leading-relaxed">
           {description}
         </p>
 

@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Dialog } from "@/components/ui/Dialog";
 import { Button } from "@/components/ui/Buttons";
 import { Input } from "@/components/ui/Input";
+import { Select } from "@/components/ui/Select";
 import {
   ApiError,
   KONDISI_STATUSES,
@@ -254,7 +255,7 @@ export default function KembalikanModal({
       className="max-w-2xl"
     >
       <div className="space-y-4">
-        <p className="text-sm text-(--md-sys-color-on-surface) opacity-80">
+        <p className="text-sm text-(--md-sys-color-on-surface-variant) leading-relaxed">
           Periksa kondisi alat dari{" "}
           <span className="font-semibold text-(--md-sys-color-on-surface)">
             {peminjaman.nama}
@@ -279,12 +280,11 @@ export default function KembalikanModal({
                     </span>{" "}
                     {draft.item.nama_alat ?? "-"}
                   </p>
-                  <p className="text-xs font-medium text-gray-500">
+                  <p className="text-xs font-medium text-(--md-sys-color-on-surface-variant)">
                     Jumlah Dipinjam: {draft.item.jumlah_alat} Unit
                   </p>
                 </div>
 
-                {/* --- INPUT KONDISI --- */}
                 <div className="space-y-2">
                   {draft.entries.map((entry, entryIndex) => (
                     <div
@@ -292,21 +292,20 @@ export default function KembalikanModal({
                       className="space-y-2 rounded-(--md-sys-shape-corner-medium) border border-(--md-sys-color-outline) bg-(--md-sys-color-surface) p-3"
                     >
                       <div className="flex items-center gap-2">
-                        <select
-                          value={entry.status}
-                          onChange={(e) =>
-                            updateEntry(itemIndex, entryIndex, {
-                              status: e.target.value as KondisiStatus,
-                            })
-                          }
-                          className="flex-1 rounded-(--md-sys-shape-corner-medium) border border-(--md-sys-color-outline) bg-(--md-sys-color-surface) px-2.5 py-1.5 text-xs text-(--md-sys-color-on-surface) focus:outline-none focus:ring-1 focus:ring-(--md-sys-color-primary)"
-                        >
-                          {KONDISI_STATUSES.map((status) => (
-                            <option key={status} value={status}>
-                              {KONDISI_LABELS[status]}
-                            </option>
-                          ))}
-                        </select>
+                        <div className="flex-1">
+                          <Select
+                            options={KONDISI_STATUSES.map((status) => ({
+                              value: status,
+                              label: KONDISI_LABELS[status],
+                            }))}
+                            value={entry.status}
+                            onValueChange={(val) =>
+                              updateEntry(itemIndex, entryIndex, {
+                                status: val as KondisiStatus,
+                              })
+                            }
+                          />
+                        </div>
 
                         <Input
                           type="number"
@@ -326,14 +325,13 @@ export default function KembalikanModal({
                             type="button"
                             variant="text"
                             onClick={() => removeEntry(itemIndex, entryIndex)}
-                            className="px-2 text-xs text-red-600 hover:bg-red-50"
+                            className="px-2 text-xs text-red-600 hover:bg-red-500/10"
                           >
                             Hapus
                           </Button>
                         )}
                       </div>
 
-                      {/* Sub-catatan komponen */}
                       {entry.catatan.length > 0 && (
                         <div className="space-y-2 pt-1">
                           {entry.catatan.map((catatan, catatanIndex) => (
@@ -378,7 +376,7 @@ export default function KembalikanModal({
                                 }
                                 className="px-1 text-base font-bold text-red-600 hover:text-red-700"
                               >
-                                ×
+                                ✕
                               </button>
                             </div>
                           ))}
@@ -409,7 +407,9 @@ export default function KembalikanModal({
 
                   <p
                     className={`text-xs font-semibold ${
-                      totalMatch ? "text-gray-500" : "text-red-600"
+                      totalMatch
+                        ? "text-(--md-sys-color-on-surface-variant)"
+                        : "text-red-600"
                     }`}
                   >
                     Total kondisi: {itemTotals[itemIndex]} /{" "}
@@ -417,35 +417,26 @@ export default function KembalikanModal({
                   </p>
                 </div>
 
-                {/* --- KETERSEDIAAN SETELAH PENGECEKAN --- */}
-                <div className="space-y-1 pt-2">
-                  <label className="block text-xs font-semibold text-(--md-sys-color-on-surface)">
-                    Ketersediaan Alat Setelah Pengecekan
-                  </label>
-                  <select
-                    value={draft.ketersediaan}
-                    onChange={(e) =>
-                      setDraftsState((current) =>
-                        current.map((d, i) =>
-                          i === itemIndex
-                            ? {
-                                ...d,
-                                ketersediaan: e.target
-                                  .value as KetersediaanPilihan,
-                              }
-                            : d,
-                        ),
-                      )
-                    }
-                    className="w-full rounded-(--md-sys-shape-corner-medium) border border-(--md-sys-color-outline) bg-(--md-sys-color-surface) px-3 py-1.5 text-xs text-(--md-sys-color-on-surface) focus:border-(--md-sys-color-primary) focus:outline-none focus:ring-1 focus:ring-(--md-sys-color-primary)"
-                  >
-                    {KETERSEDIAAN_OPTIONS.map((option) => (
-                      <option key={option.value} value={option.value}>
-                        {option.label}
-                      </option>
-                    ))}
-                  </select>
-                </div>
+                <Select
+                  label="Ketersediaan Alat Setelah Pengecekan"
+                  options={KETERSEDIAAN_OPTIONS.map((option) => ({
+                    value: option.value,
+                    label: option.label,
+                  }))}
+                  value={draft.ketersediaan}
+                  onValueChange={(val) =>
+                    setDraftsState((current) =>
+                      current.map((d, i) =>
+                        i === itemIndex
+                          ? {
+                              ...d,
+                              ketersediaan: val as KetersediaanPilihan,
+                            }
+                          : d,
+                      ),
+                    )
+                  }
+                />
               </div>
             );
           })}
@@ -453,7 +444,6 @@ export default function KembalikanModal({
 
         {error && <p className="text-xs text-red-600">{error}</p>}
 
-        {/* --- FOOTER ACTIONS --- */}
         <div className="flex justify-end gap-2 border-t border-(--md-sys-color-outline-variant) pt-3">
           <Button
             type="button"

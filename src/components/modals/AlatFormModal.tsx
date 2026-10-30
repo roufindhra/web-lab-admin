@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Dialog } from "@/components/ui/Dialog";
 import { Button } from "@/components/ui/Buttons";
 import { Input } from "@/components/ui/Input";
+import { Select } from "@/components/ui/Select";
 import {
   alatService,
   ApiError,
@@ -288,24 +289,23 @@ export default function AlatFormModal({
                 className="space-y-2 rounded-(--md-sys-shape-corner-medium) border border-(--md-sys-color-outline) bg-(--md-sys-color-surface) p-3"
               >
                 <div className="flex items-center gap-2">
-                  <select
+                  <Select
+                    containerClassName="flex-1 min-w-0"
+                    options={KONDISI_STATUSES.map((status) => ({
+                      value: status,
+                      label: KONDISI_LABELS[status],
+                    }))}
                     value={entry.status}
-                    onChange={(e) =>
+                    onValueChange={(val) =>
                       updateEntry(entryIndex, {
-                        status: e.target.value as KondisiStatus,
+                        status: val as KondisiStatus,
                       })
                     }
                     disabled={!canEditKondisi}
-                    className="flex-1 rounded-(--md-sys-shape-corner-medium) border border-(--md-sys-color-outline) bg-(--md-sys-color-surface) px-2.5 py-1.5 text-xs text-(--md-sys-color-on-surface) focus:outline-none focus:ring-1 focus:ring-(--md-sys-color-primary) disabled:opacity-50"
-                  >
-                    {KONDISI_STATUSES.map((status) => (
-                      <option key={status} value={status}>
-                        {KONDISI_LABELS[status]}
-                      </option>
-                    ))}
-                  </select>
+                  />
 
                   <Input
+                    containerClassName="w-24 shrink-0"
                     type="number"
                     min={1}
                     value={entry.jumlah}
@@ -313,7 +313,7 @@ export default function AlatFormModal({
                       updateEntry(entryIndex, { jumlah: e.target.value })
                     }
                     placeholder="Jumlah"
-                    className="w-24 text-xs"
+                    className="text-xs"
                     disabled={!canEditKondisi}
                   />
 
@@ -322,7 +322,7 @@ export default function AlatFormModal({
                       type="button"
                       variant="text"
                       onClick={() => removeEntry(entryIndex)}
-                      className="px-2 text-xs text-red-600 hover:bg-red-50"
+                      className="shrink-0 px-2 text-xs text-red-600 hover:bg-red-500/10"
                     >
                       Hapus
                     </Button>
@@ -338,6 +338,7 @@ export default function AlatFormModal({
                         className="flex w-full items-center gap-2"
                       >
                         <Input
+                          containerClassName="w-32 shrink-0"
                           value={catatan.komponen}
                           onChange={(e) =>
                             updateCatatan(entryIndex, catatanIndex, {
@@ -345,10 +346,11 @@ export default function AlatFormModal({
                             })
                           }
                           placeholder="Komponen"
-                          className="w-32 shrink-0 text-xs" // Gunakan w-32 shrink-0 agar tidak menyusut/gepeng
+                          className="text-xs"
                           disabled={!canEditKondisi}
                         />
                         <Input
+                          containerClassName="flex-1 min-w-0"
                           value={catatan.keterangan}
                           onChange={(e) =>
                             updateCatatan(entryIndex, catatanIndex, {
@@ -356,7 +358,7 @@ export default function AlatFormModal({
                             })
                           }
                           placeholder="Keterangan kerusakan"
-                          className="flex-1 min-w-0 text-xs" // flex-1 min-w-0 agar mengambil sisa ruang dengan aman
+                          className="text-xs"
                           disabled={!canEditKondisi}
                         />
                         <button
@@ -364,9 +366,9 @@ export default function AlatFormModal({
                           onClick={() =>
                             removeCatatan(entryIndex, catatanIndex)
                           }
-                          className="px-1 text-base font-bold text-red-600 hover:text-red-700"
+                          className="shrink-0 px-1 text-base font-bold text-red-600 hover:text-red-700"
                         >
-                          ×
+                          ✕
                         </button>
                       </div>
                     ))}
@@ -403,7 +405,9 @@ export default function AlatFormModal({
 
             <p
               className={`text-xs font-semibold ${
-                isKondisiMatch ? "text-gray-500" : "text-red-600"
+                isKondisiMatch
+                  ? "text-(--md-sys-color-on-surface-variant)"
+                  : "text-red-600"
               }`}
             >
               Total: {totalKondisi} / {isJumlahValid ? jumlahValue : "?"} Unit
@@ -412,25 +416,16 @@ export default function AlatFormModal({
         </div>
 
         {/* --- STATUS KETERSEDIAAN --- */}
-        <div className="space-y-1">
-          <label className="block text-xs font-semibold text-(--md-sys-color-on-surface)">
-            Status Ketersediaan
-          </label>
-          <select
-            value={ketersediaan}
-            onChange={(e) =>
-              setKetersediaan(e.target.value as KetersediaanStatus)
-            }
-            disabled={!canEditStatus}
-            className="w-full rounded-(--md-sys-shape-corner-medium) border border-(--md-sys-color-outline) bg-(--md-sys-color-surface) px-3 py-2 text-sm text-(--md-sys-color-on-surface) focus:border-(--md-sys-color-primary) focus:outline-none focus:ring-1 focus:ring-(--md-sys-color-primary) disabled:opacity-50"
-          >
-            {KETERSEDIAAN_STATUSES.map((status) => (
-              <option key={status} value={status}>
-                {KETERSEDIAAN_LABELS[status]}
-              </option>
-            ))}
-          </select>
-        </div>
+        <Select
+          label="Status Ketersediaan"
+          options={KETERSEDIAAN_STATUSES.map((status) => ({
+            value: status,
+            label: KETERSEDIAAN_LABELS[status],
+          }))}
+          value={ketersediaan}
+          onValueChange={(val) => setKetersediaan(val as KetersediaanStatus)}
+          disabled={!canEditStatus}
+        />
 
         {error && <p className="text-xs text-red-600">{error}</p>}
 
