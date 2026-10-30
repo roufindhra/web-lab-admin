@@ -6,11 +6,15 @@ import {
   type AlatListMeta,
   type Peminjaman,
   type PeminjamanStatus,
-} from '@/services'
-import ConfirmActionModal from '../components/modals/ConfirmActionModal'
-import KembalikanModal from '../components/modals/KembalikanModal'
-import RevisiModal from '../components/modals/RevisiModal'
-import TolakModal from '../components/modals/TolakModal'
+} from "@/services";
+import ConfirmActionModal from "../components/modals/ConfirmActionModal";
+import KembalikanModal from "../components/modals/KembalikanModal";
+import RevisiModal from "../components/modals/RevisiModal";
+import TolakModal from "../components/modals/TolakModal";
+import { Button } from "@/components/ui/Buttons";
+import { Card } from "@/components/ui/Card";
+import { Input } from "@/components/ui/Input";
+import { Select } from "@/components/ui/Select";
 
 const SEARCH_DEBOUNCE_MS = 400;
 
@@ -21,9 +25,11 @@ const STATUS_LABELS: Record<PeminjamanStatus, string> = {
 };
 
 const STATUS_BADGE_CLASSES: Record<PeminjamanStatus, string> = {
-  pending: "bg-yellow-100 text-yellow-800",
-  disetujui: "bg-green-100 text-green-800",
-  ditolak: "bg-red-100 text-red-800",
+  pending:
+    "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300",
+  disetujui:
+    "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300",
+  ditolak: "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300",
 };
 
 function formatWaktu(value: string): string {
@@ -96,52 +102,57 @@ export default function PeminjamanPage() {
 
   const hasActiveFilter = debouncedSearch || status;
 
-  return (
-    <div>
-      <h1 className="text-2xl font-bold">Peminjaman Alat</h1>
+  const statusOptions = [
+    { value: "", label: "Semua status" },
+    ...PEMINJAMAN_STATUSES.map((value) => ({
+      value,
+      label: STATUS_LABELS[value],
+    })),
+  ];
 
-      <div className="mt-4 flex flex-wrap items-center gap-3">
-        <input
+  return (
+    <div className="space-y-4">
+      <h1 className="text-2xl font-bold text-(--md-sys-color-on-surface)">
+        Peminjaman Alat
+      </h1>
+
+      <div className="flex flex-wrap items-center gap-3">
+        <Input
           type="search"
           value={search}
           onChange={(event) => setSearch(event.target.value)}
           placeholder="Cari nama, NIM, keperluan, inventaris..."
-          className="w-64 rounded-md border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-gray-900"
+          containerClassName="w-64"
         />
-        <select
+        <Select
+          options={statusOptions}
           value={status}
-          onChange={(event) => {
+          onValueChange={(val) => {
             setPage(1);
-            setStatus(event.target.value);
+            setStatus(val);
           }}
-          className="rounded-md border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-gray-900"
-        >
-          <option value="">Semua status</option>
-          {PEMINJAMAN_STATUSES.map((value) => (
-            <option key={value} value={value}>
-              {STATUS_LABELS[value]}
-            </option>
-          ))}
-        </select>
+          containerClassName="w-48"
+        />
         {hasActiveFilter && (
-          <button
+          <Button
+            variant="text"
+            size="sm"
             onClick={() => {
               setSearch("");
               setStatus("");
               setPage(1);
             }}
-            className="text-sm text-gray-500 underline hover:text-gray-900"
           >
             Reset filter
-          </button>
+          </Button>
         )}
       </div>
 
-      {error && <p className="mt-4 text-sm text-red-600">{error}</p>}
+      {error && <p className="text-sm text-red-500">{error}</p>}
 
-      <div className="mt-4 overflow-x-auto rounded-lg border bg-white">
+      <Card variant="outlined" className="p-0 overflow-x-auto">
         <table className="w-full text-left text-sm">
-          <thead className="border-b bg-gray-50 text-xs uppercase text-gray-500">
+          <thead className="border-b border-(--md-sys-color-outline-variant) bg-(--md-sys-color-surface-container-low) text-xs uppercase text-(--md-sys-color-on-surface-variant)">
             <tr>
               <th className="px-4 py-3">Diajukan</th>
               <th className="px-4 py-3">Peminjam</th>
@@ -151,12 +162,12 @@ export default function PeminjamanPage() {
               <th className="px-4 py-3">Aksi</th>
             </tr>
           </thead>
-          <tbody className="divide-y">
+          <tbody className="divide-y divide-(--md-sys-color-outline-variant) text-(--md-sys-color-on-surface)">
             {isLoading ? (
               <tr>
                 <td
                   colSpan={6}
-                  className="px-4 py-12 text-center text-gray-500"
+                  className="px-4 py-12 text-center text-(--md-sys-color-on-surface-variant)"
                 >
                   Memuat...
                 </td>
@@ -165,7 +176,7 @@ export default function PeminjamanPage() {
               <tr>
                 <td
                   colSpan={6}
-                  className="px-4 py-12 text-center text-gray-500"
+                  className="px-4 py-12 text-center text-(--md-sys-color-on-surface-variant)"
                 >
                   {hasActiveFilter
                     ? "Tidak ada peminjaman yang cocok dengan filter."
@@ -179,19 +190,22 @@ export default function PeminjamanPage() {
                   peminjaman.returned_at === null;
 
                 return (
-                  <tr key={peminjaman.id} className="hover:bg-gray-50">
-                    <td className="whitespace-nowrap px-4 py-3 text-gray-600">
+                  <tr
+                    key={peminjaman.id}
+                    className="hover:bg-(--md-sys-color-surface-container-high) transition-colors"
+                  >
+                    <td className="whitespace-nowrap px-4 py-3 text-(--md-sys-color-on-surface-variant)">
                       {formatWaktu(peminjaman.dibuat_pada)}
                     </td>
                     <td className="px-4 py-3">
                       <span className="font-medium">{peminjaman.nama}</span>
                       {peminjaman.keperluan === "penyewaan_komersil" ? (
-                        <span className="block text-xs text-gray-500">
+                        <span className="block text-xs text-(--md-sys-color-on-surface-variant)">
                           {peminjaman.no_hp ?? "-"}
                           {peminjaman.institusi && ` · ${peminjaman.institusi}`}
                         </span>
                       ) : (
-                        <span className="block font-mono text-xs text-gray-500">
+                        <span className="block font-mono text-xs text-(--md-sys-color-on-surface-variant)">
                           {peminjaman.nim}
                         </span>
                       )}
@@ -199,22 +213,26 @@ export default function PeminjamanPage() {
                     <td className="max-w-48 px-4 py-3">
                       {peminjaman.keperluan_label}
                       {peminjaman.praktikum_slug && (
-                        <span className="block font-mono text-xs text-gray-500">
+                        <span className="block font-mono text-xs text-(--md-sys-color-on-surface-variant)">
                           {peminjaman.praktikum_slug}
                         </span>
                       )}
                       {peminjaman.keperluan === "penyewaan_komersil" &&
                         peminjaman.tanggal_pinjam &&
                         peminjaman.tanggal_kembali && (
-                          <span className="block text-xs text-gray-500">
-                            {peminjaman.tanggal_pinjam} → {peminjaman.tanggal_kembali}
+                          <span className="block text-xs text-(--md-sys-color-on-surface-variant)">
+                            {peminjaman.tanggal_pinjam} →{" "}
+                            {peminjaman.tanggal_kembali}
                           </span>
                         )}
                     </td>
                     <td className="px-4 py-3">
                       <ul className="space-y-0.5">
                         {peminjaman.items.map((item) => (
-                          <li key={item.id} className="text-gray-600">
+                          <li
+                            key={item.id}
+                            className="text-(--md-sys-color-on-surface-variant)"
+                          >
                             <span className="font-mono text-xs">
                               {item.inventaris}
                             </span>{" "}
@@ -232,7 +250,7 @@ export default function PeminjamanPage() {
                         {STATUS_LABELS[peminjaman.status]}
                       </span>
                       {peminjaman.status === "disetujui" && (
-                        <span className="mt-1 block text-xs text-gray-500">
+                        <span className="mt-1 block text-xs text-(--md-sys-color-on-surface-variant)">
                           {peminjaman.returned_at
                             ? `Dikembalikan ${formatWaktu(peminjaman.returned_at)}`
                             : `Disetujui ${peminjaman.approved_by ?? "-"} — sedang dipinjam`}
@@ -240,50 +258,64 @@ export default function PeminjamanPage() {
                       )}
                       {peminjaman.status === "ditolak" &&
                         peminjaman.catatan && (
-                          <span className="mt-1 block text-xs text-red-600">
+                          <span className="mt-1 block text-xs text-red-500">
                             {peminjaman.catatan}
                           </span>
                         )}
                     </td>
                     <td className="px-4 py-3">
-                      <div className="flex flex-wrap gap-2">
+                      <div className="flex flex-wrap gap-1">
                         {peminjaman.status === "pending" &&
                           (peminjaman.can_process ? (
                             <>
-                              <button
+                              <Button
+                                variant="text"
+                                size="sm"
                                 onClick={() => setApproveTarget(peminjaman)}
-                                className="text-sm font-medium text-green-700 underline hover:text-green-600"
+                                className="text-green-600 dark:text-green-400 hover:underline px-2 py-1"
                               >
                                 Setujui
-                              </button>
-                              <button
+                              </Button>
+                              <Button
+                                variant="text"
+                                size="sm"
                                 onClick={() => setRevisiTarget(peminjaman)}
-                                className="text-sm text-gray-600 underline hover:text-gray-900"
+                                className="hover:underline px-2 py-1"
                               >
                                 Revisi
-                              </button>
-                              <button
+                              </Button>
+                              <Button
+                                variant="text"
+                                size="sm"
                                 onClick={() => setTolakTarget(peminjaman)}
-                                className="text-sm text-red-600 underline hover:text-red-500"
+                                className="text-red-600 dark:text-red-400 hover:underline px-2 py-1"
                               >
                                 Tolak
-                              </button>
+                              </Button>
                             </>
                           ) : (
-                            <span className="text-xs text-gray-400" title="Di luar plug ampuan Anda">
+                            <span
+                              className="text-xs text-(--md-sys-color-on-surface-variant) opacity-60"
+                              title="Di luar plug ampuan Anda"
+                            >
                               Menunggu persetujuan dosen
                             </span>
                           ))}
                         {sedangBerjalan &&
                           (peminjaman.can_process ? (
-                            <button
+                            <Button
+                              variant="text"
+                              size="sm"
                               onClick={() => setKembalikanTarget(peminjaman)}
-                              className="text-sm text-gray-600 underline hover:text-gray-900"
+                              className="hover:underline px-2 py-1"
                             >
                               Konfirmasi Pengembalian
-                            </button>
+                            </Button>
                           ) : (
-                            <span className="text-xs text-gray-400" title="Di luar plug ampuan Anda">
+                            <span
+                              className="text-xs text-(--md-sys-color-on-surface-variant) opacity-60"
+                              title="Di luar plug ampuan Anda"
+                            >
                               Menunggu dosen
                             </span>
                           ))}
@@ -295,31 +327,33 @@ export default function PeminjamanPage() {
             )}
           </tbody>
         </table>
-      </div>
+      </Card>
 
       {meta && (
-        <div className="mt-4 flex items-center justify-between text-sm text-gray-600">
+        <div className="flex items-center justify-between text-sm text-(--md-sys-color-on-surface-variant)">
           <span>
             Menampilkan {peminjamanList.length} dari {meta.total} peminjaman
           </span>
           <div className="flex items-center gap-2">
-            <button
+            <Button
+              variant="outlined"
+              size="sm"
               disabled={page <= 1 || isLoading}
               onClick={() => setPage((current) => current - 1)}
-              className="rounded-md border px-3 py-1.5 hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-40"
             >
               Sebelumnya
-            </button>
+            </Button>
             <span>
               Halaman {meta.current_page} / {meta.last_page}
             </span>
-            <button
+            <Button
+              variant="outlined"
+              size="sm"
               disabled={page >= meta.last_page || isLoading}
               onClick={() => setPage((current) => current + 1)}
-              className="rounded-md border px-3 py-1.5 hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-40"
             >
               Berikutnya
-            </button>
+            </Button>
           </div>
         </div>
       )}
@@ -327,7 +361,7 @@ export default function PeminjamanPage() {
       {approveTarget && (
         <ConfirmActionModal
           title="Setujui Pengajuan"
-          description={`Setujui peminjaman ${approveTarget.items.length} alat oleh ${approveTarget.nama}${approveTarget.nim !== null ? ` (${approveTarget.nim})` : ''}? Stok alat akan dicek dan log pengeluaran tercatat otomatis.`}
+          description={`Setujui peminjaman ${approveTarget.items.length} alat oleh ${approveTarget.nama}${approveTarget.nim !== null ? ` (${approveTarget.nim})` : ""}? Stok alat akan dicek dan log pengeluaran tercatat otomatis.`}
           confirmLabel="Setujui"
           confirmClass="bg-green-600 hover:bg-green-500"
           onConfirm={() =>
