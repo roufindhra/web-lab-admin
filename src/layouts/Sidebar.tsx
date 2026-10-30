@@ -88,30 +88,30 @@ export const Sidebar: React.FC<SideBarProps> = ({ isOpen, onClose }) => {
     <>
       {isOpen && (
         <div
-          className="fixed inset-0 z-20 bg-black/40 backdrop-blur-sm lg:hidden"
+          className="fixed inset-0 z-20 bg-black/50 backdrop-blur-xs lg:hidden"
           onClick={onClose}
           aria-hidden="true"
         />
       )}
 
       <aside
-        className={`fixed inset-y-0 left-0 z-30 flex w-64 flex-col bg-(--md-sys-color-primary) text-(--md-sys-color-on-primary) transition-transform duration-300 ease-[cubic-bezier(0.2,0.0,0.0,1.0)] ${
+        className={`fixed inset-y-0 left-0 z-30 flex w-64 flex-col border-r border-(--md-sys-color-outline-variant) bg-(--md-sys-color-surface-container-high) text-(--md-sys-color-on-surface) transition-transform duration-300 ease-[cubic-bezier(0.2,0.0,0.0,1.0)] ${
           isOpen ? "translate-x-0" : "-translate-x-full"
         }`}
       >
         <div
           id="sidebar-header"
-          className="flex h-16 items-center justify-between px-4"
+          className="flex h-16 items-center justify-between border-b border-(--md-sys-color-outline-variant) px-5"
         >
-          <span className="text-lg font-bold tracking-tight">
+          <span className="text-base font-bold tracking-tight text-(--md-sys-color-on-surface)">
             Lab SGG Admin
           </span>
           <button
             onClick={onClose}
-            className="rounded-md px-3 py-1.5 text-(--md-sys-color-on-surface) bg-gray-700 hover:bg-gray-500"
+            className="flex h-8 w-8 items-center justify-center rounded-(--md-sys-shape-corner-medium) text-sm font-semibold text-(--md-sys-color-on-surface) transition-colors hover:bg-(--md-sys-color-primary-container)"
             aria-label="close sidebar"
           >
-            ☰
+            ✕
           </button>
         </div>
 
@@ -122,10 +122,10 @@ export const Sidebar: React.FC<SideBarProps> = ({ isOpen, onClose }) => {
               id={item.id}
               to={item.path}
               className={({ isActive }) =>
-                `flex items-center rounded-(--md-sys-shape-corner-full) px-4 py-2.5 text-sm font-medium hover:bg-gray-500 transition-colors ${
+                `flex items-center rounded-(--md-sys-shape-corner-full) px-4 py-2.5 text-sm font-semibold transition-all ${
                   isActive
-                    ? "bg-(--md-sys-color-primary-container) text-(--md-sys-color-on-primary-container) font-semibold"
-                    : "hover:bg-(--md-sys-color-primary-container)"
+                    ? "bg-(--md-sys-color-primary-container) text-(--md-sys-color-on-primary-container)"
+                    : "text-(--md-sys-color-on-surface) opacity-80 hover:bg-(--md-sys-color-surface) hover:opacity-100"
                 }`
               }
             >
@@ -136,8 +136,8 @@ export const Sidebar: React.FC<SideBarProps> = ({ isOpen, onClose }) => {
           <SidebarItem item={alatMenuItems} />
 
           {isLoading ? (
-            <div className="px-4 py-2 text-xs text-gray-400 animate-pulse">
-              Loading courses...
+            <div className="px-4 py-2 text-xs font-medium text-(--md-sys-color-on-surface) opacity-50 animate-pulse">
+              Memuat praktikum...
             </div>
           ) : (
             praktikumMenu && <SidebarItem item={praktikumMenu} />

@@ -1,24 +1,17 @@
 import React from "react";
 
 interface FooterProps {
-    companyName: string;
+  companyName: string;
 }
 
 const Footer: React.FC<FooterProps> = ({ companyName }: FooterProps) => {
-    return (
-        <footer style={styles.footer}>
-            <p>&copy; {new Date().getFullYear()} {companyName}. All rights reserved.</p>
-        </footer>
-    );
-}
-
-const styles = {
-    footer: {
-        backgroundColor: '#f8f9fa',
-        padding: '0.5rem',
-        textAlign: 'center' as const,
-        borderTop: '1px solid #e7e7e7',
-    },
+  return (
+    <footer className="w-full border-t border-(--md-sys-color-outline-variant) bg-(--md-sys-color-surface) px-6 py-4 text-center transition-colors">
+      <p className="text-xs font-medium text-(--md-sys-color-on-surface) opacity-70">
+        &copy; {new Date().getFullYear()} {companyName}. All rights reserved.
+      </p>
+    </footer>
+  );
 };
 
 export default Footer;

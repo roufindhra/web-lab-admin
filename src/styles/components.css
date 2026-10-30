@@ -1,12 +1,9 @@
 @layer components {
   /* BUTTONS */
-
   .md-button-filled {
     background-color: var(--md-sys-color-primary);
     color: var(--md-sys-color-on-primary);
     border-radius: var(--md-sys-shape-corner-full);
-    padding: 0.625rem 1.5rem;
-    font-weight: 500;
     transition:
       background-color 0.2s,
       box-shadow 0.2s;
@@ -22,8 +19,6 @@
   .md-button-text {
     color: var(--md-sys-color-primary);
     border-radius: var(--md-sys-shape-corner-full);
-    padding: 0.625rem 1rem;
-    font-weight: 500;
   }
   .md-button-text:hover {
     background-color: color-mix(
@@ -38,13 +33,10 @@
     color: var(--md-sys-color-primary);
     border: var(--md-sys-border-width-small) solid var(--md-sys-color-outline);
     border-radius: var(--md-sys-shape-corner-full);
-    padding: 0.625rem 1.5rem;
-    font-weight: 500;
     transition:
       background-color 0.2s,
       border-color 0.2s;
   }
-
   .md-button-outlined:hover {
     background-color: color-mix(
       in srgb,
@@ -53,23 +45,7 @@
     );
   }
 
-  .md-button-outlined:focus-visible {
-    border-color: var(--md-sys-color-primary);
-    outline: none;
-  }
-
-  .md-button-outlined:disabled {
-    border-color: color-mix(
-      in srgb,
-      var(--md-sys-color-on-surface) 12%,
-      transparent
-    );
-    color: color-mix(in srgb, var(--md-sys-color-on-surface) 38%, transparent);
-    pointer-events: none;
-  }
-
   /* FAB */
-
   .md-fab {
     background-color: var(--md-sys-color-primary-container);
     color: var(--md-sys-color-on-primary-container);
@@ -83,44 +59,28 @@
     box-shadow: var(--md-sys-elevation-1);
     border-radius: calc(var(--md-sys-shape-corner-large) + 4px);
   }
+}
 
-  /* CARDS */
+  /* CARDS MD3 */
+  .md-card-outlined {
+    background-color: var(--md-sys-color-surface);
+    color: var(--md-sys-color-on-surface);
+    border: var(--md-sys-border-width-small) solid var(--md-sys-color-outline-variant);
+    border-radius: var(--md-sys-shape-corner-large);
+    transition: background-color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+  }
 
   .md-card-filled {
     background-color: var(--md-sys-color-surface-container-high);
-    border-radius: var(--md-sys-shape-corner-large);
     color: var(--md-sys-color-on-surface);
+    border-radius: var(--md-sys-shape-corner-large);
+    transition: background-color 0.2s ease, color 0.2s ease;
   }
 
   .md-card-elevated {
     background-color: var(--md-sys-color-surface-container-high);
+    color: var(--md-sys-color-on-surface);
     border-radius: var(--md-sys-shape-corner-large);
     box-shadow: var(--md-sys-elevation-1);
-    color: var(--md-sys-color-on-surface);
+    transition: background-color 0.2s ease, box-shadow 0.2s ease;
   }
-
-  .md-card-outlined {
-    background-color: var(--md-sys-color-surface);
-    color: var(--md-sys-color-on-surface);
-    border: var(--md-sys-border-width-small) solid
-      var(--md-sys-color-outline-variant);
-    border-radius: var(--md-sys-shape-corner-large);
-    transition:
-      border-color 0.2s,
-      box-shadow 0.2s;
-  }
-
-  .md-card-outlined:hover {
-    border-color: var(--md-sys-color-outline);
-    box-shadow: var(--md-sys-elevation-1);
-  }
-}
-
-/* DIALOG */
-
-.md-dialog-container {
-  background-color: var(--md-sys-color-surface-container-high);
-  border-radius: var(--md-sys-shape-corner-large);
-  box-shadow: var(--md-sys-elevation-3);
-  color: var(--md-sys-color-on-surface);
-}

@@ -1,6 +1,12 @@
-@import "./styles/tokens.css";
 @import "tailwindcss";
+@import "./styles/tokens.css";
 @import "./styles/components.css";
+
+html, body {
+  background-color: var(--md-sys-color-surface) !important;
+  color: var(--md-sys-color-on-surface) !important;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
 
 @keyframes slide-in-right {
   from {
