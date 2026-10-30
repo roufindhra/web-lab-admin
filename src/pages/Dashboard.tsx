@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { useAdminAuth } from "@/contexts/AdminAuthContext";
 import { dashboardService, ApiError, type DashboardStats } from "@/services";
 import { DashboardSkeleton } from "@/components/DashboardSkeleton";
+import { Card } from "@/components/ui/Card";
 
 const formatTanggal = (tanggal: string) =>
   new Date(`${tanggal}T00:00:00`).toLocaleDateString("id-ID", {
@@ -40,94 +41,126 @@ export default function Dashboard() {
   }, []);
 
   return (
-    <div>
-      <h1 className="text-2xl font-bold">Dashboard</h1>
+    <div className="w-full space-y-6">
+      <h1 className="text-3xl font-extrabold text-(--md-sys-color-on-surface) tracking-tight">
+        Dashboard Admin
+      </h1>
+
+      {/* Profil Pengguna Card */}
       {user && (
-        <div className="mt-6 rounded-lg border bg-white p-6">
-          <p className="text-lg font-semibold">{user.nama}</p>
-          <p className="mt-1 text-sm text-gray-600">
-            {user.nip ? `NIP: ${user.nip}` : `NIM: ${user.nim}`} · Role:{" "}
-            {user.role}
+        <Card variant="outlined" className="p-5">
+          <p className="text-xl font-bold text-(--md-sys-color-on-surface)]">
+            {user.nama}
           </p>
-        </div>
+          <p className="mt-1 text-sm font-medium text-(--md-sys-color-on-surface) opacity-80">
+            {user.nip ? `NIP: ${user.nip}` : `NIM: ${user.nim}`} · Role:{" "}
+            <span className="font-semibold capitalize text-(--md-sys-color-primary)">
+              {user.role}
+            </span>
+          </p>
+        </Card>
       )}
 
       {isLoading && <DashboardSkeleton />}
-      {error && <p className="mt-6 text-sm text-red-600">{error}</p>}
+      {error && <p className="text-sm font-semibold text-red-400">{error}</p>}
 
       {!isLoading && stats && (
-        <div className="mt-6 grid grid-cols-1 gap-4 lg:grid-cols-3">
-          <Link
-            to="/alat-peminjaman"
-            className="flex h-80 flex-col rounded-lg border bg-white p-6 transition-colors hover:bg-gray-50"
-          >
-            <p className="shrink-0 text-sm text-gray-600">
-              Pengajuan Menunggu Persetujuan
-            </p>
-            {/* <p className="mt-2 shrink-0 text-3xl font-bold">
-              {stats.pending.total}
-            </p> */}
-            {stats.pending.items.length > 0 && (
-              <ul className="mt-3 flex-1 overflow-y-auto space-y-2 pr-1">
-                {stats.pending.items.map((item) => (
-                  <li key={item.id}>
-                    <p className="text-sm font-semibold">{item.nama}</p>
-                    <p className="text-xs text-gray-500">
-                      {item.keperluan_label}
-                      {item.alat.length > 0 &&
-                        ` · ${item.alat.map((a) => a.nama_alat).join(", ")}`}
-                    </p>
-                  </li>
-                ))}
-                {stats.pending.total > stats.pending.items.length && (
-                  <li className="text-xs text-gray-400">
-                    +{stats.pending.total - stats.pending.items.length}{" "}
-                    pengajuan lainnya
-                  </li>
-                )}
-              </ul>
-            )}
+        <div className="grid grid-cols-1 gap-5 lg:grid-cols-3">
+          {/* CARD 1: Pengajuan Menunggu Persetujuan */}
+          <Link to="/alat-peminjaman" className="block">
+            <Card
+              variant="outlined"
+              className="flex h-80 flex-col p-5 transition-all hover:border-(#ff0000) hover:shadow-lg"
+            >
+              <h2 className="shrink-0 text-2xl font-bold text-(--md-sys-color-on-surface)">
+                Pengajuan Menunggu Persetujuan
+              </h2>
+
+              {stats.pending.items.length > 0 ? (
+                <ul className="mt-3 flex-1 overflow-y-auto space-y-2.5 pr-1">
+                  {stats.pending.items.map((item) => (
+                    <li
+                      key={item.id}
+                      className="rounded-(--md-sys-shape-corner-medium) border border-(--md-sys-color-outline-variant) bg-(--md-sys-color-surface-container-high) p-2.5"
+                    >
+                      <p className="text-lg font-bold text-(--md-sys-color-on-surface)">
+                        {item.nama}
+                      </p>
+                      <p className="mt-0.5 text-sm text-(--md-sys-color-on-surface) opacity-80 leading-relaxed">
+                        {item.keperluan_label}
+                        {item.alat.length > 0 &&
+                          ` · ${item.alat.map((a) => a.nama_alat).join(", ")}`}
+                      </p>
+                    </li>
+                  ))}
+                  {stats.pending.total > stats.pending.items.length && (
+                    <li className="text-sm font-bold text-(--md-sys-color-primary) pt-1">
+                      +{stats.pending.total - stats.pending.items.length}{" "}
+                      pengajuan lainnya
+                    </li>
+                  )}
+                </ul>
+              ) : (
+                <p className="mt-3 text-sm text-(--md-sys-color-on-surface) opacity-70">
+                  Tidak ada pengajuan yang menunggu persetujuan.
+                </p>
+              )}
+            </Card>
           </Link>
 
-          <div className="flex h-80 flex-col rounded-lg border bg-white p-6">
-            <p className="shrink-0 text-sm text-gray-600">Alat Sedang Keluar</p>
+          {/* CARD 2: Alat Sedang Keluar */}
+          <Card variant="outlined" className="flex h-80 flex-col p-5">
+            <h2 className="shrink-0 text-2xl font-bold text-(--md-sys-color-on-surface)">
+              Alat Sedang Keluar
+            </h2>
 
             {stats.alat_keluar.items && stats.alat_keluar.items.length > 0 ? (
-              <ul className="mt-3 flex-1 overflow-y-auto space-y-2 pr-1">
+              <ul className="mt-3 flex-1 overflow-y-auto space-y-2.5 pr-1">
                 {stats.alat_keluar.items.map((item) => (
-                  <li key={item.id}>
-                    <p className="text-sm font-semibold">{item.nama}</p>
-
-                    <p className="text-xs text-gray-500">
+                  <li
+                    key={item.id}
+                    className="rounded-(--md-sys-shape-corner-medium) border border-(--md-sys-color-outline-variant) bg-(--md-sys-color-surface-container-high) p-2.5"
+                  >
+                    <p className="text-lg font-bold text-(--md-sys-color-on-surface)">
+                      {item.nama}
+                    </p>
+                    <p className="mt-0.5 text-sm text-(--md-sys-color-on-surface) opacity-80 leading-relaxed">
                       {item.alat
-                        .map((a) => `${a.nama_alat} ${a.jumlah}x`)
+                        .map((a) => `${a.nama_alat} (${a.jumlah}x)`)
                         .join(", ")}
                     </p>
                   </li>
                 ))}
               </ul>
             ) : (
-              <p className="mt-3 text-sm text-gray-500">
+              <p className="mt-3 text-sm text-(--md-sys-color-on-surface) opacity-70">
                 Tidak ada alat yang sedang keluar.
               </p>
             )}
-          </div>
+          </Card>
 
-          <div className="flex h-80 flex-col rounded-lg border bg-white p-6">
-            <p className="shrink-0 text-sm text-gray-600">
+          {/* CARD 3: Jadwal Praktikum 8 Hari ke Depan */}
+          <Card variant="outlined" className="flex h-80 flex-col p-5">
+            <h2 className="shrink-0 text-2xl font-bold text-(--md-sys-color-on-surface)">
               Jadwal Praktikum 8 Hari ke Depan
-            </p>
+            </h2>
+
             <ul className="mt-3 flex-1 overflow-y-auto space-y-3 pr-1">
               {stats.jadwal_mendatang.map((hari, index) => (
                 <li key={hari.tanggal}>
                   <p
-                    className={`text-xs font-semibold ${index === 0 ? "text-blue-600" : "text-gray-700"}`}
+                    className={`text-sm font-bold uppercase tracking-wider ${
+                      index === 0
+                        ? "text-(--md-sys-color-primary)"
+                        : "text-(--md-sys-color-on-surface) opacity-80"
+                    }`}
                   >
                     {index === 0 ? "Hari Ini" : hari.hari} ·{" "}
                     {formatTanggal(hari.tanggal)}
                   </p>
+
                   {hari.sesi.length === 0 ? (
-                    <p className="mt-1 text-xs text-gray-400">
+                    <p className="mt-0.5 text-xs text-(--md-sys-color-on-surface) opacity-60">
                       Tidak ada sesi.
                     </p>
                   ) : (
@@ -138,15 +171,14 @@ export default function Dashboard() {
                         >
                           <Link
                             to={`/praktikum/${sesi.slug}`}
-                            className="block rounded p-1 text-xs transition-colors hover:bg-blue-100"
+                            className="block rounded-(--md-sys-shape-corner-medium) border border-(--md-sys-color-outline-variant) bg-(--md-sys-color-surface-container-high) p-2 text-sm transition-colors hover:border-(--md-sys-color-primary)"
                           >
-                            <span className="font-semibold text-gray-800">
+                            <span className="font-bold text-(--md-sys-color-on-surface)">
                               {sesi.praktikum}
                             </span>
-                            <span className="text-gray-500">
-                              {" "}
-                              · Plug {sesi.plug} · {sesi.jam_mulai}–
-                              {sesi.jam_selesai}
+                            <span className="block text-xs text-(--md-sys-color-on-surface) opacity-80 mt-0.5">
+                              Plug {sesi.plug} ({sesi.jam_mulai}–
+                              {sesi.jam_selesai})
                             </span>
                           </Link>
                         </li>
@@ -156,7 +188,7 @@ export default function Dashboard() {
                 </li>
               ))}
             </ul>
-          </div>
+          </Card>
         </div>
       )}
     </div>

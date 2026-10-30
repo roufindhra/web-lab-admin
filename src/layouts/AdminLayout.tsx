@@ -9,23 +9,24 @@ export default function AdminLayout() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
 
   return (
-    <div className="flex min-h-screen">
+    <div className="flex min-h-screen bg-[var(--md-sys-color-surface)] text-[var(--md-sys-color-on-surface)] transition-colors">
       <Sidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
-      <div className="flex flex-1 flex-col">
-        <Header isSidebarOpen={isSidebarOpen} onMenuClick={() => setIsSidebarOpen(!isSidebarOpen)} />
-        <main className={`flex-1 bg-gray-50 p-6 ${isSidebarOpen ? 'ml-64' : 'ml-0'} transition-all duration-300`}>
-          {!isSidebarOpen && (
-            <button
-              onClick={() => setIsSidebarOpen(true)}
-              className="fixed top-4 left-4 z-40 rounded-md bg-gray-900 px-3 py-1.5 text-sm text-white hover:bg-gray-700"
-            >
-              ☰
-            </button>
-          )}
+      
+      <div className="flex flex-1 flex-col min-w-0">
+        <Header 
+          isSidebarOpen={isSidebarOpen} 
+          onMenuClick={() => setIsSidebarOpen(!isSidebarOpen)} 
+        />
+        
+        <main className={`flex-1 bg-[var(--md-sys-color-surface)] p-6 transition-all duration-300 ${
+          isSidebarOpen ? "ml-64" : "ml-0"
+        }`}>
           <Outlet />
         </main>
+        
         <Footer companyName="Lab Survei Geodesi dan Geometri - UPN Veteran Yogyakarta" />
       </div>
+
       <WalkthroughManager />
     </div>
   );
