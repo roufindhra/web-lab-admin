@@ -29,13 +29,13 @@ Konsistensi penamaan file penting banget nget agar struktur proyek tidak kacau b
 
 Setiap komponen yang membutuhkan file terpisah disarankan menggunakan struktur berikut:
     
-components/
-└── walkthrough/
-    ├── useWalkthrough.ts
-    ├── walkthrough-data.ts
-    ├── WalkthroughDialog.tsx
-    ├── WalkthroughFAB.tsx
-    └── WalkthroughManager.tsx
+    components/
+    └── walkthrough/
+        ├── useWalkthrough.ts
+        ├── walkthrough-data.ts
+        ├── WalkthroughDialog.tsx
+        ├── WalkthroughFAB.tsx
+        └── WalkthroughManager.tsx
 
 ## Version Control dan Git Convention
 
@@ -43,12 +43,12 @@ Gunakan penamaan berikut agar riwayat versi, commit, dan branch jelas serta muda
 
 ### 1. Branch
 
-main/
-├── fix/
-├── feat/
-├── refractor/
-├── style/
-└── docs/
+    main/
+    ├── fix/
+    ├── feat/
+    ├── refractor/
+    ├── style/
+    └── docs/
 
 (ingyah kita tidak punya primary integration branch; semua langsung ke main)
 

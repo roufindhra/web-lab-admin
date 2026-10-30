@@ -44,7 +44,7 @@ export default function DashboardAlat() {
         <h1 className="text-xl font-bold text-(--md-sys-color-on-surface)">
           Manajemen Alat Laboratorium
         </h1>
-        <p className="text-xs text-gray-500">
+        <p className="text-xs text-(--md-sys-color-on-surface-variant)">
           Otorisasi akses edit sementara lewat token. Tabel alat ada di menu{" "}
           <a
             href="/alat-invent"
@@ -62,7 +62,7 @@ export default function DashboardAlat() {
             <p className="text-xs font-bold text-(--md-sys-color-on-surface)">
               Otorisasi Akses Edit
             </p>
-            <p className="text-[11px] text-gray-500">
+            <p className="text-[11px] text-(--md-sys-color-on-surface-variant)">
               {isDosen
                 ? "Terbitkan kode token untuk memberi asisten akses edit data alat sementara."
                 : "Masukkan kode token dari dosen untuk mengaktifkan akses edit data alat."}
@@ -117,7 +117,11 @@ export default function DashboardAlat() {
   );
 }
 
-function ClaimTokenForm({ onClaimed }: { onClaimed: (code: string) => Promise<void> }) {
+function ClaimTokenForm({
+  onClaimed,
+}: {
+  onClaimed: (code: string) => Promise<void>;
+}) {
   const [code, setCode] = useState("");
   const [isClaiming, setIsClaiming] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -130,7 +134,9 @@ function ClaimTokenForm({ onClaimed }: { onClaimed: (code: string) => Promise<vo
     setError(null);
     onClaimed(code.trim())
       .catch((err) => {
-        setError(err instanceof ApiError ? err.message : "Gagal mengklaim token.");
+        setError(
+          err instanceof ApiError ? err.message : "Gagal mengklaim token.",
+        );
       })
       .finally(() => setIsClaiming(false));
   };
@@ -144,7 +150,12 @@ function ClaimTokenForm({ onClaimed }: { onClaimed: (code: string) => Promise<vo
           onChange={(e) => setCode(e.target.value)}
           className="w-40 text-xs"
         />
-        <Button type="submit" variant="filled" className="text-xs" disabled={isClaiming}>
+        <Button
+          type="submit"
+          variant="filled"
+          className="text-xs"
+          disabled={isClaiming}
+        >
           {isClaiming ? "Memeriksa..." : "Klaim"}
         </Button>
       </div>
@@ -185,7 +196,11 @@ function TokenAdminDialog({ onClose }: { onClose: () => void }) {
         ),
       )
       .catch((err) => {
-        setError(err instanceof ApiError ? err.message : "Gagal memuat daftar asisten.");
+        setError(
+          err instanceof ApiError
+            ? err.message
+            : "Gagal memuat daftar asisten.",
+        );
       });
 
     loadTokens();
@@ -221,7 +236,9 @@ function TokenAdminDialog({ onClose }: { onClose: () => void }) {
         return loadTokens();
       })
       .catch((err) => {
-        setError(err instanceof ApiError ? err.message : "Gagal membuat token.");
+        setError(
+          err instanceof ApiError ? err.message : "Gagal membuat token.",
+        );
       })
       .finally(() => setIsGenerating(false));
   };
@@ -231,7 +248,9 @@ function TokenAdminDialog({ onClose }: { onClose: () => void }) {
       .revoke(id)
       .then(loadTokens)
       .catch((err) => {
-        setError(err instanceof ApiError ? err.message : "Gagal mencabut token.");
+        setError(
+          err instanceof ApiError ? err.message : "Gagal mencabut token.",
+        );
       });
   };
 
@@ -250,25 +269,21 @@ function TokenAdminDialog({ onClose }: { onClose: () => void }) {
       className="max-w-md"
     >
       <div className="space-y-4">
-        <div className="space-y-1">
-          <label className="block text-xs font-semibold text-gray-600">
-            1. Penerima (Asisten)
-          </label>
-          <Select
-            options={[
-              { value: "", label: "Pilih mahasiswa asisten..." },
-              ...asistenList.map((asisten) => ({
-                value: String(asisten.id),
-                label: `${asisten.nama} (${asisten.nim})`,
-              })),
-            ]}
-            value={mahasiswaId}
-            onValueChange={setMahasiswaId}
-          />
-        </div>
+        <Select
+          label="1. Penerima (Asisten)"
+          options={[
+            { value: "", label: "Pilih mahasiswa asisten..." },
+            ...asistenList.map((asisten) => ({
+              value: String(asisten.id),
+              label: `${asisten.nama} (${asisten.nim})`,
+            })),
+          ]}
+          value={mahasiswaId}
+          onValueChange={setMahasiswaId}
+        />
 
         <div className="space-y-2">
-          <label className="block text-xs font-semibold text-gray-600">
+          <label className="block text-xs font-semibold text-(--md-sys-color-on-surface)">
             2. Dukungan Permission (Hak Akses)
           </label>
           <div className="space-y-2 rounded-(--md-sys-shape-corner-medium) border border-(--md-sys-color-outline-variant) bg-(--md-sys-color-surface-container-high) p-3">
@@ -283,19 +298,15 @@ function TokenAdminDialog({ onClose }: { onClose: () => void }) {
           </div>
         </div>
 
-        <div className="space-y-1">
-          <label className="block text-xs font-semibold text-gray-600">
-            3. Masa Berlaku
-          </label>
-          <Select
-            options={ALAT_TOKEN_DURATIONS.map((option) => ({
-              value: option.value,
-              label: option.label,
-            }))}
-            value={duration}
-            onValueChange={(val) => setDuration(val as AlatTokenDuration)}
-          />
-        </div>
+        <Select
+          label="3. Masa Berlaku"
+          options={ALAT_TOKEN_DURATIONS.map((option) => ({
+            value: option.value,
+            label: option.label,
+          }))}
+          value={duration}
+          onValueChange={(val) => setDuration(val as AlatTokenDuration)}
+        />
 
         <Button
           variant="filled"
@@ -322,7 +333,9 @@ function TokenAdminDialog({ onClose }: { onClose: () => void }) {
 
         {tokens.length > 0 && (
           <div className="space-y-2 border-t border-(--md-sys-color-outline-variant) pt-3">
-            <p className="text-xs font-semibold text-gray-600">Token Diterbitkan</p>
+            <p className="text-xs font-semibold text-(--md-sys-color-on-surface)">
+              Token Diterbitkan
+            </p>
             <ul className="max-h-48 space-y-2 overflow-y-auto">
               {tokens.map((token) => (
                 <li
@@ -332,25 +345,26 @@ function TokenAdminDialog({ onClose }: { onClose: () => void }) {
                   <div className="min-w-0 text-[11px]">
                     <p className="truncate font-semibold text-(--md-sys-color-on-surface)">
                       {token.mahasiswa_nama}{" "}
-                      <span className="font-mono text-gray-400">
+                      <span className="font-mono text-(--md-sys-color-on-surface-variant)">
                         {token.mahasiswa_nim}
                       </span>
                     </p>
-                    <p className="truncate text-gray-500">
+                    <p className="truncate text-(--md-sys-color-on-surface-variant)">
                       {token.permissions
                         .map((permission) => ALAT_PERMISSION_LABELS[permission])
                         .join(", ")}
                     </p>
-                    <p className="text-gray-400">
+                    <p className="text-(--md-sys-color-on-surface-variant)">
                       {statusLabel[token.status]} · habis{" "}
                       {token.expires_at ? formatWaktu(token.expires_at) : "-"}
                     </p>
                   </div>
-                  {token.status === "aktif" || token.status === "belum_diklaim" ? (
+                  {token.status === "aktif" ||
+                  token.status === "belum_diklaim" ? (
                     <Button
                       variant="text"
                       onClick={() => handleRevoke(token.id)}
-                      className="shrink-0 px-2 py-1 text-[11px] text-red-600 hover:bg-red-50"
+                      className="shrink-0 px-2 py-1 text-[11px] text-red-600 hover:bg-red-500/10"
                     >
                       Cabut
                     </Button>

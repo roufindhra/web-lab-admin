@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState } from "react";
 import {
   alatService,
   ApiError,
@@ -8,105 +8,113 @@ import {
   type AlatListMeta,
   type KondisiStatus,
   type KetersediaanStatus,
-} from '@/services'
-import AlatFormModal from '../components/modals/AlatFormModal'
-import DeleteConfirmModal from '../components/modals/DeleteConfirmModal'
-import KondisiDetailModal from '../components/modals/KondisiDetailModal'
-import { useAdminAuth } from '@/contexts/AdminAuthContext'
+} from "@/services";
+import AlatFormModal from "../components/modals/AlatFormModal";
+import DeleteConfirmModal from "../components/modals/DeleteConfirmModal";
+import KondisiDetailModal from "../components/modals/KondisiDetailModal";
+import { useAdminAuth } from "@/contexts/AdminAuthContext";
 
-const SEARCH_DEBOUNCE_MS = 400
+const SEARCH_DEBOUNCE_MS = 400;
 
 const KONDISI_LABELS: Record<KondisiStatus, string> = {
-  baik: 'baik',
-  rusak_ringan: 'rusak ringan',
-  rusak_berat: 'rusak berat',
-  maintenance: 'maintenance',
-}
+  baik: "baik",
+  rusak_ringan: "rusak ringan",
+  rusak_berat: "rusak berat",
+  maintenance: "maintenance",
+};
 
 const KETERSEDIAAN_LABELS: Record<KetersediaanStatus, string> = {
-  tersedia: 'Tersedia',
-  dipinjam: 'Dipinjam',
-  perbaikan: 'Perbaikan',
-}
+  tersedia: "Tersedia",
+  dipinjam: "Dipinjam",
+  perbaikan: "Perbaikan",
+};
 
 const KETERSEDIAAN_BADGE_CLASSES: Record<KetersediaanStatus, string> = {
-  tersedia: 'bg-green-100 text-green-800',
-  dipinjam: 'bg-yellow-100 text-yellow-800',
-  perbaikan: 'bg-red-100 text-red-800',
-}
+  tersedia: "bg-green-100 text-green-800",
+  dipinjam: "bg-yellow-100 text-yellow-800",
+  perbaikan: "bg-red-100 text-red-800",
+};
 
 export default function AlatPage() {
-  const { canAlat } = useAdminAuth()
-  const canCrud = canAlat('crud_inventaris')
-  const canEditKondisi = canAlat('edit_kondisi')
-  const canEditStatus = canAlat('edit_status')
-  const canEditSomething = canCrud || canEditKondisi || canEditStatus
+  const { canAlat } = useAdminAuth();
+  const canCrud = canAlat("crud_inventaris");
+  const canEditKondisi = canAlat("edit_kondisi");
+  const canEditStatus = canAlat("edit_status");
+  const canEditSomething = canCrud || canEditKondisi || canEditStatus;
 
-  const [alatList, setAlatList] = useState<Alat[]>([])
-  const [meta, setMeta] = useState<AlatListMeta | null>(null)
-  const [search, setSearch] = useState('')
-  const [debouncedSearch, setDebouncedSearch] = useState('')
-  const [ketersediaan, setKetersediaan] = useState('')
-  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc')
-  const [page, setPage] = useState(1)
-  const [isLoading, setIsLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
-  const [refreshKey, setRefreshKey] = useState(0)
-  const [formTarget, setFormTarget] = useState<Alat | null | undefined>(undefined)
-  const [detailTarget, setDetailTarget] = useState<Alat | null>(null)
-  const [deleteTarget, setDeleteTarget] = useState<Alat | null>(null)
+  const [alatList, setAlatList] = useState<Alat[]>([]);
+  const [meta, setMeta] = useState<AlatListMeta | null>(null);
+  const [search, setSearch] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
+  const [ketersediaan, setKetersediaan] = useState("");
+  const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
+  const [page, setPage] = useState(1);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [refreshKey, setRefreshKey] = useState(0);
+  const [formTarget, setFormTarget] = useState<Alat | null | undefined>(
+    undefined,
+  );
+  const [detailTarget, setDetailTarget] = useState<Alat | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<Alat | null>(null);
 
   useEffect(() => {
     const timer = setTimeout(() => {
-      setPage(1)
-      setDebouncedSearch(search)
-    }, SEARCH_DEBOUNCE_MS)
-    return () => clearTimeout(timer)
-  }, [search])
+      setPage(1);
+      setDebouncedSearch(search);
+    }, SEARCH_DEBOUNCE_MS);
+    return () => clearTimeout(timer);
+  }, [search]);
 
   useEffect(() => {
-    let cancelled = false
-    setIsLoading(true)
-    setError(null)
+    let cancelled = false;
+    setIsLoading(true);
+    setError(null);
 
     alatService
       .getAll({
         search: debouncedSearch || undefined,
-        ketersediaan: (ketersediaan || undefined) as KetersediaanStatus | undefined,
+        ketersediaan: (ketersediaan || undefined) as
+          | KetersediaanStatus
+          | undefined,
         page,
         sortDirection,
       })
       .then((response) => {
-        if (cancelled) return
-        setAlatList(response.data)
-        setMeta(response.meta)
+        if (cancelled) return;
+        setAlatList(response.data);
+        setMeta(response.meta);
       })
       .catch((err) => {
-        if (cancelled) return
-        setError(err instanceof ApiError ? err.message : 'Gagal memuat data alat.')
+        if (cancelled) return;
+        setError(
+          err instanceof ApiError ? err.message : "Gagal memuat data alat.",
+        );
       })
       .finally(() => {
-        if (!cancelled) setIsLoading(false)
-      })
+        if (!cancelled) setIsLoading(false);
+      });
 
     return () => {
-      cancelled = true
-    }
-  }, [debouncedSearch, ketersediaan, page, sortDirection, refreshKey])
+      cancelled = true;
+    };
+  }, [debouncedSearch, ketersediaan, page, sortDirection, refreshKey]);
 
-  const hasActiveFilter = debouncedSearch || ketersediaan
+  const hasActiveFilter = debouncedSearch || ketersediaan;
 
-  const handleCloseForm = () => setFormTarget(undefined)
+  const handleCloseForm = () => setFormTarget(undefined);
 
   const handleFormSuccess = () => {
-    setFormTarget(undefined)
-    setRefreshKey((key) => key + 1)
-  }
+    setFormTarget(undefined);
+    setRefreshKey((key) => key + 1);
+  };
 
   const kondisiRingkas = (alat: Alat) =>
     KONDISI_STATUSES.filter((status) => (alat.kondisi_ringkas[status] ?? 0) > 0)
-      .map((status) => `${alat.kondisi_ringkas[status]} ${KONDISI_LABELS[status]}`)
-      .join(' · ')
+      .map(
+        (status) => `${alat.kondisi_ringkas[status]} ${KONDISI_LABELS[status]}`,
+      )
+      .join(" · ");
 
   return (
     <div>
@@ -116,7 +124,7 @@ export default function AlatPage() {
         <button
           onClick={() => setFormTarget(null)}
           disabled={!canCrud}
-          title={canCrud ? undefined : 'Klaim token izin untuk mengedit'}
+          title={canCrud ? undefined : "Klaim token izin untuk mengedit"}
           className="rounded-md bg-gray-900 px-4 py-2 text-sm font-medium text-white hover:bg-gray-700 disabled:cursor-not-allowed disabled:opacity-40"
         >
           Tambah Alat
@@ -131,8 +139,8 @@ export default function AlatPage() {
         <select
           value={ketersediaan}
           onChange={(event) => {
-            setPage(1)
-            setKetersediaan(event.target.value)
+            setPage(1);
+            setKetersediaan(event.target.value);
           }}
           className="rounded-md border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-gray-900"
         >
@@ -146,9 +154,9 @@ export default function AlatPage() {
         {hasActiveFilter && (
           <button
             onClick={() => {
-              setSearch('')
-              setKetersediaan('')
-              setPage(1)
+              setSearch("");
+              setKetersediaan("");
+              setPage(1);
             }}
             className="text-sm text-gray-500 underline hover:text-gray-900"
           >
@@ -167,13 +175,17 @@ export default function AlatPage() {
               <th className="px-4 py-3">
                 <button
                   onClick={() => {
-                    setPage(1)
-                    setSortDirection((current) => (current === 'asc' ? 'desc' : 'asc'))
+                    setPage(1);
+                    setSortDirection((current) =>
+                      current === "asc" ? "desc" : "asc",
+                    );
                   }}
                   className="flex items-center gap-1 uppercase hover:text-gray-900"
                 >
                   Nama Alat
-                  <span className="text-[10px]">{sortDirection === 'asc' ? '▲' : '▼'}</span>
+                  <span className="text-[10px]">
+                    {sortDirection === "asc" ? "▲" : "▼"}
+                  </span>
                 </button>
               </th>
               <th className="px-4 py-3">Serial Number</th>
@@ -187,14 +199,22 @@ export default function AlatPage() {
           <tbody className="divide-y">
             {isLoading ? (
               <tr>
-                <td colSpan={8} className="px-4 py-12 text-center text-gray-500">
+                <td
+                  colSpan={8}
+                  className="px-4 py-12 text-center text-gray-500"
+                >
                   Memuat...
                 </td>
               </tr>
             ) : alatList.length === 0 ? (
               <tr>
-                <td colSpan={8} className="px-4 py-12 text-center text-gray-500">
-                  {hasActiveFilter ? 'Tidak ada alat yang cocok dengan filter.' : 'Belum ada data alat.'}
+                <td
+                  colSpan={8}
+                  className="px-4 py-12 text-center text-gray-500"
+                >
+                  {hasActiveFilter
+                    ? "Tidak ada alat yang cocok dengan filter."
+                    : "Belum ada data alat."}
                 </td>
               </tr>
             ) : (
@@ -207,10 +227,14 @@ export default function AlatPage() {
                       {alat.merk} {alat.tipe}
                     </span>
                   </td>
-                  <td className="px-4 py-3 font-mono text-gray-600">{alat.serial_number}</td>
+                  <td className="px-4 py-3 font-mono text-gray-600">
+                    {alat.serial_number}
+                  </td>
                   <td className="px-4 py-3">{alat.jumlah}</td>
                   <td className="px-4 py-3">
-                    <span className="text-gray-600">{kondisiRingkas(alat) || '-'}</span>
+                    <span className="text-gray-600">
+                      {kondisiRingkas(alat) || "-"}
+                    </span>
                     <button
                       onClick={() => setDetailTarget(alat)}
                       className="ml-2 text-sm text-gray-600 underline hover:text-gray-900"
@@ -218,14 +242,18 @@ export default function AlatPage() {
                       Detail
                     </button>
                   </td>
-                  <td className="px-4 py-3 text-gray-600">{alat.lokasi_penyimpanan}</td>
+                  <td className="px-4 py-3 text-gray-600">
+                    {alat.lokasi_penyimpanan}
+                  </td>
                   <td className="px-4 py-3">
                     <span
                       className={`rounded-full px-2 py-0.5 text-xs font-medium ${
-                        KETERSEDIAAN_BADGE_CLASSES[alat.ketersediaan] ?? 'bg-gray-100 text-gray-800'
+                        KETERSEDIAAN_BADGE_CLASSES[alat.ketersediaan] ??
+                        "bg-gray-100 text-gray-800"
                       }`}
                     >
-                      {KETERSEDIAAN_LABELS[alat.ketersediaan] ?? alat.ketersediaan}
+                      {KETERSEDIAAN_LABELS[alat.ketersediaan] ??
+                        alat.ketersediaan}
                     </span>
                   </td>
                   <td className="px-4 py-3">
@@ -233,7 +261,11 @@ export default function AlatPage() {
                       <button
                         onClick={() => setFormTarget(alat)}
                         disabled={!canEditSomething}
-                        title={canEditSomething ? undefined : 'Klaim token izin untuk mengedit'}
+                        title={
+                          canEditSomething
+                            ? undefined
+                            : "Klaim token izin untuk mengedit"
+                        }
                         className="text-sm text-gray-600 underline hover:text-gray-900 disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:text-gray-600"
                       >
                         Edit
@@ -241,7 +273,11 @@ export default function AlatPage() {
                       <button
                         onClick={() => setDeleteTarget(alat)}
                         disabled={!canCrud}
-                        title={canCrud ? undefined : 'Klaim token izin untuk mengedit'}
+                        title={
+                          canCrud
+                            ? undefined
+                            : "Klaim token izin untuk mengedit"
+                        }
                         className="text-sm text-red-600 underline hover:text-red-500 disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:text-red-600"
                       >
                         Hapus
@@ -293,18 +329,23 @@ export default function AlatPage() {
         />
       )}
 
-      {detailTarget && <KondisiDetailModal alat={detailTarget} onClose={() => setDetailTarget(null)} />}
+      {detailTarget && (
+        <KondisiDetailModal
+          alat={detailTarget}
+          onClose={() => setDetailTarget(null)}
+        />
+      )}
 
       {deleteTarget && (
         <DeleteConfirmModal
           alat={deleteTarget}
           onClose={() => setDeleteTarget(null)}
           onSuccess={() => {
-            setDeleteTarget(null)
-            setRefreshKey((key) => key + 1)
+            setDeleteTarget(null);
+            setRefreshKey((key) => key + 1);
           }}
         />
       )}
     </div>
-  )
+  );
 }
