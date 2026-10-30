@@ -7,6 +7,12 @@ import {
   type AssignMahasiswa,
 } from "@/services";
 import { useAdminAuth } from "@/contexts/AdminAuthContext";
+import { Button } from "@/components/ui/Buttons";
+import { Card } from "@/components/ui/Card";
+import { Checkbox } from "@/components/ui/Checkbox";
+import { Dialog } from "@/components/ui/Dialog";
+import { Input } from "@/components/ui/Input";
+import { Select } from "@/components/ui/Select";
 
 interface FormState {
   praktikum_label: string;
@@ -25,13 +31,13 @@ const EMPTY_FORM: FormState = {
 };
 
 const HARI_OPTIONS = [
-  "Senin",
-  "Selasa",
-  "Rabu",
-  "Kamis",
-  "Jumat",
-  "Sabtu",
-  "Minggu",
+  { value: "Senin", label: "Senin" },
+  { value: "Selasa", label: "Selasa" },
+  { value: "Rabu", label: "Rabu" },
+  { value: "Kamis", label: "Kamis" },
+  { value: "Jumat", label: "Jumat" },
+  { value: "Sabtu", label: "Sabtu" },
+  { value: "Minggu", label: "Minggu" },
 ];
 
 const EMPTY_PLUG: JadwalInput = {
@@ -269,25 +275,23 @@ export default function PraktikumPage() {
   };
 
   return (
-    <div>
-      <h1 className="text-2xl font-bold">Daftar Praktikum</h1>
+    <div className="space-y-4">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <h1 className="text-2xl font-bold text-(--md-sys-color-on-surface)">
+          Daftar Praktikum
+        </h1>
+        {isDosen && (
+          <Button variant="filled" onClick={openCreate}>
+            + Tambah Praktikum
+          </Button>
+        )}
+      </div>
 
-      {isDosen && (
-        <div className="mt-4 flex items-center gap-3">
-          <button
-            onClick={openCreate}
-            className="rounded-md bg-gray-900 px-4 py-2 text-sm font-medium text-white hover:bg-gray-700"
-          >
-            Tambah Praktikum
-          </button>
-        </div>
-      )}
+      {error && <p className="text-sm text-red-500">{error}</p>}
 
-      {error && <p className="mt-4 text-sm text-red-600">{error}</p>}
-
-      <div className="mt-4 overflow-hidden rounded-lg border bg-white">
+      <Card variant="outlined" className="p-0 overflow-x-auto">
         <table className="w-full text-left text-sm">
-          <thead className="border-b bg-gray-50 text-xs uppercase text-gray-500">
+          <thead className="border-b border-(--md-sys-color-outline-variant) bg-(--md-sys-color-surface-container-low) text-xs uppercase text-(--md-sys-color-on-surface-variant)">
             <tr>
               <th className="px-4 py-3">Praktikum</th>
               <th className="px-4 py-3">Semester</th>
@@ -297,12 +301,12 @@ export default function PraktikumPage() {
               <th className="px-4 py-3 text-right">Aksi</th>
             </tr>
           </thead>
-          <tbody className="divide-y">
+          <tbody className="divide-y divide-(--md-sys-color-outline-variant) text-(--md-sys-color-on-surface)">
             {isLoading ? (
               <tr>
                 <td
                   colSpan={6}
-                  className="px-4 py-12 text-center text-gray-500"
+                  className="px-4 py-12 text-center text-(--md-sys-color-on-surface-variant)"
                 >
                   Memuat...
                 </td>
@@ -311,28 +315,33 @@ export default function PraktikumPage() {
               <tr>
                 <td
                   colSpan={6}
-                  className="px-4 py-12 text-center text-gray-500"
+                  className="px-4 py-12 text-center text-(--md-sys-color-on-surface-variant)"
                 >
                   Belum ada data praktikum.
                 </td>
               </tr>
             ) : (
               items.map((item) => (
-                <tr key={item.id} className="hover:bg-gray-50">
+                <tr
+                  key={item.id}
+                  className="hover:bg-(--md-sys-color-surface-container-high) transition-colors"
+                >
                   <td className="px-4 py-3 font-medium">{item.label}</td>
                   <td className="px-4 py-3">{item.semester}</td>
-                  <td className="px-4 py-3 font-mono text-gray-600">
+                  <td className="px-4 py-3 font-mono text-(--md-sys-color-on-surface-variant)">
                     {item.slug}
                   </td>
                   <td className="px-4 py-3">
                     {item.plugs.length === 0 ? (
-                      <span className="text-gray-400">-</span>
+                      <span className="text-(--md-sys-color-on-surface-variant) opacity-50">
+                        -
+                      </span>
                     ) : (
                       <div className="space-y-0.5">
                         {item.plugs.map((jadwal) => (
                           <div
                             key={jadwal.id}
-                            className="whitespace-nowrap text-gray-600"
+                            className="whitespace-nowrap text-(--md-sys-color-on-surface-variant)"
                           >
                             {jadwal.plug} · {jadwal.hari} {jadwal.jam_mulai}–
                             {jadwal.jam_selesai}
@@ -345,8 +354,8 @@ export default function PraktikumPage() {
                     <span
                       className={`rounded-full px-2 py-0.5 text-xs font-medium ${
                         item.is_active
-                          ? "bg-green-100 text-green-800"
-                          : "bg-gray-100 text-gray-600"
+                          ? "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300"
+                          : "bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400"
                       }`}
                     >
                       {item.is_active ? "Aktif" : "Nonaktif"}
@@ -354,21 +363,24 @@ export default function PraktikumPage() {
                   </td>
                   <td className="px-4 py-3 text-right">
                     {isDosen && (
-                      <>
-                        <button
+                      <div className="flex justify-end gap-2">
+                        <Button
+                          variant="outlined"
+                          size="sm"
                           onClick={() => openEdit(item)}
-                          className="rounded-md border px-3 py-1.5 text-xs hover:bg-gray-100"
                         >
                           Edit
-                        </button>
-                        <button
+                        </Button>
+                        <Button
+                          variant="outlined"
+                          size="sm"
                           onClick={() => handleDelete(item)}
                           disabled={deletingId === item.id}
-                          className="ml-2 rounded-md border border-red-200 px-3 py-1.5 text-xs text-red-600 hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-40"
+                          className="border-red-500/50 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/20"
                         >
                           {deletingId === item.id ? "Menghapus..." : "Hapus"}
-                        </button>
-                      </>
+                        </Button>
+                      </div>
                     )}
                   </td>
                 </tr>
@@ -376,426 +388,383 @@ export default function PraktikumPage() {
             )}
           </tbody>
         </table>
-      </div>
+      </Card>
 
-      {isFormOpen && (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
-          onClick={closeForm}
-        >
-          <div
-            className="max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-lg bg-white p-6 shadow-lg"
-            onClick={(event) => event.stopPropagation()}
-          >
-            <h2 className="text-lg font-bold">
-              {editingId === null ? "Tambah Praktikum" : "Edit Praktikum"}
-            </h2>
+      {/* Modal Form Create/Edit Praktikum */}
+      <Dialog
+        isOpen={isFormOpen}
+        onClose={closeForm}
+        title={editingId === null ? "Tambah Praktikum" : "Edit Praktikum"}
+        className="max-w-2xl"
+      >
+        <div className="space-y-4">
+          <Input
+            label="Nama Praktikum"
+            value={form.praktikum_label}
+            onChange={(event) => handleLabelChange(event.target.value)}
+            placeholder="mis. Praktikum Sistem Geospasial"
+          />
 
-            <div className="mt-4 space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700">
-                  Nama Praktikum
-                </label>
-                <input
-                  type="text"
-                  value={form.praktikum_label}
-                  onChange={(event) => handleLabelChange(event.target.value)}
-                  placeholder="mis. Praktikum Sistem Geospasial"
-                  className="mt-1 w-full rounded-md border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-gray-900"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700">
-                  Semester
-                </label>
-                <input
-                  type="text"
-                  value={form.semester}
-                  onChange={(event) =>
-                    setForm((current) => ({
-                      ...current,
-                      semester: event.target.value,
-                    }))
-                  }
-                  placeholder="mis. Ganjil 2025/2026"
-                  className="mt-1 w-full rounded-md border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-gray-900"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700">
-                  Slug
-                </label>
-                <input
-                  type="text"
-                  value={form.praktikum_slug}
-                  onChange={(event) => {
-                    setSlugEdited(true);
-                    setForm((current) => ({
-                      ...current,
-                      praktikum_slug: event.target.value,
-                    }));
-                  }}
-                  placeholder="praktikum-sistem-geospasial"
-                  className="mt-1 w-full rounded-md border px-3 py-2 font-mono text-sm focus:outline-none focus:ring-2 focus:ring-gray-900"
-                />
-                <p className="mt-1 text-xs text-gray-500">
-                  Dipakai untuk URL. Huruf kecil, angka, dan tanda hubung.
-                </p>
-              </div>
-              <div className="flex items-center gap-2">
-                <input
-                  id="is_active"
-                  type="checkbox"
-                  checked={form.is_active}
-                  onChange={(event) =>
-                    setForm((current) => ({
-                      ...current,
-                      is_active: event.target.checked,
-                    }))
-                  }
-                  className="h-4 w-4 rounded border-gray-300"
-                />
-                <label htmlFor="is_active" className="text-sm text-gray-700">
-                  Aktif
-                </label>
-              </div>
+          <Input
+            label="Semester"
+            value={form.semester}
+            onChange={(event) =>
+              setForm((current) => ({
+                ...current,
+                semester: event.target.value,
+              }))
+            }
+            placeholder="mis. Ganjil 2025/2026"
+          />
 
-              <div>
-                <div className="flex items-center justify-between">
-                  <label className="block text-sm font-medium text-gray-700">
-                    Plug &amp; Jadwal
-                  </label>
-                  <button
-                    type="button"
-                    onClick={() =>
-                      setForm((current) => ({
-                        ...current,
-                        plugs: [...current.plugs, { ...EMPTY_PLUG }],
-                      }))
-                    }
-                    className="rounded-md border px-2.5 py-1 text-xs font-medium hover:bg-gray-100"
-                  >
-                    + Tambah Plug
-                  </button>
-                </div>
+          <div>
+            <Input
+              label="Slug"
+              value={form.praktikum_slug}
+              onChange={(event) => {
+                setSlugEdited(true);
+                setForm((current) => ({
+                  ...current,
+                  praktikum_slug: event.target.value,
+                }));
+              }}
+              placeholder="praktikum-sistem-geospasial"
+              className="font-mono"
+            />
+            <p className="mt-1 text-[11px] text-(--md-sys-color-on-surface-variant)">
+              Dipakai untuk URL. Huruf kecil, angka, dan tanda hubung.
+            </p>
+          </div>
 
-                {form.plugs.length === 0 ? (
-                  <p className="mt-2 text-xs text-gray-500">
-                    Belum ada plug. Klik "Tambah Plug" untuk menambah jadwal.
-                  </p>
-                ) : (
-                  editingId === null && (
-                    <p className="mt-2 text-xs text-gray-500">
-                      Simpan praktikum terlebih dulu untuk bisa assign mahasiswa
-                      ke plug.
-                    </p>
-                  )
-                )}
-                {form.plugs.length > 0 && (
-                  <div className="mt-2 space-y-2">
-                    {form.plugs.map((jadwal, index) => (
-                      <div key={index} className="flex items-center gap-2">
-                        <input
-                          type="text"
-                          value={jadwal.plug}
-                          onChange={(event) =>
-                            setForm((current) => ({
-                              ...current,
-                              plugs: current.plugs.map((p, i) =>
-                                i === index
-                                  ? { ...p, plug: event.target.value }
-                                  : p,
-                              ),
-                            }))
-                          }
-                          placeholder="mis. Plug A"
-                          className="w-32 rounded-md border px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-gray-900"
-                        />
-                        <select
-                          value={jadwal.hari}
-                          onChange={(event) =>
-                            setForm((current) => ({
-                              ...current,
-                              plugs: current.plugs.map((p, i) =>
-                                i === index
-                                  ? { ...p, hari: event.target.value }
-                                  : p,
-                              ),
-                            }))
-                          }
-                          className="rounded-md border px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-gray-900"
-                        >
-                          {HARI_OPTIONS.map((hari) => (
-                            <option key={hari} value={hari}>
-                              {hari}
-                            </option>
-                          ))}
-                        </select>
-                        <input
-                          type="time"
-                          value={jadwal.jam_mulai}
-                          onChange={(event) =>
-                            setForm((current) => ({
-                              ...current,
-                              plugs: current.plugs.map((p, i) =>
-                                i === index
-                                  ? { ...p, jam_mulai: event.target.value }
-                                  : p,
-                              ),
-                            }))
-                          }
-                          className="rounded-md border px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-gray-900"
-                        />
-                        <span className="text-sm text-gray-500">–</span>
-                        <input
-                          type="time"
-                          value={jadwal.jam_selesai}
-                          onChange={(event) =>
-                            setForm((current) => ({
-                              ...current,
-                              plugs: current.plugs.map((p, i) =>
-                                i === index
-                                  ? { ...p, jam_selesai: event.target.value }
-                                  : p,
-                              ),
-                            }))
-                          }
-                          className="rounded-md border px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-gray-900"
-                        />
-                        {editingId !== null && jadwal.id && jadwal.plug ? (
-                          <button
-                            type="button"
-                            onClick={() => openAssign(jadwal)}
-                            className="whitespace-nowrap rounded-md border px-2 py-1.5 text-xs font-medium hover:bg-gray-100"
-                          >
-                            Mahasiswa
-                            {jadwal.mahasiswa_count
-                              ? ` (${jadwal.mahasiswa_count})`
-                              : ""}
-                          </button>
-                        ) : (
-                          <button
-                            type="button"
-                            disabled
-                            title="Simpan dulu untuk assign mahasiswa"
-                            className="whitespace-nowrap rounded-md border px-2 py-1.5 text-xs font-medium text-gray-400 disabled:cursor-not-allowed"
-                          >
-                            Mahasiswa
-                          </button>
-                        )}
-                        <button
-                          type="button"
-                          onClick={() =>
-                            setForm((current) => ({
-                              ...current,
-                              plugs: current.plugs.filter(
-                                (_, i) => i !== index,
-                              ),
-                            }))
-                          }
-                          className="rounded-md border border-red-200 px-2 py-1.5 text-xs text-red-600 hover:bg-red-50"
-                          aria-label={`Hapus plug baris ${index + 1}`}
-                        >
-                          Hapus
-                        </button>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
+          <Checkbox
+            label="Aktif"
+            checked={form.is_active}
+            onCheckedChange={(checked) =>
+              setForm((current) => ({
+                ...current,
+                is_active: checked,
+              }))
+            }
+          />
+
+          <div className="space-y-2 pt-2">
+            <div className="flex items-center justify-between">
+              <label className="text-xs font-semibold text-(--md-sys-color-on-surface)">
+                Plug &amp; Jadwal
+              </label>
+              <Button
+                variant="outlined"
+                size="sm"
+                type="button"
+                onClick={() =>
+                  setForm((current) => ({
+                    ...current,
+                    plugs: [...current.plugs, { ...EMPTY_PLUG }],
+                  }))
+                }
+              >
+                + Tambah Plug
+              </Button>
             </div>
 
-            {formError && (
-              <p className="mt-3 text-sm text-red-600">{formError}</p>
+            {form.plugs.length === 0 ? (
+              <p className="text-xs text-(--md-sys-color-on-surface-variant)">
+                Belum ada plug. Klik "Tambah Plug" untuk menambah jadwal.
+              </p>
+            ) : (
+              editingId === null && (
+                <p className="text-xs text-(--md-sys-color-on-surface-variant)">
+                  Simpan praktikum terlebih dulu untuk bisa assign mahasiswa ke
+                  plug.
+                </p>
+              )
             )}
 
-            <div className="mt-4 flex justify-end gap-2">
-              <button
-                onClick={closeForm}
-                disabled={isSaving}
-                className="rounded-md border px-4 py-2 text-sm hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-40"
-              >
-                Batal
-              </button>
-              <button
-                onClick={handleSave}
-                disabled={
-                  !form.praktikum_label ||
-                  !form.semester ||
-                  !form.praktikum_slug ||
-                  isSaving
-                }
-                className="rounded-md bg-gray-900 px-4 py-2 text-sm font-medium text-white hover:bg-gray-700 disabled:cursor-not-allowed disabled:opacity-40"
-              >
-                {isSaving ? "Menyimpan..." : "Simpan"}
-              </button>
-            </div>
+            {form.plugs.length > 0 && (
+              <div className="space-y-2">
+                {form.plugs.map((jadwal, index) => (
+                  <div
+                    key={index}
+                    className="flex flex-wrap items-center gap-2 rounded-(--md-sys-shape-corner-medium) border border-(--md-sys-color-outline-variant) p-2 bg-(--md-sys-color-surface-container-low)"
+                  >
+                    <Input
+                      value={jadwal.plug}
+                      onChange={(event) =>
+                        setForm((current) => ({
+                          ...current,
+                          plugs: current.plugs.map((p, i) =>
+                            i === index
+                              ? { ...p, plug: event.target.value }
+                              : p,
+                          ),
+                        }))
+                      }
+                      placeholder="mis. Plug A"
+                      containerClassName="w-28"
+                    />
+                    <Select
+                      options={HARI_OPTIONS}
+                      value={jadwal.hari}
+                      onValueChange={(val) =>
+                        setForm((current) => ({
+                          ...current,
+                          plugs: current.plugs.map((p, i) =>
+                            i === index ? { ...p, hari: val } : p,
+                          ),
+                        }))
+                      }
+                      containerClassName="w-28"
+                    />
+                    <Input
+                      type="time"
+                      value={jadwal.jam_mulai}
+                      onChange={(event) =>
+                        setForm((current) => ({
+                          ...current,
+                          plugs: current.plugs.map((p, i) =>
+                            i === index
+                              ? { ...p, jam_mulai: event.target.value }
+                              : p,
+                          ),
+                        }))
+                      }
+                      containerClassName="w-28"
+                    />
+                    <span className="text-xs text-(--md-sys-color-on-surface-variant)">
+                      –
+                    </span>
+                    <Input
+                      type="time"
+                      value={jadwal.jam_selesai}
+                      onChange={(event) =>
+                        setForm((current) => ({
+                          ...current,
+                          plugs: current.plugs.map((p, i) =>
+                            i === index
+                              ? { ...p, jam_selesai: event.target.value }
+                              : p,
+                          ),
+                        }))
+                      }
+                      containerClassName="w-28"
+                    />
+
+                    {editingId !== null && jadwal.id && jadwal.plug ? (
+                      <Button
+                        variant="outlined"
+                        size="sm"
+                        type="button"
+                        onClick={() => openAssign(jadwal)}
+                      >
+                        Mahasiswa
+                        {jadwal.mahasiswa_count
+                          ? ` (${jadwal.mahasiswa_count})`
+                          : ""}
+                      </Button>
+                    ) : (
+                      <Button
+                        variant="outlined"
+                        size="sm"
+                        type="button"
+                        disabled
+                        title="Simpan dulu untuk assign mahasiswa"
+                      >
+                        Mahasiswa
+                      </Button>
+                    )}
+
+                    <Button
+                      variant="text"
+                      size="sm"
+                      type="button"
+                      onClick={() =>
+                        setForm((current) => ({
+                          ...current,
+                          plugs: current.plugs.filter((_, i) => i !== index),
+                        }))
+                      }
+                      className="text-red-600 dark:text-red-400 hover:underline px-2 py-1"
+                    >
+                      Hapus
+                    </Button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {formError && <p className="text-xs text-red-500">{formError}</p>}
+
+          <div className="pt-2 flex justify-end gap-2">
+            <Button variant="outlined" onClick={closeForm} disabled={isSaving}>
+              Batal
+            </Button>
+            <Button
+              variant="filled"
+              onClick={handleSave}
+              disabled={
+                !form.praktikum_label ||
+                !form.semester ||
+                !form.praktikum_slug ||
+                isSaving
+              }
+            >
+              {isSaving ? "Menyimpan..." : "Simpan"}
+            </Button>
           </div>
         </div>
-      )}
+      </Dialog>
 
-      {assignPlug !== null && (
-        <div
-          className="fixed inset-0 z-60 flex items-center justify-center bg-black/50 p-4"
-          onClick={closeAssign}
-        >
-          <div
-            className="flex max-h-[85vh] w-full max-w-lg flex-col rounded-lg bg-white p-6 shadow-lg"
-            onClick={(event) => event.stopPropagation()}
-          >
-            <h2 className="text-lg font-bold">Assign Mahasiswa</h2>
-            <p className="mt-1 text-sm text-gray-600">
-              Pilih mahasiswa untuk {assignPlug}
-              {form.praktikum_label ? ` — ${form.praktikum_label}` : ""}.
-            </p>
+      {/* Modal Assign Mahasiswa ke Plug */}
+      <Dialog
+        isOpen={assignPlug !== null}
+        onClose={closeAssign}
+        title="Assign Mahasiswa"
+      >
+        <div className="space-y-3">
+          <p className="text-xs text-(--md-sys-color-on-surface-variant)">
+            Pilih mahasiswa untuk {assignPlug}
+            {form.praktikum_label ? ` — ${form.praktikum_label}` : ""}.
+          </p>
 
-            <input
-              type="search"
-              value={assignSearch}
-              onChange={(event) => setAssignSearch(event.target.value)}
-              placeholder="Cari nama atau NIM..."
-              className="mt-3 w-full rounded-md border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-gray-900"
-            />
+          <Input
+            type="search"
+            value={assignSearch}
+            onChange={(event) => setAssignSearch(event.target.value)}
+            placeholder="Cari nama atau NIM..."
+          />
 
-            {(() => {
-              const angkatanOptions = Array.from(
+          {(() => {
+            const angkatanOptions = [
+              { value: "", label: "Semua Angkatan" },
+              ...Array.from(
                 new Set(
                   assignStudents
                     .map((s) => String(s.nim).substring(2, 5))
                     .filter((code) => code.length === 3),
                 ),
-              ).sort((a, b) => b.localeCompare(a));
+              )
+                .sort((a, b) => b.localeCompare(a))
+                .map((code) => ({
+                  value: code,
+                  label: `Angkatan 20${code.substring(1, 3)}`,
+                })),
+            ];
 
-              const getAngkatan = (nim: string | number) =>
-                String(nim).substring(3, 6);
-              
-              const filteredStudents = assignStudents.filter((student) => {
-                const matchSearch =
-                  !assignSearch ||
-                  student.nama
-                    .toLowerCase()
-                    .includes(assignSearch.toLowerCase()) ||
-                  String(student.nim).includes(assignSearch);
+            const getAngkatan = (nim: string | number) =>
+              String(nim).substring(3, 6);
 
-                const matchAngkatan =
-                  !selectedAngkatan ||
-                  getAngkatan(student.nim) === selectedAngkatan;
+            const filteredStudents = assignStudents.filter((student) => {
+              const matchSearch =
+                !assignSearch ||
+                student.nama
+                  .toLowerCase()
+                  .includes(assignSearch.toLowerCase()) ||
+                String(student.nim).includes(assignSearch);
 
-                return matchSearch && matchAngkatan;
+              const matchAngkatan =
+                !selectedAngkatan ||
+                getAngkatan(student.nim) === selectedAngkatan;
+
+              return matchSearch && matchAngkatan;
+            });
+
+            const isAllFilteredSelected =
+              filteredStudents.length > 0 &&
+              filteredStudents.every((s) => selectedIds.has(s.id));
+
+            const handleToggleSelectAll = () => {
+              setSelectedIds((prev) => {
+                const next = new Set(prev);
+                if (isAllFilteredSelected) {
+                  filteredStudents.forEach((s) => next.delete(s.id));
+                } else {
+                  filteredStudents.forEach((s) => next.add(s.id));
+                }
+                return next;
               });
+            };
 
-              const isAllFilteredSelected =
-                filteredStudents.length > 0 &&
-                filteredStudents.every((s) => selectedIds.has(s.id));
+            return (
+              <>
+                <div className="flex items-center justify-between gap-2 border-b border-(--md-sys-color-outline-variant) pb-2">
+                  <Checkbox
+                    label={`Pilih Semua (${filteredStudents.length})`}
+                    checked={isAllFilteredSelected}
+                    disabled={filteredStudents.length === 0}
+                    onCheckedChange={handleToggleSelectAll}
+                  />
 
-              const handleToggleSelectAll = () => {
-                setSelectedIds((prev) => {
-                  const next = new Set(prev);
-                  if (isAllFilteredSelected) {
-                    filteredStudents.forEach((s) => next.delete(s.id));
-                  } else {
-                    filteredStudents.forEach((s) => next.add(s.id));
-                  }
-                  return next;
-                });
-              };
+                  <Select
+                    value={selectedAngkatan}
+                    options={angkatanOptions}
+                    onValueChange={(val) => setSelectedAngkatan(val)}
+                    containerClassName="w-40"
+                  />
+                </div>
 
-              return (
-                <>
-                  <div className="mt-3 flex items-center justify-between gap-2 border-b pb-2">
-                    <label className="flex cursor-pointer items-center gap-2 text-sm font-medium text-gray-700">
-                      <input
-                        type="checkbox"
-                        checked={isAllFilteredSelected}
-                        onChange={handleToggleSelectAll}
-                        disabled={filteredStudents.length === 0}
-                        className="rounded border-gray-300"
-                      />
-                      Pilih Semua ({filteredStudents.length})
-                    </label>
+                {assignError && (
+                  <p className="text-xs text-red-500">{assignError}</p>
+                )}
 
-                    <select
-                      value={selectedAngkatan}
-                      onChange={(e) => setSelectedAngkatan(e.target.value)}
-                      className="rounded-md border px-2 py-1 text-sm text-gray-700 focus:outline-none focus:ring-1 focus:ring-gray-900"
-                    >
-                      <option value="">Semua Angkatan</option>
-                      {angkatanOptions.map((code) => (
-                        <option key={code} value={code}>
-                          Angkatan 20{code.substring(1, 3)}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-
-                  {assignError && (
-                    <p className="mt-3 text-sm text-red-600">{assignError}</p>
+                <div className="max-h-60 overflow-y-auto rounded-(--md-sys-shape-corner-medium) border border-(--md-sys-color-outline-variant) divide-y divide-(--md-sys-color-outline-variant)">
+                  {isLoadingAssign ? (
+                    <p className="px-3 py-8 text-center text-xs text-(--md-sys-color-on-surface-variant)">
+                      Memuat daftar mahasiswa...
+                    </p>
+                  ) : filteredStudents.length === 0 ? (
+                    <p className="px-3 py-8 text-center text-xs text-(--md-sys-color-on-surface-variant)">
+                      Mahasiswa tidak ditemukan.
+                    </p>
+                  ) : (
+                    filteredStudents.map((student) => (
+                      <div
+                        key={student.id}
+                        className="flex items-center justify-between px-3 py-2 hover:bg-(--md-sys-color-surface-container-high) transition-colors"
+                      >
+                        <Checkbox
+                          label={`${student.nim} — ${student.nama}`}
+                          checked={selectedIds.has(student.id)}
+                          onCheckedChange={() =>
+                            toggleAssignStudent(student.id)
+                          }
+                        />
+                        {student.assigned && (
+                          <span className="text-[10px] text-(--md-sys-color-on-surface-variant) opacity-60">
+                            terdaftar
+                          </span>
+                        )}
+                      </div>
+                    ))
                   )}
+                </div>
+              </>
+            );
+          })()}
 
-                  <div className="mt-3 min-h-0 flex-1 overflow-y-auto rounded-md border">
-                    {isLoadingAssign ? (
-                      <p className="px-3 py-8 text-center text-sm text-gray-500">
-                        Memuat daftar mahasiswa...
-                      </p>
-                    ) : filteredStudents.length === 0 ? (
-                      <p className="px-3 py-8 text-center text-sm text-gray-500">
-                        Mahasiswa tidak ditemukan.
-                      </p>
-                    ) : (
-                      <ul className="divide-y">
-                        {filteredStudents.map((student) => (
-                          <li key={student.id}>
-                            <label className="flex cursor-pointer items-center gap-3 px-3 py-2 text-sm hover:bg-gray-50">
-                              <input
-                                type="checkbox"
-                                checked={selectedIds.has(student.id)}
-                                onChange={() => toggleAssignStudent(student.id)}
-                              />
-                              <span className="font-mono text-gray-600">
-                                {student.nim}
-                              </span>
-                              <span className="font-medium">
-                                {student.nama}
-                              </span>
-                              {student.assigned && (
-                                <span className="ml-auto text-xs text-gray-400">
-                                  terdaftar
-                                </span>
-                              )}
-                            </label>
-                          </li>
-                        ))}
-                      </ul>
-                    )}
-                  </div>
-                </>
-              );
-            })()}
-
-            <div className="mt-4 flex items-center justify-between">
-              <span className="text-sm text-gray-600">
-                {selectedIds.size} dipilih
-              </span>
-              <div className="flex gap-2">
-                <button
-                  onClick={closeAssign}
-                  disabled={isSavingAssign}
-                  className="rounded-md border px-4 py-2 text-sm hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-40"
-                >
-                  Batal
-                </button>
-                <button
-                  onClick={handleSaveAssign}
-                  disabled={isLoadingAssign || isSavingAssign}
-                  className="rounded-md bg-gray-900 px-4 py-2 text-sm font-medium text-white hover:bg-gray-700 disabled:cursor-not-allowed disabled:opacity-40"
-                >
-                  {isSavingAssign ? "Menyimpan..." : "Simpan"}
-                </button>
-              </div>
+          <div className="pt-2 flex items-center justify-between">
+            <span className="text-xs text-(--md-sys-color-on-surface-variant)">
+              {selectedIds.size} dipilih
+            </span>
+            <div className="flex gap-2">
+              <Button
+                variant="outlined"
+                onClick={closeAssign}
+                disabled={isSavingAssign}
+              >
+                Batal
+              </Button>
+              <Button
+                variant="filled"
+                onClick={handleSaveAssign}
+                disabled={isLoadingAssign || isSavingAssign}
+              >
+                {isSavingAssign ? "Menyimpan..." : "Simpan"}
+              </Button>
             </div>
           </div>
         </div>
-      )}
+      </Dialog>
     </div>
   );
 }
