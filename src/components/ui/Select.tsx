@@ -9,12 +9,23 @@ export interface SelectOption {
 interface SelectProps extends React.SelectHTMLAttributes<HTMLSelectElement> {
   options: SelectOption[];
   label?: string;
+  containerClassName?: string;
   onValueChange?: (value: string) => void;
 }
 
 export const Select = React.forwardRef<HTMLSelectElement, SelectProps>(
   (
-    { className, options, label, value, onValueChange, onChange, id, ...props },
+    {
+      className,
+      containerClassName,
+      options,
+      label,
+      value,
+      onValueChange,
+      onChange,
+      id,
+      ...props
+    },
     ref,
   ) => {
     const generatedId = id || React.useId();
@@ -25,7 +36,7 @@ export const Select = React.forwardRef<HTMLSelectElement, SelectProps>(
     };
 
     return (
-      <div className="w-full space-y-1">
+      <div className={cn("w-full space-y-1", containerClassName)}>
         {label && (
           <label
             htmlFor={generatedId}
@@ -55,3 +66,5 @@ export const Select = React.forwardRef<HTMLSelectElement, SelectProps>(
     );
   },
 );
+
+Select.displayName = "Select";

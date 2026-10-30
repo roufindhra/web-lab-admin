@@ -4,14 +4,15 @@ import { cn } from "@/utils/cn";
 interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
   error?: string;
   label?: string;
+  containerClassName?: string;
 }
 
 export const Input = React.forwardRef<HTMLInputElement, InputProps>(
-  ({ className, error, label, id, ...props }, ref) => {
+  ({ className, containerClassName, error, label, id, ...props }, ref) => {
     const generatedId = id || React.useId();
 
     return (
-      <div className="w-full space-y-1">
+      <div className={cn("w-full space-y-1", containerClassName)}>
         {label && (
           <label
             htmlFor={generatedId}
@@ -35,3 +36,5 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
     );
   },
 );
+
+Input.displayName = "Input";
