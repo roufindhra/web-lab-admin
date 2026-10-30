@@ -8,6 +8,12 @@ import {
   type MahasiswaImportResult,
   type Praktikum,
 } from '@/services'
+import { Button } from '@/components/ui/Buttons'
+import { Card } from '@/components/ui/Card'
+import { Checkbox } from '@/components/ui/Checkbox'
+import { Dialog } from '@/components/ui/Dialog'
+import { Input } from '@/components/ui/Input'
+import { Select } from '@/components/ui/Select'
 
 const SEARCH_DEBOUNCE_MS = 400
 
@@ -172,24 +178,23 @@ export default function Students() {
   }
 
   return (
-    <div>
-      <h1 className="text-2xl font-bold">Daftar Mahasiswa</h1>
+    <div className="space-y-4">
+      <h1 className="text-2xl font-bold text-(--md-sys-color-on-surface)">
+        Daftar Mahasiswa
+      </h1>
 
-      <div className="mt-4 flex flex-wrap items-center gap-3">
-        <button
-          onClick={() => setIsUploadOpen(true)}
-          className="rounded-md bg-gray-900 px-4 py-2 text-sm font-medium text-white hover:bg-gray-700"
-        >
+      <div className="flex flex-wrap items-center gap-3">
+        <Button variant="filled" onClick={() => setIsUploadOpen(true)}>
           Import CSV
-        </button>
-        <input
+        </Button>
+        <Input
           type="search"
           value={search}
           onChange={(event) => setSearch(event.target.value)}
           placeholder="Cari nama atau NIM..."
-          className="w-64 rounded-md border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-gray-900"
+          containerClassName="w-64"
         />
-        <input
+        <Input
           type="number"
           value={angkatan}
           onChange={(event) => {
@@ -197,27 +202,28 @@ export default function Students() {
             setAngkatan(event.target.value)
           }}
           placeholder="Angkatan"
-          className="w-32 rounded-md border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-gray-900"
+          containerClassName="w-32"
         />
         {hasActiveFilter && (
-          <button
+          <Button
+            variant="text"
+            size="sm"
             onClick={() => {
               setSearch('')
               setAngkatan('')
               setPage(1)
             }}
-            className="text-sm text-gray-500 underline hover:text-gray-900"
           >
             Reset filter
-          </button>
+          </Button>
         )}
       </div>
 
-      {error && <p className="mt-4 text-sm text-red-600">{error}</p>}
+      {error && <p className="text-sm text-red-500">{error}</p>}
 
-      <div className="mt-4 overflow-hidden rounded-lg border bg-white">
+      <Card variant="outlined" className="p-0 overflow-x-auto">
         <table className="w-full text-left text-sm">
-          <thead className="border-b bg-gray-50 text-xs uppercase text-gray-500">
+          <thead className="border-b border-(--md-sys-color-outline-variant) bg-(--md-sys-color-surface-container-low) text-xs uppercase text-(--md-sys-color-on-surface-variant)">
             <tr>
               <th className="px-4 py-3">
                 <button
@@ -225,7 +231,7 @@ export default function Students() {
                     setPage(1)
                     setSortDirection((current) => (current === 'asc' ? 'desc' : 'asc'))
                   }}
-                  className="flex items-center gap-1 uppercase hover:text-gray-900"
+                  className="flex items-center gap-1 uppercase hover:text-(--md-sys-color-on-surface) transition-colors"
                 >
                   NIM
                   <span className="text-[10px]">{sortDirection === 'asc' ? '▲' : '▼'}</span>
@@ -238,197 +244,189 @@ export default function Students() {
               <th className="px-4 py-3">Aksi</th>
             </tr>
           </thead>
-          <tbody className="divide-y">
+          <tbody className="divide-y divide-(--md-sys-color-outline-variant) text-(--md-sys-color-on-surface)">
             {isLoading ? (
               <tr>
-                <td colSpan={6} className="px-4 py-12 text-center text-gray-500">
+                <td colSpan={6} className="px-4 py-12 text-center text-(--md-sys-color-on-surface-variant)">
                   Memuat...
                 </td>
               </tr>
             ) : students.length === 0 ? (
               <tr>
-                <td colSpan={6} className="px-4 py-12 text-center text-gray-500">
+                <td colSpan={6} className="px-4 py-12 text-center text-(--md-sys-color-on-surface-variant)">
                   {hasActiveFilter ? 'Tidak ada mahasiswa yang cocok dengan filter.' : 'Belum ada data mahasiswa.'}
                 </td>
               </tr>
             ) : (
               students.map((student) => (
-                <tr key={student.id} className="hover:bg-gray-50">
+                <tr key={student.id} className="hover:bg-(--md-sys-color-surface-container-high) transition-colors">
                   <td className="px-4 py-3 font-mono">{student.nim}</td>
                   <td className="px-4 py-3 font-medium">{student.nama}</td>
                   <td className="px-4 py-3">{student.angkatan}</td>
-                  <td className="px-4 py-3 text-gray-600">{student.surel ?? '-'}</td>
+                  <td className="px-4 py-3 text-(--md-sys-color-on-surface-variant)">{student.surel ?? '-'}</td>
                   <td className="px-4 py-3">{student.praktikum?.length ?? 0} praktikum</td>
                   <td className="px-4 py-3">
-                    <button
+                    <Button
+                      variant="text"
+                      size="sm"
                       onClick={() => openEditModal(student)}
-                      className="text-sm text-gray-600 underline hover:text-gray-900"
+                      className="hover:underline px-2 py-1"
                     >
                       Edit
-                    </button>
+                    </Button>
                   </td>
                 </tr>
               ))
             )}
           </tbody>
         </table>
-      </div>
+      </Card>
 
       {meta && (
-        <div className="mt-4 flex items-center justify-between text-sm text-gray-600">
+        <div className="flex items-center justify-between text-sm text-(--md-sys-color-on-surface-variant)">
           <span>
             Menampilkan {students.length} dari {meta.total} mahasiswa
           </span>
           <div className="flex items-center gap-2">
-            <button
+            <Button
+              variant="outlined"
+              size="sm"
               disabled={page <= 1 || isLoading}
               onClick={() => setPage((current) => current - 1)}
-              className="rounded-md border px-3 py-1.5 hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-40"
             >
               Sebelumnya
-            </button>
+            </Button>
             <span>
               Halaman {meta.current_page} / {meta.last_page}
             </span>
-            <button
+            <Button
+              variant="outlined"
+              size="sm"
               disabled={page >= meta.last_page || isLoading}
               onClick={() => setPage((current) => current + 1)}
-              className="rounded-md border px-3 py-1.5 hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-40"
             >
               Berikutnya
-            </button>
+            </Button>
           </div>
         </div>
       )}
 
-      {isUploadOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4" onClick={closeUploadModal}>
-          <div
-            className="w-full max-w-md rounded-lg bg-white p-6 shadow-lg"
-            onClick={(event) => event.stopPropagation()}
-          >
-            <h2 className="text-lg font-bold">Import Mahasiswa dari CSV</h2>
-            <p className="mt-2 text-sm text-gray-600">
-              File CSV harus memiliki baris header dengan kolom <code className="font-mono">nama</code> dan{' '}
-              <code className="font-mono">nim</code> (9 digit). Surel dan angkatan akan diisi otomatis dari NIM
-              (mis. 117190045 → 117190045@student.upnyk.ac.id, angkatan 2019). Nama akan dinormalisasi menjadi huruf
-              kapital di setiap kata. Data dengan NIM yang sudah ada akan diperbarui.
-            </p>
+      {/* Modal Import CSV */}
+      <Dialog
+        isOpen={isUploadOpen}
+        onClose={closeUploadModal}
+        title="Import Mahasiswa dari CSV"
+      >
+        <div className="space-y-4">
+          <p className="text-xs text-(--md-sys-color-on-surface-variant) leading-relaxed">
+            File CSV harus memiliki baris header dengan kolom <code className="font-mono text-xs">nama</code> dan{' '}
+            <code className="font-mono text-xs">nim</code> (9 digit). Surel dan angkatan akan diisi otomatis dari NIM.
+          </p>
 
-            {!uploadResult ? (
-              <>
-                <input
-                  ref={fileInputRef}
-                  type="file"
-                  accept=".csv,text/csv"
-                  onChange={(event) => setUploadFile(event.target.files?.[0] ?? null)}
-                  className="mt-4 w-full rounded-md border px-3 py-2 text-sm file:mr-3 file:rounded-md file:border-0 file:bg-gray-900 file:px-3 file:py-1.5 file:text-white"
-                />
-                {uploadError && <p className="mt-3 text-sm text-red-600">{uploadError}</p>}
-                <div className="mt-4 flex justify-end gap-2">
-                  <button
-                    onClick={closeUploadModal}
-                    disabled={isUploading}
-                    className="rounded-md border px-4 py-2 text-sm hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-40"
-                  >
-                    Batal
-                  </button>
-                  <button
-                    onClick={handleUpload}
-                    disabled={!uploadFile || isUploading}
-                    className="rounded-md bg-gray-900 px-4 py-2 text-sm font-medium text-white hover:bg-gray-700 disabled:cursor-not-allowed disabled:opacity-40"
-                  >
-                    {isUploading ? 'Mengunggah...' : 'Upload'}
-                  </button>
-                </div>
-              </>
-            ) : (
-              <>
-                <div className="mt-4 rounded-md border bg-gray-50 p-4 text-sm">
-                  <p className="font-medium">{uploadResult.message}</p>
-                  {uploadResult.failed.length > 0 && (
-                    <ul className="mt-2 list-inside list-disc space-y-1 text-red-600">
-                      {uploadResult.failed.map((item) => (
-                        <li key={item.row}>
-                          Baris {item.row}: {item.message}
-                        </li>
-                      ))}
-                    </ul>
-                  )}
-                </div>
-                <div className="mt-4 flex justify-end">
-                  <button
-                    onClick={closeUploadModal}
-                    className="rounded-md bg-gray-900 px-4 py-2 text-sm font-medium text-white hover:bg-gray-700"
-                  >
-                    Selesai
-                  </button>
-                </div>
-              </>
-            )}
-          </div>
+          {!uploadResult ? (
+            <>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept=".csv,text/csv"
+                onChange={(event) => setUploadFile(event.target.files?.[0] ?? null)}
+                className="w-full rounded-(--md-sys-shape-corner-medium) border border-(--md-sys-color-outline) bg-(--md-sys-color-surface) px-3 py-2 text-xs text-(--md-sys-color-on-surface) file:mr-3 file:rounded-md file:border-0 file:bg-(--md-sys-color-primary) file:px-3 file:py-1.5 file:text-white"
+              />
+              {uploadError && <p className="text-xs text-red-500">{uploadError}</p>}
+              <div className="pt-2 flex justify-end gap-2">
+                <Button
+                  variant="outlined"
+                  onClick={closeUploadModal}
+                  disabled={isUploading}
+                >
+                  Batal
+                </Button>
+
+                <Button
+                  variant="filled"
+                  onClick={handleUpload}
+                  disabled={!uploadFile || isUploading}
+                >
+                  {isUploading ? 'Mengunggah...' : 'Upload'}
+                </Button>
+              </div>
+            </>
+          ) : (
+            <>
+              <div className="rounded-(--md-sys-shape-corner-medium) border border-(--md-sys-color-outline-variant) bg-(--md-sys-color-surface-container-low) p-4 text-xs">
+                <p className="font-medium text-(--md-sys-color-on-surface)">{uploadResult.message}</p>
+                {uploadResult.failed.length > 0 && (
+                  <ul className="mt-2 list-inside list-disc space-y-1 text-red-500">
+                    {uploadResult.failed.map((item) => (
+                      <li key={item.row}>
+                        Baris {item.row}: {item.message}
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+              <div className="pt-2 flex justify-end">
+                <Button variant="filled" onClick={closeUploadModal}>
+                  Selesai
+                </Button>
+              </div>
+            </>
+          )}
         </div>
-      )}
+      </Dialog>
 
-      {editingStudent && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4" onClick={closeEditModal}>
-          <div
-            className="max-h-[80vh] w-full max-w-md overflow-y-auto rounded-lg bg-white p-6 shadow-lg"
-            onClick={(event) => event.stopPropagation()}
-          >
-            <h2 className="text-lg font-bold">Edit Praktikum</h2>
-            <p className="mt-1 text-sm text-gray-600">
+      {/* Modal Edit Praktikum Mahasiswa */}
+      <Dialog
+        isOpen={!!editingStudent}
+        onClose={closeEditModal}
+        title="Edit Praktikum"
+      >
+        {editingStudent && (
+          <div className="space-y-4">
+            <p className="text-xs text-(--md-sys-color-on-surface-variant)">
               {editingStudent.nama} ({editingStudent.nim})
             </p>
 
             {isLoadingOptions ? (
-              <p className="mt-4 text-sm text-gray-500">Memuat daftar praktikum...</p>
+              <p className="text-xs text-(--md-sys-color-on-surface-variant)">Memuat daftar praktikum...</p>
             ) : praktikumOptions.length === 0 ? (
-              <p className="mt-4 text-sm text-gray-500">Belum ada praktikum terdaftar.</p>
+              <p className="text-xs text-(--md-sys-color-on-surface-variant)">Belum ada praktikum terdaftar.</p>
             ) : (
-              <ul className="mt-4 space-y-2">
+              <ul className="space-y-2">
                 {praktikumOptions.map((option) => {
                   const checked = option.slug in editPlugs
                   const adaJadwal = option.plugs.length > 0
                   return (
-                    <li key={option.id} className="rounded-md border p-3">
-                      <label className="flex items-center gap-2 text-sm">
-                        <input
-                          type="checkbox"
-                          checked={checked}
-                          disabled={!checked && !adaJadwal}
-                          onChange={() => togglePraktikum(option.slug)}
-                        />
-                        <span className="font-medium">{option.label}</span>
-                        <span className="text-gray-400">({option.slug})</span>
-                      </label>
+                    <li key={option.id} className="rounded-(--md-sys-shape-corner-medium) border border-(--md-sys-color-outline-variant) p-3">
+                      <Checkbox
+                        label={`${option.label} (${option.slug})`}
+                        checked={checked}
+                        disabled={!checked && !adaJadwal}
+                        onCheckedChange={() => togglePraktikum(option.slug)}
+                      />
                       {checked &&
                         (adaJadwal ? (
-                          <div className="mt-2 flex items-center gap-2">
-                            <label htmlFor={`plug-${option.id}`} className="text-sm text-gray-600">
-                              Plug
-                            </label>
-                            <select
-                              id={`plug-${option.id}`}
+                          <div className="mt-2 pl-6">
+                            <Select
+                              label="Plug"
                               value={editPlugs[option.slug] ?? ''}
-                              onChange={(event) =>
+                              onValueChange={(val) =>
                                 setEditPlugs((current) => ({
                                   ...current,
-                                  [option.slug]: event.target.value,
+                                  [option.slug]: val,
                                 }))
                               }
-                              className="rounded-md border px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-gray-900"
-                            >
-                              <option value="">Pilih plug...</option>
-                              {option.plugs.map((jadwal) => (
-                                <option key={jadwal.id} value={jadwal.plug}>
-                                  {jadwal.plug} ({jadwal.hari} {jadwal.jam_mulai}–{jadwal.jam_selesai})
-                                </option>
-                              ))}
-                            </select>
+                              options={[
+                                { value: '', label: 'Pilih plug...' },
+                                ...option.plugs.map((jadwal) => ({
+                                  value: jadwal.plug,
+                                  label: `Plug ${jadwal.plug} (${jadwal.hari} ${jadwal.jam_mulai}–${jadwal.jam_selesai})`,
+                                })),
+                              ]}
+                            />
                           </div>
                         ) : (
-                          <p className="mt-2 text-xs text-red-600">
+                          <p className="mt-2 text-xs text-red-500 pl-6">
                             Jadwal belum tersedia untuk praktikum ini.
                           </p>
                         ))}
@@ -438,27 +436,27 @@ export default function Students() {
               </ul>
             )}
 
-            {editError && <p className="mt-3 text-sm text-red-600">{editError}</p>}
+            {editError && <p className="text-xs text-red-500">{editError}</p>}
 
-            <div className="mt-4 flex justify-end gap-2">
-              <button
+            <div className="pt-2 flex justify-end gap-2">
+              <Button
+                variant="outlined"
                 onClick={closeEditModal}
                 disabled={isSavingEdit}
-                className="rounded-md border px-4 py-2 text-sm hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-40"
               >
                 Batal
-              </button>
-              <button
+              </Button>
+              <Button
+                variant="filled"
                 onClick={handleSaveEdit}
                 disabled={isSavingEdit || isLoadingOptions}
-                className="rounded-md bg-gray-900 px-4 py-2 text-sm font-medium text-white hover:bg-gray-700 disabled:cursor-not-allowed disabled:opacity-40"
               >
                 {isSavingEdit ? 'Menyimpan...' : 'Simpan'}
-              </button>
+              </Button>
             </div>
           </div>
-        </div>
-      )}
+        )}
+      </Dialog>
     </div>
   )
 }

@@ -14,16 +14,16 @@ export default function PengaturanAkun() {
         <h1 className="text-xl font-bold text-(--md-sys-color-on-surface)">
           Pengaturan Akun
         </h1>
-        <p className="text-xs text-gray-500">
+        <p className="text-xs text-(--md-sys-color-on-surface-variant)">
           Kelola informasi dan keamanan akun kamu.
         </p>
       </div>
 
-      <Card variant="outlined" className="space-y-2">
+      <Card variant="outlined" className="space-y-3">
         <p className="text-xs font-bold text-(--md-sys-color-on-surface)">
           Informasi Akun
         </p>
-        <div className="grid gap-2 sm:grid-cols-3">
+        <div className="grid gap-3 sm:grid-cols-3">
           <InfoItem label="Nama" value={user?.nama} />
           <InfoItem label="Surel" value={user?.surel ?? "-"} />
           <InfoItem label="Role" value={user?.role} />
@@ -38,10 +38,10 @@ export default function PengaturanAkun() {
 function InfoItem({ label, value }: { label: string; value?: string }) {
   return (
     <div>
-      <p className="text-[10px] font-semibold uppercase tracking-wider text-gray-400">
+      <p className="text-[10px] font-semibold uppercase tracking-wider text-(--md-sys-color-on-surface-variant)">
         {label}
       </p>
-      <p className="text-xs text-(--md-sys-color-on-surface)">
+      <p className="text-xs font-medium text-(--md-sys-color-on-surface)">
         {value ?? "-"}
       </p>
     </div>
@@ -100,7 +100,7 @@ function UbahPasswordCard() {
           <p className="text-xs font-bold text-(--md-sys-color-on-surface)">
             Ubah Password
           </p>
-          <p className="text-[11px] text-gray-500">
+          <p className="text-[11px] text-(--md-sys-color-on-surface-variant)">
             Password baru minimal 8 karakter.
           </p>
         </div>
@@ -129,9 +129,9 @@ function UbahPasswordCard() {
           />
         </div>
 
-        {error && <p className="text-xs text-red-600">{error}</p>}
+        {error && <p className="text-xs text-red-500">{error}</p>}
         {success && (
-          <p className="text-xs font-semibold text-emerald-700">
+          <p className="text-xs font-semibold text-emerald-600 dark:text-emerald-400">
             Password berhasil diubah.
           </p>
         )}

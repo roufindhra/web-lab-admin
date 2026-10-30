@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState } from "react";
 import {
   mahasiswaService,
   praktikumService,
@@ -6,158 +6,187 @@ import {
   type Mahasiswa,
   type MahasiswaListMeta,
   type Praktikum,
-} from '@/services'
+} from "@/services";
+import { Button } from "@/components/ui/Buttons";
+import { Card } from "@/components/ui/Card";
+import { Checkbox } from "@/components/ui/Checkbox";
+import { Dialog } from "@/components/ui/Dialog";
+import { Input } from "@/components/ui/Input";
 
-const SEARCH_DEBOUNCE_MS = 400
+const SEARCH_DEBOUNCE_MS = 400;
 
-type StatusFilter = 'semua' | 'asisten' | 'asisten_nonaktif' | 'bukan'
+type StatusFilter = "semua" | "asisten" | "asisten_nonaktif" | "bukan";
 
-const STATUS_FILTER_ROLE: Record<Exclude<StatusFilter, 'semua'>, 'asisten' | 'asisten_all' | 'mahasiswa'> = {
-  asisten: 'asisten',
-  asisten_nonaktif: 'asisten_all',
-  bukan: 'mahasiswa',
-}
+const STATUS_FILTER_ROLE: Record<
+  Exclude<StatusFilter, "semua">,
+  "asisten" | "asisten_all" | "mahasiswa"
+> = {
+  asisten: "asisten",
+  asisten_nonaktif: "asisten_all",
+  bukan: "mahasiswa",
+};
 
 function StatusBadge({ mahasiswa }: { mahasiswa: Mahasiswa }) {
   if (!mahasiswa.is_asisten) {
     return (
-      <span className="rounded-full bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-600">
+      <span className="rounded-full bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-600 dark:bg-gray-800 dark:text-gray-300">
         Bukan Asisten
       </span>
-    )
+    );
   }
   return mahasiswa.is_active_asisten ? (
-    <span className="rounded-full bg-green-100 px-2 py-0.5 text-xs font-medium text-green-800">
+    <span className="rounded-full bg-green-100 px-2 py-0.5 text-xs font-medium text-green-800 dark:bg-green-900/30 dark:text-green-300">
       Asisten Aktif
     </span>
   ) : (
-    <span className="rounded-full bg-yellow-100 px-2 py-0.5 text-xs font-medium text-yellow-800">
+    <span className="rounded-full bg-yellow-100 px-2 py-0.5 text-xs font-medium text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300">
       Asisten Nonaktif
     </span>
-  )
+  );
 }
 
 export default function Asisten() {
-  const [students, setStudents] = useState<Mahasiswa[]>([])
-  const [meta, setMeta] = useState<MahasiswaListMeta | null>(null)
-  const [search, setSearch] = useState('')
-  const [debouncedSearch, setDebouncedSearch] = useState('')
-  const [statusFilter, setStatusFilter] = useState<StatusFilter>('semua')
-  const [page, setPage] = useState(1)
-  const [isLoading, setIsLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
-  const [refreshKey, setRefreshKey] = useState(0)
+  const [students, setStudents] = useState<Mahasiswa[]>([]);
+  const [meta, setMeta] = useState<MahasiswaListMeta | null>(null);
+  const [search, setSearch] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
+  const [statusFilter, setStatusFilter] = useState<StatusFilter>("semua");
+  const [page, setPage] = useState(1);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [refreshKey, setRefreshKey] = useState(0);
 
-  const [editingStudent, setEditingStudent] = useState<Mahasiswa | null>(null)
-  const [praktikumOptions, setPraktikumOptions] = useState<Praktikum[]>([])
-  const [isLoadingOptions, setIsLoadingOptions] = useState(false)
-  const [editIsAsisten, setEditIsAsisten] = useState(false)
-  const [editIsActive, setEditIsActive] = useState(false)
-  const [editPlugs, setEditPlugs] = useState<Record<string, string[]>>({})
-  const [isSavingEdit, setIsSavingEdit] = useState(false)
-  const [editError, setEditError] = useState<string | null>(null)
+  const [editingStudent, setEditingStudent] = useState<Mahasiswa | null>(null);
+  const [praktikumOptions, setPraktikumOptions] = useState<Praktikum[]>([]);
+  const [isLoadingOptions, setIsLoadingOptions] = useState(false);
+  const [editIsAsisten, setEditIsAsisten] = useState(false);
+  const [editIsActive, setEditIsActive] = useState(false);
+  const [editPlugs, setEditPlugs] = useState<Record<string, string[]>>({});
+  const [isSavingEdit, setIsSavingEdit] = useState(false);
+  const [editError, setEditError] = useState<string | null>(null);
 
   useEffect(() => {
     const timer = setTimeout(() => {
-      setPage(1)
-      setDebouncedSearch(search)
-    }, SEARCH_DEBOUNCE_MS)
-    return () => clearTimeout(timer)
-  }, [search])
+      setPage(1);
+      setDebouncedSearch(search);
+    }, SEARCH_DEBOUNCE_MS);
+    return () => clearTimeout(timer);
+  }, [search]);
 
   useEffect(() => {
-    let cancelled = false
-    setIsLoading(true)
-    setError(null)
+    let cancelled = false;
+    setIsLoading(true);
+    setError(null);
 
     mahasiswaService
       .getAll({
         search: debouncedSearch || undefined,
-        role: statusFilter === 'semua' ? undefined : STATUS_FILTER_ROLE[statusFilter],
+        role:
+          statusFilter === "semua"
+            ? undefined
+            : STATUS_FILTER_ROLE[statusFilter],
         page,
       })
       .then((response) => {
-        if (cancelled) return
-        setStudents(response.data)
-        setMeta(response.meta)
+        if (cancelled) return;
+        setStudents(response.data);
+        setMeta(response.meta);
       })
       .catch((err) => {
-        if (cancelled) return
-        setError(err instanceof ApiError ? err.message : 'Gagal memuat data mahasiswa.')
+        if (cancelled) return;
+        setError(
+          err instanceof ApiError
+            ? err.message
+            : "Gagal memuat data mahasiswa.",
+        );
       })
       .finally(() => {
-        if (!cancelled) setIsLoading(false)
-      })
+        if (!cancelled) setIsLoading(false);
+      });
 
     return () => {
-      cancelled = true
-    }
-  }, [debouncedSearch, statusFilter, page, refreshKey])
+      cancelled = true;
+    };
+  }, [debouncedSearch, statusFilter, page, refreshKey]);
 
   const openEditModal = (student: Mahasiswa) => {
-    setEditingStudent(student)
-    setEditError(null)
-    setEditIsAsisten(student.is_asisten)
-    setEditIsActive(student.is_asisten && student.is_active_asisten)
-    setIsLoadingOptions(true)
+    setEditingStudent(student);
+    setEditError(null);
+    setEditIsAsisten(student.is_asisten);
+    setEditIsActive(student.is_asisten && student.is_active_asisten);
+    setIsLoadingOptions(true);
 
-    const pengampu = student.pengampu_praktikum ?? []
+    const pengampu = student.pengampu_praktikum ?? [];
     setEditPlugs(
-      Object.fromEntries(pengampu.map((slug) => [slug, student.pengampu_plug?.[slug] ?? []])),
-    )
+      Object.fromEntries(
+        pengampu.map((slug) => [slug, student.pengampu_plug?.[slug] ?? []]),
+      ),
+    );
 
     praktikumService
       .getAll()
       .then((options) => setPraktikumOptions(options))
       .catch((err) => {
-        setEditError(err instanceof ApiError ? err.message : 'Gagal memuat daftar praktikum.')
+        setEditError(
+          err instanceof ApiError
+            ? err.message
+            : "Gagal memuat daftar praktikum.",
+        );
       })
-      .finally(() => setIsLoadingOptions(false))
-  }
+      .finally(() => setIsLoadingOptions(false));
+  };
 
   const closeEditModal = () => {
-    setEditingStudent(null)
-    setEditPlugs({})
-    setEditError(null)
-  }
+    setEditingStudent(null);
+    setEditPlugs({});
+    setEditError(null);
+  };
 
   const togglePengampu = (slug: string) => {
     setEditPlugs((current) => {
       if (slug in current) {
-        const next = { ...current }
-        delete next[slug]
-        return next
+        const next = { ...current };
+        delete next[slug];
+        return next;
       }
-      return { ...current, [slug]: [] }
-    })
-  }
+      return { ...current, [slug]: [] };
+    });
+  };
 
   const togglePlug = (slug: string, plug: string) => {
     setEditPlugs((current) => {
-      const plugs = current[slug] ?? []
+      const plugs = current[slug] ?? [];
       return {
         ...current,
-        [slug]: plugs.includes(plug) ? plugs.filter((p) => p !== plug) : [...plugs, plug],
-      }
-    })
-  }
+        [slug]: plugs.includes(plug)
+          ? plugs.filter((p) => p !== plug)
+          : [...plugs, plug],
+      };
+    });
+  };
 
   const handleSaveEdit = () => {
-    if (!editingStudent) return
+    if (!editingStudent) return;
 
-    const plugs: Record<string, string[]> = {}
+    const plugs: Record<string, string[]> = {};
     for (const [slug, plugList] of Object.entries(editPlugs)) {
-      const option = praktikumOptions.find((p) => p.slug === slug)
-      const tersedia = option?.plugs.map((jadwal) => jadwal.plug) ?? []
-      if (!option || plugList.length === 0 || plugList.some((plug) => !tersedia.includes(plug))) {
-        setEditError('Pilih minimal satu plug yang tersedia untuk setiap praktikum yang dipilih.')
-        return
+      const option = praktikumOptions.find((p) => p.slug === slug);
+      const tersedia = option?.plugs.map((jadwal) => jadwal.plug) ?? [];
+      if (
+        !option ||
+        plugList.length === 0 ||
+        plugList.some((plug) => !tersedia.includes(plug))
+      ) {
+        setEditError(
+          "Pilih minimal satu plug yang tersedia untuk setiap praktikum yang dipilih.",
+        );
+        return;
       }
-      plugs[slug] = plugList
+      plugs[slug] = plugList;
     }
 
-    setIsSavingEdit(true)
-    setEditError(null)
+    setIsSavingEdit(true);
+    setEditError(null);
 
     mahasiswaService
       .updateAsisten(editingStudent.id, {
@@ -167,79 +196,82 @@ export default function Asisten() {
         pengampu_plug: plugs,
       })
       .then(() => {
-        closeEditModal()
-        setRefreshKey((key) => key + 1)
+        closeEditModal();
+        setRefreshKey((key) => key + 1);
       })
       .catch((err) => {
-        setEditError(err instanceof ApiError ? err.message : 'Gagal menyimpan perubahan.')
+        setEditError(
+          err instanceof ApiError ? err.message : "Gagal menyimpan perubahan.",
+        );
       })
       .finally(() => {
-        setIsSavingEdit(false)
-      })
-  }
+        setIsSavingEdit(false);
+      });
+  };
 
-  const hasActiveFilter = debouncedSearch || statusFilter !== 'semua'
+  const hasActiveFilter = debouncedSearch || statusFilter !== "semua";
 
   const statusFilters: { value: StatusFilter; label: string }[] = [
-    { value: 'semua', label: 'Semua' },
-    { value: 'asisten', label: 'Asisten Aktif' },
-    { value: 'asisten_nonaktif', label: 'Asisten Nonaktif' },
-    { value: 'bukan', label: 'Bukan Asisten' },
-  ]
+    { value: "semua", label: "Semua" },
+    { value: "asisten", label: "Asisten Aktif" },
+    { value: "asisten_nonaktif", label: "Asisten Nonaktif" },
+    { value: "bukan", label: "Bukan Asisten" },
+  ];
 
   return (
-    <div>
-      <h1 className="text-2xl font-bold">Manajemen Asisten</h1>
-      <p className="mt-1 text-sm text-gray-600">
-        Tetapkan mahasiswa sebagai asisten dan atur praktikum yang diampu. Praktikum ampuan menentukan
-        fitur yang dapat diakses asisten di panel admin.
-      </p>
+    <div className="space-y-4">
+      <div>
+        <h1 className="text-2xl font-bold text-(--md-sys-color-on-surface)">
+          Manajemen Asisten
+        </h1>
+        <p className="mt-1 text-sm text-(--md-sys-color-on-surface-variant)">
+          Tetapkan mahasiswa sebagai asisten dan atur praktikum yang diampu.
+        </p>
+      </div>
 
-      <div className="mt-4 flex flex-wrap items-center gap-3">
-        <input
+      <div className="flex flex-wrap items-center gap-3">
+        <Input
           type="search"
           value={search}
           onChange={(event) => setSearch(event.target.value)}
           placeholder="Cari nama atau NIM..."
-          className="w-64 rounded-md border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-gray-900"
+          containerClassName="w-64"
         />
-        <div className="flex items-center gap-1">
+        <div className="flex flex-wrap items-center gap-1.5">
           {statusFilters.map((filter) => (
-            <button
+            <Button
               key={filter.value}
+              variant={statusFilter === filter.value ? "filled" : "outlined"}
+              size="sm"
               onClick={() => {
-                setPage(1)
-                setStatusFilter(filter.value)
+                setPage(1);
+                setStatusFilter(filter.value);
               }}
-              className={`rounded-full px-3 py-1.5 text-sm font-medium transition-colors ${
-                statusFilter === filter.value
-                  ? 'bg-gray-900 text-white'
-                  : 'border text-gray-600 hover:bg-gray-100'
-              }`}
             >
               {filter.label}
-            </button>
+            </Button>
           ))}
         </div>
         {hasActiveFilter && (
-          <button
+          <Button
+            variant="text"
+            size="sm"
             onClick={() => {
-              setSearch('')
-              setPage(1)
-              setStatusFilter('semua')
+              setSearch("");
+              setPage(1);
+              setStatusFilter("semua");
             }}
-            className="text-sm text-gray-500 underline hover:text-gray-900"
           >
             Reset filter
-          </button>
+          </Button>
         )}
       </div>
 
-      {error && <p className="mt-4 text-sm text-red-600">{error}</p>}
+      {error && <p className="text-sm text-red-500">{error}</p>}
 
-      <div className="mt-4 overflow-hidden rounded-lg border bg-white">
+      <Card variant="outlined" className="p-0 overflow-x-auto">
         <table className="w-full text-left text-sm">
-          <thead className="border-b bg-gray-50 text-xs uppercase text-gray-500">
+          <thead className="border-b border-(--md-sys-color-outline-variant) bg-(--md-sys-color-surface-container-low) text-xs uppercase text-(--md-sys-color-on-surface-variant)">
             <tr>
               <th className="px-4 py-3">NIM</th>
               <th className="px-4 py-3">Nama</th>
@@ -249,24 +281,35 @@ export default function Asisten() {
               <th className="px-4 py-3">Aksi</th>
             </tr>
           </thead>
-          <tbody className="divide-y">
+          <tbody className="divide-y divide-(--md-sys-color-outline-variant) text-(--md-sys-color-on-surface)">
             {isLoading ? (
               <tr>
-                <td colSpan={6} className="px-4 py-12 text-center text-gray-500">
+                <td
+                  colSpan={6}
+                  className="px-4 py-12 text-center text-(--md-sys-color-on-surface-variant)"
+                >
                   Memuat...
                 </td>
               </tr>
             ) : students.length === 0 ? (
               <tr>
-                <td colSpan={6} className="px-4 py-12 text-center text-gray-500">
-                  {hasActiveFilter ? 'Tidak ada mahasiswa yang cocok dengan filter.' : 'Belum ada data mahasiswa.'}
+                <td
+                  colSpan={6}
+                  className="px-4 py-12 text-center text-(--md-sys-color-on-surface-variant)"
+                >
+                  {hasActiveFilter
+                    ? "Tidak ada mahasiswa yang cocok dengan filter."
+                    : "Belum ada data mahasiswa."}
                 </td>
               </tr>
             ) : (
               students.map((student) => {
-                const pengampu = student.pengampu_praktikum ?? []
+                const pengampu = student.pengampu_praktikum ?? [];
                 return (
-                  <tr key={student.id} className="hover:bg-gray-50">
+                  <tr
+                    key={student.id}
+                    className="hover:bg-(--md-sys-color-surface-container-high) transition-colors"
+                  >
                     <td className="px-4 py-3 font-mono">{student.nim}</td>
                     <td className="px-4 py-3 font-medium">{student.nama}</td>
                     <td className="px-4 py-3">{student.angkatan}</td>
@@ -275,182 +318,188 @@ export default function Asisten() {
                     </td>
                     <td className="px-4 py-3">
                       {pengampu.length === 0 ? (
-                        <span className="text-gray-400">-</span>
+                        <span className="text-(--md-sys-color-on-surface-variant) opacity-50">
+                          -
+                        </span>
                       ) : (
                         <ul className="space-y-0.5">
-                          {pengampu.map((slug) => (
-                            <li key={slug} className="text-xs text-gray-600">
-                              {slug}
-                              {(student.pengampu_plug?.[slug]?.length ?? 0) > 0 && (
-                                <span className="text-gray-400">
-                                  {' '}
-                                  · {student.pengampu_plug[slug].join(', ')}
-                                </span>
-                              )}
-                            </li>
-                          ))}
+                          {pengampu.map((slug) => {
+                            const plugs = student.pengampu_plug?.[slug] ?? [];
+
+                            return (
+                              <li
+                                key={slug}
+                                className="text-xs text-(--md-sys-color-on-surface-variant)"
+                              >
+                                {slug}
+                                {plugs.length > 0 && (
+                                  <span className="opacity-70">
+                                    {" "}
+                                    · {plugs.join(", ")}
+                                  </span>
+                                )}
+                              </li>
+                            );
+                          })}
                         </ul>
                       )}
                     </td>
                     <td className="px-4 py-3">
-                      <button
+                      <Button
+                        variant="text"
+                        size="sm"
                         onClick={() => openEditModal(student)}
-                        className="text-sm text-gray-600 underline hover:text-gray-900"
+                        className="hover:underline px-2 py-1"
                       >
                         Atur
-                      </button>
+                      </Button>
                     </td>
                   </tr>
-                )
+                );
               })
             )}
           </tbody>
         </table>
-      </div>
+      </Card>
 
       {meta && (
-        <div className="mt-4 flex items-center justify-between text-sm text-gray-600">
+        <div className="flex items-center justify-between text-sm text-(--md-sys-color-on-surface-variant)">
           <span>
             Menampilkan {students.length} dari {meta.total} mahasiswa
           </span>
           <div className="flex items-center gap-2">
-            <button
+            <Button
+              variant="outlined"
+              size="sm"
               disabled={page <= 1 || isLoading}
               onClick={() => setPage((current) => current - 1)}
-              className="rounded-md border px-3 py-1.5 hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-40"
             >
               Sebelumnya
-            </button>
+            </Button>
             <span>
               Halaman {meta.current_page} / {meta.last_page}
             </span>
-            <button
+            <Button
+              variant="outlined"
+              size="sm"
               disabled={page >= meta.last_page || isLoading}
               onClick={() => setPage((current) => current + 1)}
-              className="rounded-md border px-3 py-1.5 hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-40"
             >
               Berikutnya
-            </button>
+            </Button>
           </div>
         </div>
       )}
 
-      {editingStudent && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4" onClick={closeEditModal}>
-          <div
-            className="max-h-[80vh] w-full max-w-md overflow-y-auto rounded-lg bg-white p-6 shadow-lg"
-            onClick={(event) => event.stopPropagation()}
-          >
-            <h2 className="text-lg font-bold">Atur Asisten</h2>
-            <p className="mt-1 text-sm text-gray-600">
+      {/* Modal Edit Asisten */}
+      <Dialog
+        isOpen={!!editingStudent}
+        onClose={closeEditModal}
+        title="Atur Asisten"
+      >
+        {editingStudent && (
+          <div className="space-y-4">
+            <p className="text-xs text-(--md-sys-color-on-surface-variant)">
               {editingStudent.nama} ({editingStudent.nim})
             </p>
 
-            <div className="mt-4 space-y-3">
-              <label className="flex items-center gap-3 text-sm">
-                <input
-                  type="checkbox"
-                  checked={editIsAsisten}
-                  onChange={(event) => {
-                    setEditIsAsisten(event.target.checked)
-                    if (!event.target.checked) setEditIsActive(false)
-                  }}
-                  className="h-4 w-4"
-                />
-                <span>
-                  <span className="font-medium">Asisten</span>
-                  <span className="ml-2 text-gray-500">Mahasiswa ini adalah asisten</span>
-                </span>
-              </label>
-              <label className={`flex items-center gap-3 text-sm ${editIsAsisten ? '' : 'opacity-40'}`}>
-                <input
-                  type="checkbox"
+            <div className="space-y-2">
+              <Checkbox
+                label="Asisten (Mahasiswa ini adalah asisten)"
+                checked={editIsAsisten}
+                onCheckedChange={(checked) => {
+                  setEditIsAsisten(checked);
+                  if (!checked) setEditIsActive(false);
+                }}
+              />
+              <div className={editIsAsisten ? "" : "opacity-40"}>
+                <Checkbox
+                  label="Aktif (Boleh login ke panel admin)"
                   checked={editIsActive}
                   disabled={!editIsAsisten}
-                  onChange={(event) => setEditIsActive(event.target.checked)}
-                  className="h-4 w-4"
+                  onCheckedChange={(checked) => setEditIsActive(checked)}
                 />
-                <span>
-                  <span className="font-medium">Aktif</span>
-                  <span className="ml-2 text-gray-500">Boleh login ke panel admin</span>
-                </span>
-              </label>
+              </div>
             </div>
 
-            <h3 className="mt-5 text-sm font-semibold">Pengampu Praktikum</h3>
+            <h3 className="text-sm font-semibold text-(--md-sys-color-on-surface) pt-2">
+              Pengampu Praktikum
+            </h3>
             {isLoadingOptions ? (
-              <p className="mt-2 text-sm text-gray-500">Memuat daftar praktikum...</p>
+              <p className="text-xs text-(--md-sys-color-on-surface-variant)">
+                Memuat daftar praktikum...
+              </p>
             ) : praktikumOptions.length === 0 ? (
-              <p className="mt-2 text-sm text-gray-500">Belum ada praktikum terdaftar.</p>
+              <p className="text-xs text-(--md-sys-color-on-surface-variant)">
+                Belum ada praktikum terdaftar.
+              </p>
             ) : (
-              <ul className="mt-2 space-y-2">
+              <ul className="space-y-2">
                 {praktikumOptions.map((option) => {
-                  const checked = option.slug in editPlugs
-                  const adaJadwal = option.plugs.length > 0
+                  const checked = option.slug in editPlugs;
+                  const adaJadwal = option.plugs.length > 0;
                   return (
-                    <li key={option.id} className="rounded-md border p-3">
-                      <label className="flex items-center gap-2 text-sm">
-                        <input
-                          type="checkbox"
-                          checked={checked}
-                          disabled={!checked && !adaJadwal}
-                          onChange={() => togglePengampu(option.slug)}
-                        />
-                        <span className="font-medium">{option.label}</span>
-                        <span className="text-gray-400">({option.slug})</span>
-                      </label>
+                    <li
+                      key={option.id}
+                      className="rounded-(--md-sys-shape-corner-medium) border border-(--md-sys-color-outline-variant) p-3"
+                    >
+                      <Checkbox
+                        label={`${option.label} (${option.slug})`}
+                        checked={checked}
+                        disabled={!checked && !adaJadwal}
+                        onCheckedChange={() => togglePengampu(option.slug)}
+                      />
                       {checked &&
                         (adaJadwal ? (
-                          <div className="mt-2 space-y-1.5">
-                            <span className="text-sm text-gray-600">Plug yang diampu</span>
+                          <div className="mt-2 space-y-1 pl-6">
+                            <span className="text-xs text-(--md-sys-color-on-surface-variant)">
+                              Plug yang diampu:
+                            </span>
                             {option.plugs.map((jadwal) => (
-                              <label key={jadwal.id} className="flex items-center gap-2 text-sm">
-                                <input
-                                  type="checkbox"
-                                  checked={(editPlugs[option.slug] ?? []).includes(jadwal.plug)}
-                                  onChange={() => togglePlug(option.slug, jadwal.plug)}
-                                />
-                                <span>
-                                  Plug {jadwal.plug}{' '}
-                                  <span className="text-gray-400">
-                                    ({jadwal.hari} {jadwal.jam_mulai}–{jadwal.jam_selesai})
-                                  </span>
-                                </span>
-                              </label>
+                              <Checkbox
+                                key={jadwal.id}
+                                label={`Plug ${jadwal.plug} (${jadwal.hari} ${jadwal.jam_mulai}–${jadwal.jam_selesai})`}
+                                checked={(
+                                  editPlugs[option.slug] ?? []
+                                ).includes(jadwal.plug)}
+                                onCheckedChange={() =>
+                                  togglePlug(option.slug, jadwal.plug)
+                                }
+                              />
                             ))}
                           </div>
                         ) : (
-                          <p className="mt-2 text-xs text-red-600">
+                          <p className="mt-2 text-xs text-red-500 pl-6">
                             Jadwal belum tersedia untuk praktikum ini.
                           </p>
                         ))}
                     </li>
-                  )
+                  );
                 })}
               </ul>
             )}
 
-            {editError && <p className="mt-3 text-sm text-red-600">{editError}</p>}
+            {editError && <p className="text-xs text-red-500">{editError}</p>}
 
-            <div className="mt-4 flex justify-end gap-2">
-              <button
+            <div className="pt-2 flex justify-end gap-2">
+              <Button
+                variant="outlined"
                 onClick={closeEditModal}
                 disabled={isSavingEdit}
-                className="rounded-md border px-4 py-2 text-sm hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-40"
               >
                 Batal
-              </button>
-              <button
+              </Button>
+              <Button
+                variant="filled"
                 onClick={handleSaveEdit}
                 disabled={isSavingEdit || isLoadingOptions}
-                className="rounded-md bg-gray-900 px-4 py-2 text-sm font-medium text-white hover:bg-gray-700 disabled:cursor-not-allowed disabled:opacity-40"
               >
-                {isSavingEdit ? 'Menyimpan...' : 'Simpan'}
-              </button>
+                {isSavingEdit ? "Menyimpan..." : "Simpan"}
+              </Button>
             </div>
           </div>
-        </div>
-      )}
+        )}
+      </Dialog>
     </div>
-  )
+  );
 }
