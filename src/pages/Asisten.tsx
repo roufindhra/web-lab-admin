@@ -19,10 +19,10 @@ type StatusFilter = "semua" | "asisten" | "asisten_nonaktif" | "bukan";
 
 const STATUS_FILTER_ROLE: Record<
   Exclude<StatusFilter, "semua">,
-  "asisten" | "asisten_all" | "mahasiswa"
+  "asisten" | "asisten_nonaktif" | "mahasiswa"
 > = {
   asisten: "asisten",
-  asisten_nonaktif: "asisten_all",
+  asisten_nonaktif: "asisten_nonaktif",
   bukan: "mahasiswa",
 };
 

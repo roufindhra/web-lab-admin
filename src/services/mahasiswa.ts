@@ -18,7 +18,7 @@ export interface Mahasiswa {
 export interface MahasiswaListParams {
   search?: string
   angkatan?: number
-  role?: 'asisten' | 'asisten_all' | 'mahasiswa'
+  role?: 'asisten' | 'asisten_all' | 'mahasiswa' | 'asisten_nonaktif'
   page?: number
   perPage?: number
   sortDirection?: 'asc' | 'desc'
