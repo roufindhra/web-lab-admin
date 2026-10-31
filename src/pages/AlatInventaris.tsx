@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState } from "react";
 import {
   alatService,
   ApiError,
@@ -8,172 +8,195 @@ import {
   type AlatListMeta,
   type KondisiStatus,
   type KetersediaanStatus,
-} from '@/services'
-import AlatFormModal from '../components/modals/AlatFormModal'
-import DeleteConfirmModal from '../components/modals/DeleteConfirmModal'
-import KondisiDetailModal from '../components/modals/KondisiDetailModal'
-import { useAdminAuth } from '@/contexts/AdminAuthContext'
+} from "@/services";
+import AlatFormModal from "../components/modals/AlatFormModal";
+import DeleteConfirmModal from "../components/modals/DeleteConfirmModal";
+import KondisiDetailModal from "../components/modals/KondisiDetailModal";
+import { useAdminAuth } from "@/contexts/AdminAuthContext";
+import { Button } from "@/components/ui/Buttons";
+import { Card } from "@/components/ui/Card";
+import { Input } from "@/components/ui/Input";
+import { Select } from "@/components/ui/Select";
 
-const SEARCH_DEBOUNCE_MS = 400
+const SEARCH_DEBOUNCE_MS = 400;
 
 const KONDISI_LABELS: Record<KondisiStatus, string> = {
-  baik: 'baik',
-  rusak_ringan: 'rusak ringan',
-  rusak_berat: 'rusak berat',
-  maintenance: 'maintenance',
-}
+  baik: "baik",
+  rusak_ringan: "rusak ringan",
+  rusak_berat: "rusak berat",
+  maintenance: "maintenance",
+};
 
 const KETERSEDIAAN_LABELS: Record<KetersediaanStatus, string> = {
-  tersedia: 'Tersedia',
-  dipinjam: 'Dipinjam',
-  perbaikan: 'Perbaikan',
-}
+  tersedia: "Tersedia",
+  dipinjam: "Dipinjam",
+  perbaikan: "Perbaikan",
+};
 
 const KETERSEDIAAN_BADGE_CLASSES: Record<KetersediaanStatus, string> = {
-  tersedia: 'bg-green-100 text-green-800',
-  dipinjam: 'bg-yellow-100 text-yellow-800',
-  perbaikan: 'bg-red-100 text-red-800',
-}
+  tersedia:
+    "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300",
+  dipinjam:
+    "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300",
+  perbaikan: "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300",
+};
 
 export default function AlatPage() {
-  const { canAlat } = useAdminAuth()
-  const canCrud = canAlat('crud_inventaris')
-  const canEditKondisi = canAlat('edit_kondisi')
-  const canEditStatus = canAlat('edit_status')
-  const canEditSomething = canCrud || canEditKondisi || canEditStatus
+  const { canAlat } = useAdminAuth();
+  const canCrud = canAlat("crud_inventaris");
+  const canEditKondisi = canAlat("edit_kondisi");
+  const canEditStatus = canAlat("edit_status");
+  const canEditSomething = canCrud || canEditKondisi || canEditStatus;
 
-  const [alatList, setAlatList] = useState<Alat[]>([])
-  const [meta, setMeta] = useState<AlatListMeta | null>(null)
-  const [search, setSearch] = useState('')
-  const [debouncedSearch, setDebouncedSearch] = useState('')
-  const [ketersediaan, setKetersediaan] = useState('')
-  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc')
-  const [page, setPage] = useState(1)
-  const [isLoading, setIsLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
-  const [refreshKey, setRefreshKey] = useState(0)
-  const [formTarget, setFormTarget] = useState<Alat | null | undefined>(undefined)
-  const [detailTarget, setDetailTarget] = useState<Alat | null>(null)
-  const [deleteTarget, setDeleteTarget] = useState<Alat | null>(null)
+  const [alatList, setAlatList] = useState<Alat[]>([]);
+  const [meta, setMeta] = useState<AlatListMeta | null>(null);
+  const [search, setSearch] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
+  const [ketersediaan, setKetersediaan] = useState("");
+  const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
+  const [page, setPage] = useState(1);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [refreshKey, setRefreshKey] = useState(0);
+  const [formTarget, setFormTarget] = useState<Alat | null | undefined>(
+    undefined,
+  );
+  const [detailTarget, setDetailTarget] = useState<Alat | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<Alat | null>(null);
 
   useEffect(() => {
     const timer = setTimeout(() => {
-      setPage(1)
-      setDebouncedSearch(search)
-    }, SEARCH_DEBOUNCE_MS)
-    return () => clearTimeout(timer)
-  }, [search])
+      setPage(1);
+      setDebouncedSearch(search);
+    }, SEARCH_DEBOUNCE_MS);
+    return () => clearTimeout(timer);
+  }, [search]);
 
   useEffect(() => {
-    let cancelled = false
-    setIsLoading(true)
-    setError(null)
+    let cancelled = false;
+    setIsLoading(true);
+    setError(null);
 
     alatService
       .getAll({
         search: debouncedSearch || undefined,
-        ketersediaan: (ketersediaan || undefined) as KetersediaanStatus | undefined,
+        ketersediaan: (ketersediaan || undefined) as
+          | KetersediaanStatus
+          | undefined,
         page,
         sortDirection,
       })
       .then((response) => {
-        if (cancelled) return
-        setAlatList(response.data)
-        setMeta(response.meta)
+        if (cancelled) return;
+        setAlatList(response.data);
+        setMeta(response.meta);
       })
       .catch((err) => {
-        if (cancelled) return
-        setError(err instanceof ApiError ? err.message : 'Gagal memuat data alat.')
+        if (cancelled) return;
+        setError(
+          err instanceof ApiError ? err.message : "Gagal memuat data alat.",
+        );
       })
       .finally(() => {
-        if (!cancelled) setIsLoading(false)
-      })
+        if (!cancelled) setIsLoading(false);
+      });
 
     return () => {
-      cancelled = true
-    }
-  }, [debouncedSearch, ketersediaan, page, sortDirection, refreshKey])
+      cancelled = true;
+    };
+  }, [debouncedSearch, ketersediaan, page, sortDirection, refreshKey]);
 
-  const hasActiveFilter = debouncedSearch || ketersediaan
+  const hasActiveFilter = debouncedSearch || ketersediaan;
 
-  const handleCloseForm = () => setFormTarget(undefined)
+  const handleCloseForm = () => setFormTarget(undefined);
 
   const handleFormSuccess = () => {
-    setFormTarget(undefined)
-    setRefreshKey((key) => key + 1)
-  }
+    setFormTarget(undefined);
+    setRefreshKey((key) => key + 1);
+  };
 
   const kondisiRingkas = (alat: Alat) =>
     KONDISI_STATUSES.filter((status) => (alat.kondisi_ringkas[status] ?? 0) > 0)
-      .map((status) => `${alat.kondisi_ringkas[status]} ${KONDISI_LABELS[status]}`)
-      .join(' · ')
+      .map(
+        (status) => `${alat.kondisi_ringkas[status]} ${KONDISI_LABELS[status]}`,
+      )
+      .join(" · ");
+
+  const ketersediaanOptions = [
+    { value: "", label: "Semua ketersediaan" },
+    ...KETERSEDIAAN_STATUSES.map((status) => ({
+      value: status,
+      label: KETERSEDIAAN_LABELS[status],
+    })),
+  ];
 
   return (
-    <div>
-      <h1 className="text-2xl font-bold">Inventarisasi Alat</h1>
+    <div className="space-y-4">
+      <h1 className="text-2xl font-bold text-(--md-sys-color-on-surface)">
+        Inventarisasi Alat
+      </h1>
 
-      <div className="mt-4 flex flex-wrap items-center gap-3">
-        <button
+      <div className="flex flex-wrap items-center gap-3">
+        <Button
+          variant="filled"
           onClick={() => setFormTarget(null)}
           disabled={!canCrud}
-          title={canCrud ? undefined : 'Klaim token izin untuk mengedit'}
-          className="rounded-md bg-gray-900 px-4 py-2 text-sm font-medium text-white hover:bg-gray-700 disabled:cursor-not-allowed disabled:opacity-40"
+          title={canCrud ? undefined : "Klaim token izin untuk mengedit"}
         >
-          Tambah Alat
-        </button>
-        <input
+          + Tambah Alat
+        </Button>
+        <Input
           type="search"
           value={search}
           onChange={(event) => setSearch(event.target.value)}
           placeholder="Cari alat, merk, kode inventaris..."
-          className="w-64 rounded-md border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-gray-900"
+          containerClassName="w-64"
         />
-        <select
+        <Select
+          options={ketersediaanOptions}
           value={ketersediaan}
-          onChange={(event) => {
-            setPage(1)
-            setKetersediaan(event.target.value)
+          onValueChange={(val) => {
+            setPage(1);
+            setKetersediaan(val);
           }}
-          className="rounded-md border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-gray-900"
-        >
-          <option value="">Semua ketersediaan</option>
-          {KETERSEDIAAN_STATUSES.map((status) => (
-            <option key={status} value={status}>
-              {KETERSEDIAAN_LABELS[status]}
-            </option>
-          ))}
-        </select>
+          containerClassName="w-52"
+        />
         {hasActiveFilter && (
-          <button
+          <Button
+            variant="text"
+            size="sm"
             onClick={() => {
-              setSearch('')
-              setKetersediaan('')
-              setPage(1)
+              setSearch("");
+              setKetersediaan("");
+              setPage(1);
             }}
-            className="text-sm text-gray-500 underline hover:text-gray-900"
           >
             Reset filter
-          </button>
+          </Button>
         )}
       </div>
 
-      {error && <p className="mt-4 text-sm text-red-600">{error}</p>}
+      {error && <p className="text-sm text-red-500">{error}</p>}
 
-      <div className="mt-4 overflow-hidden rounded-lg border bg-white">
+      <Card variant="outlined" className="p-0 overflow-x-auto">
         <table className="w-full text-left text-sm">
-          <thead className="border-b bg-gray-50 text-xs uppercase text-gray-500">
+          <thead className="border-b border-(--md-sys-color-outline-variant) bg-(--md-sys-color-surface-container-low) text-xs uppercase text-(--md-sys-color-on-surface-variant)">
             <tr>
               <th className="px-4 py-3">Inventaris</th>
               <th className="px-4 py-3">
                 <button
                   onClick={() => {
-                    setPage(1)
-                    setSortDirection((current) => (current === 'asc' ? 'desc' : 'asc'))
+                    setPage(1);
+                    setSortDirection((current) =>
+                      current === "asc" ? "desc" : "asc",
+                    );
                   }}
-                  className="flex items-center gap-1 uppercase hover:text-gray-900"
+                  className="flex items-center gap-1 uppercase hover:text-(--md-sys-color-on-surface) transition-colors"
                 >
                   Nama Alat
-                  <span className="text-[10px]">{sortDirection === 'asc' ? '▲' : '▼'}</span>
+                  <span className="text-[10px]">
+                    {sortDirection === "asc" ? "▲" : "▼"}
+                  </span>
                 </button>
               </th>
               <th className="px-4 py-3">Serial Number</th>
@@ -184,68 +207,101 @@ export default function AlatPage() {
               <th className="px-4 py-3">Aksi</th>
             </tr>
           </thead>
-          <tbody className="divide-y">
+          <tbody className="divide-y divide-(--md-sys-color-outline-variant) text-(--md-sys-color-on-surface)">
             {isLoading ? (
               <tr>
-                <td colSpan={8} className="px-4 py-12 text-center text-gray-500">
+                <td
+                  colSpan={8}
+                  className="px-4 py-12 text-center text-(--md-sys-color-on-surface-variant)"
+                >
                   Memuat...
                 </td>
               </tr>
             ) : alatList.length === 0 ? (
               <tr>
-                <td colSpan={8} className="px-4 py-12 text-center text-gray-500">
-                  {hasActiveFilter ? 'Tidak ada alat yang cocok dengan filter.' : 'Belum ada data alat.'}
+                <td
+                  colSpan={8}
+                  className="px-4 py-12 text-center text-(--md-sys-color-on-surface-variant)"
+                >
+                  {hasActiveFilter
+                    ? "Tidak ada alat yang cocok dengan filter."
+                    : "Belum ada data alat."}
                 </td>
               </tr>
             ) : (
               alatList.map((alat) => (
-                <tr key={alat.id} className="hover:bg-gray-50">
+                <tr
+                  key={alat.id}
+                  className="hover:bg-(--md-sys-color-surface-container-high) transition-colors"
+                >
                   <td className="px-4 py-3 font-mono">{alat.inventaris}</td>
                   <td className="px-4 py-3">
                     <span className="font-medium">{alat.nama_alat}</span>
-                    <span className="block text-xs text-gray-500">
+                    <span className="block text-xs text-(--md-sys-color-on-surface-variant)">
                       {alat.merk} {alat.tipe}
                     </span>
                   </td>
-                  <td className="px-4 py-3 font-mono text-gray-600">{alat.serial_number}</td>
+                  <td className="px-4 py-3 font-mono text-(--md-sys-color-on-surface-variant)">
+                    {alat.serial_number}
+                  </td>
                   <td className="px-4 py-3">{alat.jumlah}</td>
                   <td className="px-4 py-3">
-                    <span className="text-gray-600">{kondisiRingkas(alat) || '-'}</span>
-                    <button
+                    <span className="text-(--md-sys-color-on-surface-variant)">
+                      {kondisiRingkas(alat) || "-"}
+                    </span>
+                    <Button
+                      variant="text"
+                      size="sm"
                       onClick={() => setDetailTarget(alat)}
-                      className="ml-2 text-sm text-gray-600 underline hover:text-gray-900"
+                      className="ml-1 hover:underline px-2 py-0.5 inline-flex"
                     >
                       Detail
-                    </button>
+                    </Button>
                   </td>
-                  <td className="px-4 py-3 text-gray-600">{alat.lokasi_penyimpanan}</td>
+                  <td className="px-4 py-3 text-(--md-sys-color-on-surface-variant)">
+                    {alat.lokasi_penyimpanan}
+                  </td>
                   <td className="px-4 py-3">
                     <span
                       className={`rounded-full px-2 py-0.5 text-xs font-medium ${
-                        KETERSEDIAAN_BADGE_CLASSES[alat.ketersediaan] ?? 'bg-gray-100 text-gray-800'
+                        KETERSEDIAAN_BADGE_CLASSES[alat.ketersediaan] ??
+                        "bg-gray-100 text-gray-800"
                       }`}
                     >
-                      {KETERSEDIAAN_LABELS[alat.ketersediaan] ?? alat.ketersediaan}
+                      {KETERSEDIAAN_LABELS[alat.ketersediaan] ??
+                        alat.ketersediaan}
                     </span>
                   </td>
                   <td className="px-4 py-3">
-                    <div className="flex gap-2">
-                      <button
+                    <div className="flex gap-1">
+                      <Button
+                        variant="text"
+                        size="sm"
                         onClick={() => setFormTarget(alat)}
                         disabled={!canEditSomething}
-                        title={canEditSomething ? undefined : 'Klaim token izin untuk mengedit'}
-                        className="text-sm text-gray-600 underline hover:text-gray-900 disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:text-gray-600"
+                        title={
+                          canEditSomething
+                            ? undefined
+                            : "Klaim token izin untuk mengedit"
+                        }
+                        className="hover:underline px-2 py-1"
                       >
                         Edit
-                      </button>
-                      <button
+                      </Button>
+                      <Button
+                        variant="text"
+                        size="sm"
                         onClick={() => setDeleteTarget(alat)}
                         disabled={!canCrud}
-                        title={canCrud ? undefined : 'Klaim token izin untuk mengedit'}
-                        className="text-sm text-red-600 underline hover:text-red-500 disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:text-red-600"
+                        title={
+                          canCrud
+                            ? undefined
+                            : "Klaim token izin untuk mengedit"
+                        }
+                        className="text-red-600 dark:text-red-400 hover:underline px-2 py-1"
                       >
                         Hapus
-                      </button>
+                      </Button>
                     </div>
                   </td>
                 </tr>
@@ -253,31 +309,33 @@ export default function AlatPage() {
             )}
           </tbody>
         </table>
-      </div>
+      </Card>
 
       {meta && (
-        <div className="mt-4 flex items-center justify-between text-sm text-gray-600">
+        <div className="flex items-center justify-between text-sm text-(--md-sys-color-on-surface-variant)">
           <span>
             Menampilkan {alatList.length} dari {meta.total} alat
           </span>
           <div className="flex items-center gap-2">
-            <button
+            <Button
+              variant="outlined"
+              size="sm"
               disabled={page <= 1 || isLoading}
               onClick={() => setPage((current) => current - 1)}
-              className="rounded-md border px-3 py-1.5 hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-40"
             >
               Sebelumnya
-            </button>
+            </Button>
             <span>
               Halaman {meta.current_page} / {meta.last_page}
             </span>
-            <button
+            <Button
+              variant="outlined"
+              size="sm"
               disabled={page >= meta.last_page || isLoading}
               onClick={() => setPage((current) => current + 1)}
-              className="rounded-md border px-3 py-1.5 hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-40"
             >
               Berikutnya
-            </button>
+            </Button>
           </div>
         </div>
       )}
@@ -293,18 +351,23 @@ export default function AlatPage() {
         />
       )}
 
-      {detailTarget && <KondisiDetailModal alat={detailTarget} onClose={() => setDetailTarget(null)} />}
+      {detailTarget && (
+        <KondisiDetailModal
+          alat={detailTarget}
+          onClose={() => setDetailTarget(null)}
+        />
+      )}
 
       {deleteTarget && (
         <DeleteConfirmModal
           alat={deleteTarget}
           onClose={() => setDeleteTarget(null)}
           onSuccess={() => {
-            setDeleteTarget(null)
-            setRefreshKey((key) => key + 1)
+            setDeleteTarget(null);
+            setRefreshKey((key) => key + 1);
           }}
         />
       )}
     </div>
-  )
+  );
 }

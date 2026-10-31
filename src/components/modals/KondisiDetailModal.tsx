@@ -41,7 +41,9 @@ export default function KondisiDetailModal({
           <p className="text-sm font-semibold text-(--md-sys-color-on-surface)">
             {alat.nama_alat}
           </p>
-          <p className="font-mono text-xs text-gray-500">{alat.inventaris}</p>
+          <p className="font-mono text-xs text-(--md-sys-color-on-surface-variant)">
+            {alat.inventaris}
+          </p>
         </div>
 
         <ul className="space-y-3">

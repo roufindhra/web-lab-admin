@@ -44,7 +44,7 @@ export default function DeleteConfirmModal({
       className="max-w-md"
     >
       <div className="space-y-4">
-        <p className="text-sm text-(--md-sys-color-on-surface) opacity-80 leading-relaxed">
+        <p className="text-sm text-(--md-sys-color-on-surface-variant) leading-relaxed">
           Apakah Anda yakin ingin menghapus{" "}
           <span className="font-semibold text-(--md-sys-color-on-surface)">
             {alat.nama_alat}
