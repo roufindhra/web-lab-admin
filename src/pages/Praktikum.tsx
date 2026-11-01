@@ -652,7 +652,7 @@ export default function PraktikumPage() {
             ];
 
             const getAngkatan = (nim: string | number) =>
-              String(nim).substring(3, 6);
+              String(nim).substring(2, 5);
 
             const filteredStudents = assignStudents.filter((student) => {
               const matchSearch =
