@@ -29,11 +29,53 @@ function formatWaktu(value: string): string {
   });
 }
 
+const statusLabel: Record<string, string> = {
+  belum_diklaim: "Belum diklaim",
+  aktif: "Aktif",
+  kadaluarsa: "Kadaluarsa",
+  dicabut: "Dicabut",
+};
+
 export default function DashboardAlat() {
   const { isDosen, alatPermissions, alatTokenExpiresAt, claimAlatToken } =
     useAdminAuth();
 
   const [isTokenModalOpen, setIsTokenModalOpen] = useState(false);
+  const [tokens, setTokens] = useState<AlatToken[]>([]);
+  const [listError, setListError] = useState<string | null>(null);
+
+  const loadTokens = () => {
+    return alatTokenService
+      .list()
+      .then((response) => {
+        setTokens(response.data.filter((t) => t.status !== "dicabut"));
+        setListError(null);
+      })
+      .catch((err) => {
+        setListError(
+          err instanceof ApiError
+            ? err.message
+            : "Gagal memuat daftar token.",
+        );
+      });
+  };
+
+  React.useEffect(() => {
+    if (isDosen) {
+      loadTokens();
+    }
+  }, [isDosen]);
+
+  const handleRevoke = (id: number) => {
+    alatTokenService
+      .revoke(id)
+      .then(loadTokens)
+      .catch((err) => {
+        setListError(
+          err instanceof ApiError ? err.message : "Gagal mencabut token.",
+        );
+      });
+  };
 
   const hasActivePermission =
     alatPermissions.length > 0 && alatTokenExpiresAt !== null;
@@ -110,8 +152,76 @@ export default function DashboardAlat() {
         </span>
       </Card>
 
+      {isDosen && (
+        <Card variant="outlined" className="space-y-3">
+          <div className="flex items-center justify-between">
+            <p className="text-xs font-bold text-(--md-sys-color-on-surface)">
+              Daftar Token Diterbitkan
+            </p>
+            <Button
+              variant="text"
+              onClick={loadTokens}
+              className="px-2 py-1 text-[11px]"
+            >
+              Muat ulang
+            </Button>
+          </div>
+
+          {listError && <p className="text-xs text-red-600">{listError}</p>}
+
+          {tokens.length === 0 && !listError ? (
+            <p className="text-xs text-(--md-sys-color-on-surface-variant)">
+              Belum ada token yang diterbitkan.
+            </p>
+          ) : (
+            <ul className="space-y-2">
+              {tokens.map((token) => (
+                <li
+                  key={token.id}
+                  className="flex items-center justify-between gap-2 rounded-(--md-sys-shape-corner-medium) border border-(--md-sys-color-outline-variant) p-2"
+                >
+                  <div className="min-w-0 text-[11px]">
+                    <p className="font-mono font-bold text-(--md-sys-color-on-surface) select-all">
+                      {token.token}
+                    </p>
+                    <p className="truncate font-semibold text-(--md-sys-color-on-surface)">
+                      {token.mahasiswa_nama}{" "}
+                      <span className="font-mono text-(--md-sys-color-on-surface-variant)">
+                        {token.mahasiswa_nim}
+                      </span>
+                    </p>
+                    <p className="truncate text-(--md-sys-color-on-surface-variant)">
+                      {token.permissions
+                        .map((permission) => ALAT_PERMISSION_LABELS[permission])
+                        .join(", ")}
+                    </p>
+                    <p className="text-(--md-sys-color-on-surface-variant)">
+                      {statusLabel[token.status]} · habis{" "}
+                      {token.expires_at ? formatWaktu(token.expires_at) : "-"}
+                    </p>
+                  </div>
+                  {token.status === "aktif" ||
+                  token.status === "belum_diklaim" ? (
+                    <Button
+                      variant="text"
+                      onClick={() => handleRevoke(token.id)}
+                      className="shrink-0 px-2 py-1 text-[11px] text-red-600 hover:bg-red-500/10"
+                    >
+                      Cabut
+                    </Button>
+                  ) : null}
+                </li>
+              ))}
+            </ul>
+          )}
+        </Card>
+      )}
+
       {isTokenModalOpen && (
-        <TokenAdminDialog onClose={() => setIsTokenModalOpen(false)} />
+        <TokenAdminDialog
+          onClose={() => setIsTokenModalOpen(false)}
+          onGenerated={loadTokens}
+        />
       )}
     </div>
   );
@@ -164,24 +274,21 @@ function ClaimTokenForm({
   );
 }
 
-function TokenAdminDialog({ onClose }: { onClose: () => void }) {
+function TokenAdminDialog({
+  onClose,
+  onGenerated,
+}: {
+  onClose: () => void;
+  onGenerated: () => void;
+}) {
   const [asistenList, setAsistenList] = useState<
     { id: number; nama: string; nim: number }[]
   >([]);
   const [mahasiswaId, setMahasiswaId] = useState("");
   const [permissions, setPermissions] = useState<AlatPermission[]>([]);
   const [duration, setDuration] = useState<AlatTokenDuration>("2_hours");
-  const [tokens, setTokens] = useState<AlatToken[]>([]);
-  const [generatedToken, setGeneratedToken] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
-
-  const loadTokens = () => {
-    return alatTokenService
-      .list()
-      .then((response) => setTokens(response.data))
-      .catch(() => undefined);
-  };
 
   React.useEffect(() => {
     mahasiswaService
@@ -202,8 +309,6 @@ function TokenAdminDialog({ onClose }: { onClose: () => void }) {
             : "Gagal memuat daftar asisten.",
         );
       });
-
-    loadTokens();
   }, []);
 
   const togglePermission = (permission: AlatPermission) => {
@@ -222,7 +327,6 @@ function TokenAdminDialog({ onClose }: { onClose: () => void }) {
 
     setIsGenerating(true);
     setError(null);
-    setGeneratedToken(null);
 
     alatTokenService
       .generate({
@@ -230,10 +334,10 @@ function TokenAdminDialog({ onClose }: { onClose: () => void }) {
         permissions,
         duration,
       })
-      .then((token) => {
-        setGeneratedToken(token.token);
+      .then(() => {
         setPermissions([]);
-        return loadTokens();
+        onGenerated();
+        onClose();
       })
       .catch((err) => {
         setError(
@@ -241,24 +345,6 @@ function TokenAdminDialog({ onClose }: { onClose: () => void }) {
         );
       })
       .finally(() => setIsGenerating(false));
-  };
-
-  const handleRevoke = (id: number) => {
-    alatTokenService
-      .revoke(id)
-      .then(loadTokens)
-      .catch((err) => {
-        setError(
-          err instanceof ApiError ? err.message : "Gagal mencabut token.",
-        );
-      });
-  };
-
-  const statusLabel: Record<string, string> = {
-    belum_diklaim: "Belum diklaim",
-    aktif: "Aktif",
-    kadaluarsa: "Kadaluarsa",
-    dicabut: "Dicabut",
   };
 
   return (
@@ -316,64 +402,6 @@ function TokenAdminDialog({ onClose }: { onClose: () => void }) {
         >
           {isGenerating ? "Menerbitkan..." : "Generate Kode Token"}
         </Button>
-
-        {generatedToken && (
-          <div className="rounded-(--md-sys-shape-corner-medium) border border-(--md-sys-color-outline-variant) bg-(--md-sys-color-surface-container-high) p-3 text-center">
-            <p className="text-[11px] font-semibold text-(--md-sys-color-primary)">
-              Kode Token Berhasil Diterbitkan:
-            </p>
-            <p className="my-1 font-mono text-xl font-bold text-(--md-sys-color-on-surface) select-all">
-              {generatedToken}
-            </p>
-            <p className="text-[10px] text-(--md-sys-color-on-surface-variant)">
-              Salin dan berikan kepada Admin yang sedang bertugas.
-            </p>
-          </div>
-        )}
-
-        {tokens.length > 0 && (
-          <div className="space-y-2 border-t border-(--md-sys-color-outline-variant) pt-3">
-            <p className="text-xs font-semibold text-(--md-sys-color-on-surface)">
-              Token Diterbitkan
-            </p>
-            <ul className="max-h-48 space-y-2 overflow-y-auto">
-              {tokens.map((token) => (
-                <li
-                  key={token.id}
-                  className="flex items-center justify-between gap-2 rounded-(--md-sys-shape-corner-medium) border border-(--md-sys-color-outline-variant) p-2"
-                >
-                  <div className="min-w-0 text-[11px]">
-                    <p className="truncate font-semibold text-(--md-sys-color-on-surface)">
-                      {token.mahasiswa_nama}{" "}
-                      <span className="font-mono text-(--md-sys-color-on-surface-variant)">
-                        {token.mahasiswa_nim}
-                      </span>
-                    </p>
-                    <p className="truncate text-(--md-sys-color-on-surface-variant)">
-                      {token.permissions
-                        .map((permission) => ALAT_PERMISSION_LABELS[permission])
-                        .join(", ")}
-                    </p>
-                    <p className="text-(--md-sys-color-on-surface-variant)">
-                      {statusLabel[token.status]} · habis{" "}
-                      {token.expires_at ? formatWaktu(token.expires_at) : "-"}
-                    </p>
-                  </div>
-                  {token.status === "aktif" ||
-                  token.status === "belum_diklaim" ? (
-                    <Button
-                      variant="text"
-                      onClick={() => handleRevoke(token.id)}
-                      className="shrink-0 px-2 py-1 text-[11px] text-red-600 hover:bg-red-500/10"
-                    >
-                      Cabut
-                    </Button>
-                  ) : null}
-                </li>
-              ))}
-            </ul>
-          </div>
-        )}
 
         {error && <p className="text-xs text-red-600">{error}</p>}
       </div>
