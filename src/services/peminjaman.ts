@@ -65,6 +65,8 @@ export interface RevisiItemPayload {
 export interface PeminjamanListParams {
   search?: string
   status?: PeminjamanStatus
+  dateFrom?: string
+  dateTo?: string
   page?: number
   perPage?: number
 }
@@ -79,6 +81,8 @@ export const peminjamanService = {
     const query = new URLSearchParams()
     if (params.search) query.set('search', params.search)
     if (params.status) query.set('status', params.status)
+    if (params.dateFrom) query.set('date_from', params.dateFrom)
+    if (params.dateTo) query.set('date_to', params.dateTo)
     if (params.page !== undefined) query.set('page', String(params.page))
     if (params.perPage !== undefined) query.set('per_page', String(params.perPage))
 
