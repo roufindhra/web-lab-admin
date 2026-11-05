@@ -19,6 +19,39 @@ import {
   type AlatTokenDuration,
 } from "@/services";
 
+// driver.js untuk walkthrough /mahasiswa
+
+import { driver } from "driver.js";
+import "driver.js/dist/driver.css";
+
+const driverObj = driver({
+  showProgress: true,
+  steps: [
+    {
+      element: "#generate-token",
+      popover: {
+        title: "Generate Token Penyuntingan",
+        description:
+          "Ketuk tombol untuk mengelola penerima, permission, dan masa berlaku akses penyuntingan alat laboratorium.",
+        side: "right",
+        align: "start",
+      },
+    },
+    {
+      element: "#daftar-token",
+      popover: {
+        title: "Daftar Token Diterbitkan",
+        description:
+          "Lihat riwayat token yang pernah diterbitkan, penerima, kondisi, dan waktu berlaku token.",
+        side: "right",
+        align: "start",
+      },
+    },
+  ],
+});
+
+driverObj.drive();
+
 function formatWaktu(value: string): string {
   return new Date(value).toLocaleString("id-ID", {
     day: "2-digit",
@@ -53,9 +86,7 @@ export default function DashboardAlat() {
       })
       .catch((err) => {
         setListError(
-          err instanceof ApiError
-            ? err.message
-            : "Gagal memuat daftar token.",
+          err instanceof ApiError ? err.message : "Gagal memuat daftar token.",
         );
       });
   };
@@ -111,7 +142,11 @@ export default function DashboardAlat() {
             </p>
           </div>
           {isDosen ? (
-            <Button variant="filled" onClick={() => setIsTokenModalOpen(true)}>
+            <Button
+              id="generate-token"
+              variant="filled"
+              onClick={() => setIsTokenModalOpen(true)}
+            >
               + Generate Token Admin
             </Button>
           ) : (
@@ -153,7 +188,7 @@ export default function DashboardAlat() {
       </Card>
 
       {isDosen && (
-        <Card variant="outlined" className="space-y-3">
+        <Card id="daftar-token" variant="outlined" className="space-y-3">
           <div className="flex items-center justify-between">
             <p className="text-xs font-bold text-(--md-sys-color-on-surface)">
               Daftar Token Diterbitkan
