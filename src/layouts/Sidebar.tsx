@@ -88,7 +88,7 @@ export const Sidebar: React.FC<SideBarProps> = ({ isOpen, onClose }) => {
     <>
       {isOpen && (
         <div
-          className="fixed inset-0 z-20 bg-black/50 backdrop-blur-xs lg:hidden"
+          className="fixed inset-0 z-20 lg:hidden"
           onClick={onClose}
           aria-hidden="true"
         />
