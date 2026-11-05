@@ -5,8 +5,9 @@ import { Card } from "@/components/ui/Card";
 import { Dialog } from "@/components/ui/Dialog";
 import { Checkbox } from "@/components/ui/Checkbox";
 import { Select } from "@/components/ui/Select";
-
 import { useAdminAuth } from "@/contexts/AdminAuthContext";
+import { useLocation } from "react-router-dom";
+import { useEffect } from "react";
 import {
   alatTokenService,
   mahasiswaService,
@@ -18,39 +19,10 @@ import {
   type AlatToken,
   type AlatTokenDuration,
 } from "@/services";
-
-// driver.js untuk walkthrough /mahasiswa
-
 import { driver } from "driver.js";
 import "driver.js/dist/driver.css";
 
-const driverObj = driver({
-  showProgress: true,
-  steps: [
-    {
-      element: "#generate-token",
-      popover: {
-        title: "Generate Token Penyuntingan",
-        description:
-          "Ketuk tombol untuk mengelola penerima, permission, dan masa berlaku akses penyuntingan alat laboratorium.",
-        side: "right",
-        align: "start",
-      },
-    },
-    {
-      element: "#daftar-token",
-      popover: {
-        title: "Daftar Token Diterbitkan",
-        description:
-          "Lihat riwayat token yang pernah diterbitkan, penerima, kondisi, dan waktu berlaku token.",
-        side: "right",
-        align: "start",
-      },
-    },
-  ],
-});
-
-driverObj.drive();
+const ALAT_STORAGE_KEY = "sudah_lihat_walkthrough_alat";
 
 function formatWaktu(value: string): string {
   return new Date(value).toLocaleString("id-ID", {
@@ -70,8 +42,15 @@ const statusLabel: Record<string, string> = {
 };
 
 export default function DashboardAlat() {
-  const { isDosen, alatPermissions, alatTokenExpiresAt, claimAlatToken } =
-    useAdminAuth();
+  const {
+    isAuthenticated,
+    isDosen,
+    alatPermissions,
+    alatTokenExpiresAt,
+    claimAlatToken,
+  } = useAdminAuth();
+
+  const location = useLocation();
 
   const [isTokenModalOpen, setIsTokenModalOpen] = useState(false);
   const [tokens, setTokens] = useState<AlatToken[]>([]);
@@ -110,6 +89,54 @@ export default function DashboardAlat() {
 
   const hasActivePermission =
     alatPermissions.length > 0 && alatTokenExpiresAt !== null;
+
+  // driver.js buat walkthrough
+
+  useEffect(() => {
+    if (!isAuthenticated || location.pathname !== "/alat") return;
+
+    const hasSeenTour = localStorage.getItem(ALAT_STORAGE_KEY);
+    if (hasSeenTour === "true") return;
+
+    const driverObj = driver({
+      showProgress: true,
+      onDestroyStarted: () => {
+        localStorage.setItem(ALAT_STORAGE_KEY, "true");
+        driverObj.destroy();
+      },
+      steps: [
+        {
+          element: "#generate-token",
+          popover: {
+            title: "Generate Token Penyuntingan",
+            description:
+              "Ketuk tombol untuk mengelola penerima, permission, dan masa berlaku akses penyuntingan alat laboratorium.",
+            side: "right",
+            align: "start",
+          },
+        },
+        {
+          element: "#daftar-token",
+          popover: {
+            title: "Daftar Token Diterbitkan",
+            description:
+              "Lihat riwayat token yang pernah diterbitkan, penerima, kondisi, dan waktu berlaku token.",
+            side: "right",
+            align: "start",
+          },
+        },
+      ],
+    });
+
+    const timer = setTimeout(() => {
+      driverObj.drive();
+    }, 100);
+
+    return () => {
+      clearTimeout(timer);
+      driverObj.destroy();
+    };
+  }, [location.pathname, isAuthenticated]);
 
   return (
     <div className="space-y-6">

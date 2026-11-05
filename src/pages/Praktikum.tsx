@@ -13,6 +13,11 @@ import { Checkbox } from "@/components/ui/Checkbox";
 import { Dialog } from "@/components/ui/Dialog";
 import { Input } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
+import { useLocation } from "react-router-dom";
+import { driver } from "driver.js";
+import "driver.js/dist/driver.css";
+
+const PRAKTIKUM_STORAGE_KEY = "sudah_lihat_walkthrough_praktikum";
 
 interface FormState {
   praktikum_label: string;
@@ -58,6 +63,7 @@ function slugify(label: string): string {
 
 export default function PraktikumPage() {
   const { isDosen } = useAdminAuth();
+  const location = useLocation();
   const [items, setItems] = useState<Praktikum[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -106,6 +112,63 @@ export default function PraktikumPage() {
       cancelled = true;
     };
   }, [refreshKey]);
+
+  // driver.js buat walkthrough
+
+  useEffect(() => {
+    if (!isDosen || location.pathname !== "/praktikum") return;
+
+    const hasSeenTour = localStorage.getItem(PRAKTIKUM_STORAGE_KEY);
+    if (hasSeenTour === "true") return;
+
+    const driverObj = driver({
+      showProgress: false,
+      onDestroyStarted: () => {
+        localStorage.setItem(PRAKTIKUM_STORAGE_KEY, "true");
+        driverObj.destroy();
+      },
+      steps: [
+        {
+          popover: {
+            title: "Daftar Praktikum",
+            description:
+              "Lihat daftar semua praktikum yang dinaungi oleh Laboratorium Survei Geodesi dan Geometri.",
+            side: "left",
+            align: "start",
+          },
+        },
+        {
+          element: "#tambah-praktikum",
+          popover: {
+            title: "Tambah Praktikum",
+            description:
+              "Tambahkan praktikum yang belum ada melalui tombol Tambah Praktikum.",
+            side: "right",
+            align: "start",
+          },
+        },
+        {
+          element: "#edit-praktikum",
+          popover: {
+            title: "Edit Praktikum",
+            description:
+              "Edit nama praktikum, semester pelaksanaan, slug, status, dan plug serta praktikan praktikum.",
+            side: "right",
+            align: "start",
+          },
+        },
+      ],
+    });
+
+    const timer = setTimeout(() => {
+      driverObj.drive();
+    }, 100);
+
+    return () => {
+      clearTimeout(timer);
+      driverObj.destroy();
+    };
+  }, [location.pathname, isDosen]);
 
   const openCreate = () => {
     setEditingId(null);
@@ -281,7 +344,7 @@ export default function PraktikumPage() {
           Daftar Praktikum
         </h1>
         {isDosen && (
-          <Button variant="filled" onClick={openCreate}>
+          <Button id="tambah-praktikum" variant="filled" onClick={openCreate}>
             + Tambah Praktikum
           </Button>
         )}
@@ -363,7 +426,10 @@ export default function PraktikumPage() {
                   </td>
                   <td className="px-4 py-3 text-right">
                     {isDosen && (
-                      <div className="flex justify-end gap-2">
+                      <div
+                        id="edit-praktikum"
+                        className="flex justify-end gap-2"
+                      >
                         <Button
                           variant="outlined"
                           size="sm"

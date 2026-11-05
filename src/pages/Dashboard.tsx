@@ -1,9 +1,12 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { useAdminAuth } from "@/contexts/AdminAuthContext";
+import { useLocation } from "react-router-dom";
 import { dashboardService, ApiError, type DashboardStats } from "@/services";
 import { DashboardSkeleton } from "@/components/DashboardSkeleton";
 import { Card } from "@/components/ui/Card";
+import { driver } from "driver.js";
+import "driver.js/dist/driver.css";
 
 const formatTanggal = (tanggal: string) =>
   new Date(`${tanggal}T00:00:00`).toLocaleDateString("id-ID", {
@@ -11,8 +14,11 @@ const formatTanggal = (tanggal: string) =>
     month: "short",
   });
 
+const DASHBOARD_STORAGE_KEY = "sudah_lihat_walkthrough_dashboard";
+
 export default function Dashboard() {
   const { user } = useAdminAuth();
+  const location = useLocation();
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -40,6 +46,82 @@ export default function Dashboard() {
     };
   }, []);
 
+  // driver.js buat walkthrough
+
+  useEffect(() => {
+    if (!user || location.pathname !== "/") return;
+
+    const hasSeenTour = localStorage.getItem(DASHBOARD_STORAGE_KEY);
+    if (hasSeenTour === "true") return;
+
+    const driverObj = driver({
+      showProgress: true,
+      onDestroyStarted: () => {
+        localStorage.setItem(DASHBOARD_STORAGE_KEY, "true");
+        driverObj.destroy();
+      },
+      steps: [
+        {
+          popover: {
+            title:
+              "Selamat datang di situs Admin Laboratorium Survei Geodesi dan Geometri",
+            description:
+              "Situs ini dibuat untuk mempermudah pengelolaan inventaris alat, data praktikan, hingga pelaksanaan dan jadwal praktikum.",
+          },
+        },
+        {
+          element: "#dashboard-title",
+          popover: {
+            title: "Dashboard Admin",
+            description:
+              "Kelola pengajuan penggunaan alat laboratorium, lihat alat yang sedang keluar, dan ketahui jadwal praktikum dalam satu minggu langsung dari dashboard.",
+            side: "bottom",
+            align: "start",
+          },
+        },
+        {
+          element: "#pengajuan-menunggu",
+          popover: {
+            title: "Pengajuan Menunggu Persetujuan",
+            description:
+              "Klik salah satu pengajuan untuk menyetujui, menolak, atau memodifikasi alat yang akan dikeluarkan.",
+            side: "top",
+            align: "start",
+          },
+        },
+        {
+          element: "#alat-sedang",
+          popover: {
+            title: "Alat Sedang Keluar",
+            description:
+              "Ketahui detail alat yang sedang dipinjam, disewakan, atau diperbaiki dan siapa yang bersangkutan dengan hal tersebut.",
+            side: "top",
+            align: "start",
+          },
+        },
+        {
+          element: "#jadwal-praktikum",
+          popover: {
+            title: "Jadwal Praktikum Minggu Ini",
+            description:
+              "Klik praktikum untuk melihat detail pertemuan dan memberikan nilai kepada praktikan.",
+            side: "top",
+            align: "start",
+          },
+        },
+      ],
+    });
+
+    const timer = setTimeout(() => {
+      driverObj.drive();
+    }, 100);
+
+    return () => {
+      clearTimeout(timer);
+      driverObj.destroy();
+    };
+  }, [location.pathname, user]);
+
   return (
     <div className="w-full space-y-6">
       <h1 className="text-3xl font-extrabold tracking-tight text-(--md-sys-color-on-surface)">
@@ -65,10 +147,14 @@ export default function Dashboard() {
       {error && <p className="text-sm font-semibold text-red-500">{error}</p>}
 
       {!isLoading && stats && (
-        <div className="grid grid-cols-1 gap-5 lg:grid-cols-3">
+        <div
+          id="dashboard-title"
+          className="grid grid-cols-1 gap-5 lg:grid-cols-3"
+        >
           {/* CARD 1: Pengajuan Menunggu Persetujuan */}
           <Link to="/alat-peminjaman" className="block">
             <Card
+              id="pengajuan-menunggu"
               variant="outlined"
               className="flex h-80 flex-col transition-all hover:border-(--md-sys-color-primary) hover:shadow-md"
             >
@@ -109,7 +195,11 @@ export default function Dashboard() {
           </Link>
 
           {/* CARD 2: Alat Sedang Keluar */}
-          <Card variant="outlined" className="flex h-80 flex-col">
+          <Card
+            id="alat-sedang"
+            variant="outlined"
+            className="flex h-80 flex-col"
+          >
             <h2 className="shrink-0 text-xl font-bold text-(--md-sys-color-on-surface)">
               Alat Sedang Keluar
             </h2>
@@ -140,7 +230,11 @@ export default function Dashboard() {
           </Card>
 
           {/* CARD 3: Jadwal Praktikum 8 Hari ke Depan */}
-          <Card variant="outlined" className="flex h-80 flex-col">
+          <Card
+            id="jadwal-praktikum"
+            variant="outlined"
+            className="flex h-80 flex-col"
+          >
             <h2 className="shrink-0 text-xl font-bold text-(--md-sys-color-on-surface)">
               Jadwal Praktikum 8 Hari ke Depan
             </h2>

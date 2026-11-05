@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState } from "react";
 import {
   mahasiswaService,
   praktikumService,
@@ -7,52 +7,109 @@ import {
   type MahasiswaListMeta,
   type MahasiswaImportResult,
   type Praktikum,
-} from '@/services'
-import { Button } from '@/components/ui/Buttons'
-import { Card } from '@/components/ui/Card'
-import { Checkbox } from '@/components/ui/Checkbox'
-import { Dialog } from '@/components/ui/Dialog'
-import { Input } from '@/components/ui/Input'
-import { Select } from '@/components/ui/Select'
+} from "@/services";
+import { Button } from "@/components/ui/Buttons";
+import { Card } from "@/components/ui/Card";
+import { Checkbox } from "@/components/ui/Checkbox";
+import { Dialog } from "@/components/ui/Dialog";
+import { Input } from "@/components/ui/Input";
+import { Select } from "@/components/ui/Select";
+import { useAdminAuth } from "@/contexts/AdminAuthContext";
+import { useLocation } from "react-router-dom";
+import { driver } from "driver.js";
+import "driver.js/dist/driver.css";
 
-const SEARCH_DEBOUNCE_MS = 400
+const SEARCH_DEBOUNCE_MS = 400;
+
+const STUDENTS_STORAGE_KEY = "sudah_lihat_walkthrough_students";
 
 export default function Students() {
-  const [students, setStudents] = useState<Mahasiswa[]>([])
-  const [meta, setMeta] = useState<MahasiswaListMeta | null>(null)
-  const [search, setSearch] = useState('')
-  const [debouncedSearch, setDebouncedSearch] = useState('')
-  const [angkatan, setAngkatan] = useState('')
-  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc')
-  const [page, setPage] = useState(1)
-  const [isLoading, setIsLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
-  const [refreshKey, setRefreshKey] = useState(0)
-  const [isUploadOpen, setIsUploadOpen] = useState(false)
-  const [uploadFile, setUploadFile] = useState<File | null>(null)
-  const [isUploading, setIsUploading] = useState(false)
-  const [uploadResult, setUploadResult] = useState<MahasiswaImportResult | null>(null)
-  const [uploadError, setUploadError] = useState<string | null>(null)
-  const fileInputRef = useRef<HTMLInputElement>(null)
-  const [editingStudent, setEditingStudent] = useState<Mahasiswa | null>(null)
-  const [praktikumOptions, setPraktikumOptions] = useState<Praktikum[]>([])
-  const [editPlugs, setEditPlugs] = useState<Record<string, string>>({})
-  const [isLoadingOptions, setIsLoadingOptions] = useState(false)
-  const [isSavingEdit, setIsSavingEdit] = useState(false)
-  const [editError, setEditError] = useState<string | null>(null)
+  const [students, setStudents] = useState<Mahasiswa[]>([]);
+  const [meta, setMeta] = useState<MahasiswaListMeta | null>(null);
+  const [search, setSearch] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
+  const [angkatan, setAngkatan] = useState("");
+  const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
+  const [page, setPage] = useState(1);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [refreshKey, setRefreshKey] = useState(0);
+  const [isUploadOpen, setIsUploadOpen] = useState(false);
+  const [uploadFile, setUploadFile] = useState<File | null>(null);
+  const [isUploading, setIsUploading] = useState(false);
+  const [uploadResult, setUploadResult] =
+    useState<MahasiswaImportResult | null>(null);
+  const [uploadError, setUploadError] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [editingStudent, setEditingStudent] = useState<Mahasiswa | null>(null);
+  const [praktikumOptions, setPraktikumOptions] = useState<Praktikum[]>([]);
+  const [editPlugs, setEditPlugs] = useState<Record<string, string>>({});
+  const [isLoadingOptions, setIsLoadingOptions] = useState(false);
+  const [isSavingEdit, setIsSavingEdit] = useState(false);
+  const [editError, setEditError] = useState<string | null>(null);
+  const { user } = useAdminAuth();
+  const location = useLocation();
 
   useEffect(() => {
     const timer = setTimeout(() => {
-      setPage(1)
-      setDebouncedSearch(search)
-    }, SEARCH_DEBOUNCE_MS)
-    return () => clearTimeout(timer)
-  }, [search])
+      setPage(1);
+      setDebouncedSearch(search);
+    }, SEARCH_DEBOUNCE_MS);
+    return () => clearTimeout(timer);
+  }, [search]);
+
+  // driver.js buat walkthrough
 
   useEffect(() => {
-    let cancelled = false
-    setIsLoading(true)
-    setError(null)
+    if (!user || location.pathname !== "/mahasiswa") return;
+
+    const hasSeenTour = localStorage.getItem(STUDENTS_STORAGE_KEY);
+    if (hasSeenTour === "true") return;
+
+    const driverObj = driver({
+      showProgress: false,
+      onDestroyStarted: () => {
+        localStorage.setItem(STUDENTS_STORAGE_KEY, "true");
+        driverObj.destroy();
+      },
+      steps: [
+        {
+          element: "#import-csv",
+          popover: {
+            title: "Import Daftar Mahasiswa",
+            description:
+              "Masukkan daftar praktikan dengan melakukan import *.csv yang cukup berisi data nama dan NIM.",
+            side: "right",
+            align: "start",
+          },
+        },
+        {
+          element: "#edit-praktikan",
+          popover: {
+            title: "Edit Praktikum yang Diikuti Praktikan",
+            description:
+              "Daftarkan praktikan ke praktikum dan plug terkait melalui tombol Edit di baris nama praktikan.",
+            side: "left",
+            align: "start",
+          },
+        },
+      ],
+    });
+
+    const timer = setTimeout(() => {
+      driverObj.drive();
+    }, 100);
+
+    return () => {
+      clearTimeout(timer);
+      driverObj.destroy();
+    };
+  }, [location.pathname, user]);
+
+  useEffect(() => {
+    let cancelled = false;
+    setIsLoading(true);
+    setError(null);
 
     mahasiswaService
       .getAll({
@@ -62,103 +119,118 @@ export default function Students() {
         sortDirection,
       })
       .then((response) => {
-        if (cancelled) return
-        setStudents(response.data)
-        setMeta(response.meta)
+        if (cancelled) return;
+        setStudents(response.data);
+        setMeta(response.meta);
       })
       .catch((err) => {
-        if (cancelled) return
-        setError(err instanceof ApiError ? err.message : 'Gagal memuat data mahasiswa.')
+        if (cancelled) return;
+        setError(
+          err instanceof ApiError
+            ? err.message
+            : "Gagal memuat data mahasiswa.",
+        );
       })
       .finally(() => {
-        if (!cancelled) setIsLoading(false)
-      })
+        if (!cancelled) setIsLoading(false);
+      });
 
     return () => {
-      cancelled = true
-    }
-  }, [debouncedSearch, angkatan, page, sortDirection, refreshKey])
+      cancelled = true;
+    };
+  }, [debouncedSearch, angkatan, page, sortDirection, refreshKey]);
 
   const closeUploadModal = () => {
-    setIsUploadOpen(false)
-    setUploadFile(null)
-    setUploadResult(null)
-    setUploadError(null)
-    if (fileInputRef.current) fileInputRef.current.value = ''
-  }
+    setIsUploadOpen(false);
+    setUploadFile(null);
+    setUploadResult(null);
+    setUploadError(null);
+    if (fileInputRef.current) fileInputRef.current.value = "";
+  };
 
   const handleUpload = () => {
-    if (!uploadFile) return
+    if (!uploadFile) return;
 
-    setIsUploading(true)
-    setUploadError(null)
+    setIsUploading(true);
+    setUploadError(null);
 
     mahasiswaService
       .importCsv(uploadFile)
       .then((result) => {
-        setUploadResult(result)
-        setRefreshKey((key) => key + 1)
+        setUploadResult(result);
+        setRefreshKey((key) => key + 1);
       })
       .catch((err) => {
-        setUploadError(err instanceof ApiError ? err.message : 'Gagal mengunggah file.')
+        setUploadError(
+          err instanceof ApiError ? err.message : "Gagal mengunggah file.",
+        );
       })
       .finally(() => {
-        setIsUploading(false)
-      })
-  }
+        setIsUploading(false);
+      });
+  };
 
-  const hasActiveFilter = debouncedSearch || angkatan
+  const hasActiveFilter = debouncedSearch || angkatan;
 
   const openEditModal = (student: Mahasiswa) => {
-    setEditingStudent(student)
-    setEditError(null)
-    setIsLoadingOptions(true)
+    setEditingStudent(student);
+    setEditError(null);
+    setIsLoadingOptions(true);
     setEditPlugs(
       Object.fromEntries(
-        (student.praktikum ?? []).map((slug) => [slug, String(student.praktikum_plug?.[slug] ?? '')]),
+        (student.praktikum ?? []).map((slug) => [
+          slug,
+          String(student.praktikum_plug?.[slug] ?? ""),
+        ]),
       ),
-    )
+    );
     praktikumService
       .getAll()
       .then((options) => setPraktikumOptions(options))
       .catch((err) => {
-        setEditError(err instanceof ApiError ? err.message : 'Gagal memuat daftar praktikum.')
+        setEditError(
+          err instanceof ApiError
+            ? err.message
+            : "Gagal memuat daftar praktikum.",
+        );
       })
-      .finally(() => setIsLoadingOptions(false))
-  }
+      .finally(() => setIsLoadingOptions(false));
+  };
 
   const closeEditModal = () => {
-    setEditingStudent(null)
-    setEditPlugs({})
-    setEditError(null)
-  }
+    setEditingStudent(null);
+    setEditPlugs({});
+    setEditError(null);
+  };
 
   const togglePraktikum = (slug: string) => {
     setEditPlugs((current) => {
       if (slug in current) {
-        const next = { ...current }
-        delete next[slug]
-        return next
+        const next = { ...current };
+        delete next[slug];
+        return next;
       }
-      return { ...current, [slug]: '' }
-    })
-  }
+      return { ...current, [slug]: "" };
+    });
+  };
 
   const handleSaveEdit = () => {
-    if (!editingStudent) return
+    if (!editingStudent) return;
 
-    const plugs: Record<string, string> = {}
+    const plugs: Record<string, string> = {};
     for (const [slug, value] of Object.entries(editPlugs)) {
-      const option = praktikumOptions.find((p) => p.slug === slug)
+      const option = praktikumOptions.find((p) => p.slug === slug);
       if (!option || !option.plugs.some((jadwal) => jadwal.plug === value)) {
-        setEditError('Pilih plug yang tersedia untuk setiap praktikum yang dipilih.')
-        return
+        setEditError(
+          "Pilih plug yang tersedia untuk setiap praktikum yang dipilih.",
+        );
+        return;
       }
-      plugs[slug] = value
+      plugs[slug] = value;
     }
 
-    setIsSavingEdit(true)
-    setEditError(null)
+    setIsSavingEdit(true);
+    setEditError(null);
 
     mahasiswaService
       .update(editingStudent.id, {
@@ -166,16 +238,18 @@ export default function Students() {
         praktikum_plug: plugs,
       })
       .then(() => {
-        closeEditModal()
-        setRefreshKey((key) => key + 1)
+        closeEditModal();
+        setRefreshKey((key) => key + 1);
       })
       .catch((err) => {
-        setEditError(err instanceof ApiError ? err.message : 'Gagal menyimpan perubahan.')
+        setEditError(
+          err instanceof ApiError ? err.message : "Gagal menyimpan perubahan.",
+        );
       })
       .finally(() => {
-        setIsSavingEdit(false)
-      })
-  }
+        setIsSavingEdit(false);
+      });
+  };
 
   return (
     <div className="space-y-4">
@@ -184,7 +258,11 @@ export default function Students() {
       </h1>
 
       <div className="flex flex-wrap items-center gap-3">
-        <Button variant="filled" onClick={() => setIsUploadOpen(true)}>
+        <Button
+          id="import-csv"
+          variant="filled"
+          onClick={() => setIsUploadOpen(true)}
+        >
           Import CSV
         </Button>
         <Input
@@ -198,8 +276,8 @@ export default function Students() {
           type="number"
           value={angkatan}
           onChange={(event) => {
-            setPage(1)
-            setAngkatan(event.target.value)
+            setPage(1);
+            setAngkatan(event.target.value);
           }}
           placeholder="Angkatan"
           containerClassName="w-32"
@@ -209,9 +287,9 @@ export default function Students() {
             variant="text"
             size="sm"
             onClick={() => {
-              setSearch('')
-              setAngkatan('')
-              setPage(1)
+              setSearch("");
+              setAngkatan("");
+              setPage(1);
             }}
           >
             Reset filter
@@ -228,13 +306,17 @@ export default function Students() {
               <th className="px-4 py-3">
                 <button
                   onClick={() => {
-                    setPage(1)
-                    setSortDirection((current) => (current === 'asc' ? 'desc' : 'asc'))
+                    setPage(1);
+                    setSortDirection((current) =>
+                      current === "asc" ? "desc" : "asc",
+                    );
                   }}
                   className="flex items-center gap-1 uppercase hover:text-(--md-sys-color-on-surface) transition-colors"
                 >
                   NIM
-                  <span className="text-[10px]">{sortDirection === 'asc' ? '▲' : '▼'}</span>
+                  <span className="text-[10px]">
+                    {sortDirection === "asc" ? "▲" : "▼"}
+                  </span>
                 </button>
               </th>
               <th className="px-4 py-3">Nama</th>
@@ -247,26 +329,42 @@ export default function Students() {
           <tbody className="divide-y divide-(--md-sys-color-outline-variant) text-(--md-sys-color-on-surface)">
             {isLoading ? (
               <tr>
-                <td colSpan={6} className="px-4 py-12 text-center text-(--md-sys-color-on-surface-variant)">
+                <td
+                  colSpan={6}
+                  className="px-4 py-12 text-center text-(--md-sys-color-on-surface-variant)"
+                >
                   Memuat...
                 </td>
               </tr>
             ) : students.length === 0 ? (
               <tr>
-                <td colSpan={6} className="px-4 py-12 text-center text-(--md-sys-color-on-surface-variant)">
-                  {hasActiveFilter ? 'Tidak ada mahasiswa yang cocok dengan filter.' : 'Belum ada data mahasiswa.'}
+                <td
+                  colSpan={6}
+                  className="px-4 py-12 text-center text-(--md-sys-color-on-surface-variant)"
+                >
+                  {hasActiveFilter
+                    ? "Tidak ada mahasiswa yang cocok dengan filter."
+                    : "Belum ada data mahasiswa."}
                 </td>
               </tr>
             ) : (
               students.map((student) => (
-                <tr key={student.id} className="hover:bg-(--md-sys-color-surface-container-high) transition-colors">
+                <tr
+                  key={student.id}
+                  className="hover:bg-(--md-sys-color-surface-container-high) transition-colors"
+                >
                   <td className="px-4 py-3 font-mono">{student.nim}</td>
                   <td className="px-4 py-3 font-medium">{student.nama}</td>
                   <td className="px-4 py-3">{student.angkatan}</td>
-                  <td className="px-4 py-3 text-(--md-sys-color-on-surface-variant)">{student.surel ?? '-'}</td>
-                  <td className="px-4 py-3">{student.praktikum?.length ?? 0} praktikum</td>
+                  <td className="px-4 py-3 text-(--md-sys-color-on-surface-variant)">
+                    {student.surel ?? "-"}
+                  </td>
+                  <td className="px-4 py-3">
+                    {student.praktikum?.length ?? 0} praktikum
+                  </td>
                   <td className="px-4 py-3">
                     <Button
+                      id="edit-praktikan"
                       variant="text"
                       size="sm"
                       onClick={() => openEditModal(student)}
@@ -319,8 +417,10 @@ export default function Students() {
       >
         <div className="space-y-4">
           <p className="text-xs text-(--md-sys-color-on-surface-variant) leading-relaxed">
-            File CSV harus memiliki baris header dengan kolom <code className="font-mono text-xs">nama</code> dan{' '}
-            <code className="font-mono text-xs">nim</code> (9 digit). Surel dan angkatan akan diisi otomatis dari NIM.
+            File CSV harus memiliki baris header dengan kolom{" "}
+            <code className="font-mono text-xs">nama</code> dan{" "}
+            <code className="font-mono text-xs">nim</code> (9 digit). Surel dan
+            angkatan akan diisi otomatis dari NIM.
           </p>
 
           {!uploadResult ? (
@@ -329,10 +429,14 @@ export default function Students() {
                 ref={fileInputRef}
                 type="file"
                 accept=".csv,text/csv"
-                onChange={(event) => setUploadFile(event.target.files?.[0] ?? null)}
+                onChange={(event) =>
+                  setUploadFile(event.target.files?.[0] ?? null)
+                }
                 className="w-full rounded-(--md-sys-shape-corner-medium) border border-(--md-sys-color-outline) bg-(--md-sys-color-surface) px-3 py-2 text-xs text-(--md-sys-color-on-surface) file:mr-3 file:rounded-md file:border-0 file:bg-(--md-sys-color-primary) file:px-3 file:py-1.5 file:text-white"
               />
-              {uploadError && <p className="text-xs text-red-500">{uploadError}</p>}
+              {uploadError && (
+                <p className="text-xs text-red-500">{uploadError}</p>
+              )}
               <div className="pt-2 flex justify-end gap-2">
                 <Button
                   variant="outlined"
@@ -347,14 +451,16 @@ export default function Students() {
                   onClick={handleUpload}
                   disabled={!uploadFile || isUploading}
                 >
-                  {isUploading ? 'Mengunggah...' : 'Upload'}
+                  {isUploading ? "Mengunggah..." : "Upload"}
                 </Button>
               </div>
             </>
           ) : (
             <>
               <div className="rounded-(--md-sys-shape-corner-medium) border border-(--md-sys-color-outline-variant) bg-(--md-sys-color-surface-container-low) p-4 text-xs">
-                <p className="font-medium text-(--md-sys-color-on-surface)">{uploadResult.message}</p>
+                <p className="font-medium text-(--md-sys-color-on-surface)">
+                  {uploadResult.message}
+                </p>
                 {uploadResult.failed.length > 0 && (
                   <ul className="mt-2 list-inside list-disc space-y-1 text-red-500">
                     {uploadResult.failed.map((item) => (
@@ -388,16 +494,23 @@ export default function Students() {
             </p>
 
             {isLoadingOptions ? (
-              <p className="text-xs text-(--md-sys-color-on-surface-variant)">Memuat daftar praktikum...</p>
+              <p className="text-xs text-(--md-sys-color-on-surface-variant)">
+                Memuat daftar praktikum...
+              </p>
             ) : praktikumOptions.length === 0 ? (
-              <p className="text-xs text-(--md-sys-color-on-surface-variant)">Belum ada praktikum terdaftar.</p>
+              <p className="text-xs text-(--md-sys-color-on-surface-variant)">
+                Belum ada praktikum terdaftar.
+              </p>
             ) : (
               <ul className="space-y-2">
                 {praktikumOptions.map((option) => {
-                  const checked = option.slug in editPlugs
-                  const adaJadwal = option.plugs.length > 0
+                  const checked = option.slug in editPlugs;
+                  const adaJadwal = option.plugs.length > 0;
                   return (
-                    <li key={option.id} className="rounded-(--md-sys-shape-corner-medium) border border-(--md-sys-color-outline-variant) p-3">
+                    <li
+                      key={option.id}
+                      className="rounded-(--md-sys-shape-corner-medium) border border-(--md-sys-color-outline-variant) p-3"
+                    >
                       <Checkbox
                         label={`${option.label} (${option.slug})`}
                         checked={checked}
@@ -409,7 +522,7 @@ export default function Students() {
                           <div className="mt-2 pl-6">
                             <Select
                               label="Plug"
-                              value={editPlugs[option.slug] ?? ''}
+                              value={editPlugs[option.slug] ?? ""}
                               onValueChange={(val) =>
                                 setEditPlugs((current) => ({
                                   ...current,
@@ -417,7 +530,7 @@ export default function Students() {
                                 }))
                               }
                               options={[
-                                { value: '', label: 'Pilih plug...' },
+                                { value: "", label: "Pilih plug..." },
                                 ...option.plugs.map((jadwal) => ({
                                   value: jadwal.plug,
                                   label: `Plug ${jadwal.plug} (${jadwal.hari} ${jadwal.jam_mulai}–${jadwal.jam_selesai})`,
@@ -431,7 +544,7 @@ export default function Students() {
                           </p>
                         ))}
                     </li>
-                  )
+                  );
                 })}
               </ul>
             )}
@@ -451,12 +564,12 @@ export default function Students() {
                 onClick={handleSaveEdit}
                 disabled={isSavingEdit || isLoadingOptions}
               >
-                {isSavingEdit ? 'Menyimpan...' : 'Simpan'}
+                {isSavingEdit ? "Menyimpan..." : "Simpan"}
               </Button>
             </div>
           </div>
         )}
       </Dialog>
     </div>
-  )
+  );
 }
