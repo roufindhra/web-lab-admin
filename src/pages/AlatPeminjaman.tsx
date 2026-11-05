@@ -14,8 +14,14 @@ import { Button } from "@/components/ui/Buttons";
 import { Card } from "@/components/ui/Card";
 import { Input } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
+import { useAdminAuth } from "@/contexts/AdminAuthContext";
+import { useLocation } from "react-router-dom";
+import { driver } from "driver.js";
+import "driver.js/dist/driver.css";
 
 const SEARCH_DEBOUNCE_MS = 400;
+
+const ALAT_PEMINJAMAN_STORAGE_KEY = "sudah_lihat_walkthrough_alat_peminjaman";
 
 const STATUS_LABELS: Record<PeminjamanStatus, string> = {
   pending: "Menunggu",
@@ -42,6 +48,8 @@ function formatWaktu(value: string): string {
 }
 
 export default function PeminjamanPage() {
+  const { user } = useAdminAuth();
+  const location = useLocation();
   const [peminjamanList, setPeminjamanList] = useState<Peminjaman[]>([]);
   const [meta, setMeta] = useState<AlatListMeta | null>(null);
   const [search, setSearch] = useState("");
@@ -66,6 +74,53 @@ export default function PeminjamanPage() {
     }, SEARCH_DEBOUNCE_MS);
     return () => clearTimeout(timer);
   }, [search]);
+
+  // driver.js buat walkthrough
+
+  useEffect(() => {
+    if (!user || location.pathname !== "/alat-peminjaman") return;
+
+    const hasSeenTour = localStorage.getItem(ALAT_PEMINJAMAN_STORAGE_KEY);
+    if (hasSeenTour === "true") return;
+
+    const driverObj = driver({
+      showProgress: false,
+      onDestroyStarted: () => {
+        localStorage.setItem(ALAT_PEMINJAMAN_STORAGE_KEY, "true");
+        driverObj.destroy();
+      },
+      steps: [
+        {
+          popover: {
+            title: "Peminjaman Alat",
+            description:
+              "Lihat peminjaman alat laboratorium yang sedang berlangsung serta mahasiswa yang menjadi penanggung jawab peminjaman alat.",
+            side: "left",
+            align: "start",
+          },
+        },
+        {
+          element: "#cari-pengajuan",
+          popover: {
+            title: "Cari Pengajuan Alat Praktikum",
+            description:
+              "Cari daftar riwayat alat tertentu melalui filter nama peminjam, keperluan, atau nama alat. Atau tampilkan pengajuan peminjaman alat berdasarkan status atau waktu pengajuan.",
+            side: "right",
+            align: "start",
+          },
+        },
+      ],
+    });
+
+    const timer = setTimeout(() => {
+      driverObj.drive();
+    }, 100);
+
+    return () => {
+      clearTimeout(timer);
+      driverObj.destroy();
+    };
+  }, [location.pathname, user]);
 
   useEffect(() => {
     let cancelled = false;
@@ -112,7 +167,7 @@ export default function PeminjamanPage() {
         Peminjaman Alat
       </h1>
 
-      <div className="flex flex-wrap items-center gap-3">
+      <div id="cari-pengajuan" className="flex flex-wrap items-center gap-3">
         <Input
           type="search"
           value={search}

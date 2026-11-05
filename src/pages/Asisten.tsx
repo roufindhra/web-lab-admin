@@ -1,4 +1,6 @@
+import { useAdminAuth } from "@/contexts/AdminAuthContext";
 import { useEffect, useState } from "react";
+import { useLocation } from "react-router-dom";
 import {
   mahasiswaService,
   praktikumService,
@@ -12,8 +14,12 @@ import { Card } from "@/components/ui/Card";
 import { Checkbox } from "@/components/ui/Checkbox";
 import { Dialog } from "@/components/ui/Dialog";
 import { Input } from "@/components/ui/Input";
+import { driver } from "driver.js";
+import "driver.js/dist/driver.css";
 
 const SEARCH_DEBOUNCE_MS = 400;
+
+const ASISTEN_STORAGE_KEY = "sudah_lihat_walkthrough_asisten";
 
 type StatusFilter = "semua" | "asisten" | "asisten_nonaktif" | "bukan";
 
@@ -46,6 +52,9 @@ function StatusBadge({ mahasiswa }: { mahasiswa: Mahasiswa }) {
 }
 
 export default function Asisten() {
+  const { isAuthenticated } = useAdminAuth();
+  const location = useLocation();
+
   const [students, setStudents] = useState<Mahasiswa[]>([]);
   const [meta, setMeta] = useState<MahasiswaListMeta | null>(null);
   const [search, setSearch] = useState("");
@@ -101,6 +110,61 @@ export default function Asisten() {
       cancelled = true;
     };
   }, [debouncedSearch, statusFilter, page, refreshKey]);
+
+  // driver.js buat walkthrough
+
+  useEffect(() => {
+    if (!isAuthenticated || location.pathname !== "/asisten") return;
+
+    const hasSeenTour = localStorage.getItem(ASISTEN_STORAGE_KEY);
+    if (hasSeenTour === "true") return;
+
+    const driverObj = driver({
+      showProgress: true,
+      onDestroyStarted: () => {
+        localStorage.setItem(ASISTEN_STORAGE_KEY, "true");
+        driverObj.destroy();
+      },
+      steps: [
+        {
+          popover: {
+            title: "Manajemen Asisten",
+            description:
+              "Tetapkan mahasiswa Teknik Geomatika sebagai asisten dan atur praktikum yang diampu oleh masing-masing asisten laboratorium.",
+          },
+        },
+        {
+          element: "#atur-asisten",
+          popover: {
+            title: "Atur Status dan Ampuan Asisten Laboratorium",
+            description:
+              "Tombol untuk mengatur role, status, dan praktikum serta plug yang diampu oleh asisten laboratorium.",
+            side: "left",
+            align: "start",
+          },
+        },
+        {
+          element: "#filter-asisten",
+          popover: {
+            title: "Filter Berdasarkan Status",
+            description:
+              "Gunakan filter untuk mencari asisten atau melihat asisten berdasarkan status.",
+            side: "bottom",
+            align: "start",
+          },
+        },
+      ],
+    });
+
+    const timer = setTimeout(() => {
+      driverObj.drive();
+    }, 100);
+
+    return () => {
+      clearTimeout(timer);
+      driverObj.destroy();
+    };
+  }, [location.pathname, isAuthenticated]);
 
   const openEditModal = (student: Mahasiswa) => {
     setEditingStudent(student);
@@ -226,7 +290,10 @@ export default function Asisten() {
           placeholder="Cari nama atau NIM..."
           containerClassName="w-64"
         />
-        <div className="flex flex-wrap items-center gap-1.5">
+        <div
+          id="filter-asisten"
+          className="flex flex-wrap items-center gap-1.5"
+        >
           {statusFilters.map((filter) => (
             <Button
               key={filter.value}
@@ -333,6 +400,7 @@ export default function Asisten() {
                     </td>
                     <td className="px-4 py-3">
                       <Button
+                        id="atur-asisten"
                         variant="text"
                         size="sm"
                         onClick={() => openEditModal(student)}

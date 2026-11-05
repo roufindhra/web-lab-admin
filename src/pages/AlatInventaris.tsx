@@ -16,8 +16,13 @@ import { Button } from "@/components/ui/Buttons";
 import { Card } from "@/components/ui/Card";
 import { Input } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
+import { useLocation } from "react-router-dom";
+import { driver } from "driver.js";
+import "driver.js/dist/driver.css";
 
 const SEARCH_DEBOUNCE_MS = 400;
+
+const ALAT_INVENTARIS_STORAGE_KEY = "sudah_lihat_walkthrough_alat_inventaris";
 
 const KONDISI_LABELS: Record<KondisiStatus, string> = {
   baik: "baik",
@@ -42,6 +47,7 @@ const KETERSEDIAAN_BADGE_CLASSES: Record<KetersediaanStatus, string> = {
 
 export default function AlatPage() {
   const { canAlat } = useAdminAuth();
+  const location = useLocation();
   const canCrud = canAlat("crud_inventaris");
   const canEditKondisi = canAlat("edit_kondisi");
   const canEditStatus = canAlat("edit_status");
@@ -69,6 +75,82 @@ export default function AlatPage() {
     }, SEARCH_DEBOUNCE_MS);
     return () => clearTimeout(timer);
   }, [search]);
+
+  // driver.js buat walkthrough
+
+  useEffect(() => {
+    if (!canAlat || location.pathname !== "/alat-invent") return;
+
+    const hasSeenTour = localStorage.getItem(ALAT_INVENTARIS_STORAGE_KEY);
+    if (hasSeenTour === "true") return;
+
+    const driverObj = driver({
+      showProgress: true,
+      onDestroyStarted: () => {
+        localStorage.setItem(ALAT_INVENTARIS_STORAGE_KEY, "true");
+        driverObj.destroy();
+      },
+      steps: [
+        {
+          popover: {
+            title: "Inventarisasi Alat",
+            description:
+              "Lihat daftar semua alat praktikum, termasuk kesediaan alat, kondisi fisik, lokasi penyimpanan, dan status alat.",
+            side: "left",
+            align: "start",
+          },
+        },
+        {
+          element: "#tambah-alat",
+          popover: {
+            title: "Tambah Alat Praktikum",
+            description:
+              "Tambahkan alat laboratorium melalui tombol Tambah Alat.",
+            side: "right",
+            align: "start",
+          },
+        },
+        {
+          element: "#filter-alat",
+          popover: {
+            title: "Filter Alat Praktikum",
+            description:
+              "Cari alat laboratorium melalui filter, atau cari alat berdasarkan status melalui *dropdown* ketersediaan.",
+            side: "left",
+            align: "start",
+          },
+        },
+        {
+          element: "#detail-inventarisasi",
+          popover: {
+            title: "Detail Inventarisasi Alat",
+            description: "Lihat detail kondisi alat melalui tombol Detail.",
+            side: "left",
+            align: "start",
+          },
+        },
+        {
+          element: "#edit-inventarisasi",
+          popover: {
+            title: "Edit Inventarisasi Alat",
+            description:
+              "Edit data alat laboratorium melalui tombol Edit dan sesuaikan dengan status quo.",
+            side: "left",
+            align: "start",
+          },
+        },
+      ],
+    });
+
+    const timer = setTimeout(() => {
+      driverObj.drive();
+    }, 100);
+
+    return () => {
+      clearTimeout(timer);
+      driverObj.destroy();
+    };
+  }, [location.pathname, canAlat]);
 
   useEffect(() => {
     let cancelled = false;
@@ -132,6 +214,7 @@ export default function AlatPage() {
 
       <div className="flex flex-wrap items-center gap-3">
         <Button
+          id="tambah-alat"
           variant="filled"
           onClick={() => setFormTarget(null)}
           disabled={!canCrud}
@@ -147,6 +230,7 @@ export default function AlatPage() {
           containerClassName="w-64"
         />
         <Select
+          id="filter-alat"
           options={ketersediaanOptions}
           value={ketersediaan}
           onValueChange={(val) => {
@@ -242,6 +326,7 @@ export default function AlatPage() {
                       {kondisiRingkas(alat) || "-"}
                     </span>
                     <Button
+                      id="detail-inventarisasi"
                       variant="text"
                       size="sm"
                       onClick={() => setDetailTarget(alat)}
@@ -265,7 +350,7 @@ export default function AlatPage() {
                     </span>
                   </td>
                   <td className="px-4 py-3">
-                    <div className="flex gap-1">
+                    <div id="edit-inventarisasi" className="flex gap-1">
                       <Button
                         variant="text"
                         size="sm"
