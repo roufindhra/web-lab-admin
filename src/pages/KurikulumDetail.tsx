@@ -11,6 +11,37 @@ import MateriFormModal from "../components/modals/MateriFormModal";
 import { Button } from "@/components/ui/Buttons";
 import { Card } from "@/components/ui/Card";
 
+import { driver } from "driver.js";
+import "driver.js/dist/driver.css";
+
+const driverObj = driver({
+  showProgress: true,
+  steps: [
+    {
+      element: "#tambah-materi",
+      popover: {
+        title: "Tambah Materi Praktikum",
+        description:
+          "Tambahkan materi baru untuk praktikum melalui tombol Tambah Materi",
+        side: "left",
+        align: "start",
+      },
+    },
+    {
+      element: "#edit-materi",
+      popover: {
+        title: "Kelola Materi Praktikum",
+        description:
+          "Edit materi praktikum atau arsipkan materi yang sedang tidak berlaku untuk kegiatan belajar-mengajar.",
+        side: "left",
+        align: "start",
+      },
+    },
+  ],
+});
+
+driverObj.drive();
+
 export default function KurikulumDetail() {
   const { slug } = useParams<{ slug: string }>();
   const [praktikum, setPraktikum] = useState<Praktikum | null>(null);
@@ -98,6 +129,7 @@ export default function KurikulumDetail() {
           </p>
         </div>
         <Button
+          id="tambah-materi"
           variant="filled"
           onClick={() => {
             setEditingMateri(null);
@@ -136,7 +168,7 @@ export default function KurikulumDetail() {
                     {materi.materi_nama}
                   </td>
                   <td className="px-4 py-3 text-right">
-                    <div className="flex justify-end gap-2">
+                    <div id="edit-materi" className="flex justify-end gap-2">
                       <Button
                         variant="text"
                         size="sm"

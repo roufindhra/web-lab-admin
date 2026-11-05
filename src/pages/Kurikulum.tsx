@@ -3,6 +3,32 @@ import { useNavigate } from "react-router-dom";
 import { praktikumService, type Praktikum } from "@/services";
 import { Card } from "@/components/ui/Card";
 
+import { driver } from "driver.js";
+import "driver.js/dist/driver.css";
+
+const driverObj = driver({
+  showProgress: true,
+  steps: [
+    {
+      popover: {
+        title: "Kurikulum Laboratorium SGG",
+        description: "Kelola susunan materi praktikum yang akan diajarkan.",
+      },
+    },
+    {
+      element: "#daftar-materi",
+      popover: {
+        title: "Lihat Daftar Materi Praktikum",
+        description: "Ketuk praktikum untuk melihat daftar materi.",
+        side: "right",
+        align: "start",
+      },
+    },
+  ],
+});
+
+driverObj.drive();
+
 export default function Kurikulum() {
   const [praktikumList, setPraktikumList] = useState<Praktikum[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -35,7 +61,10 @@ export default function Kurikulum() {
         </p>
       )}
 
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+      <div
+        id="daftar-materi"
+        className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3"
+      >
         {praktikumList.map((praktikum) => (
           <button
             key={praktikum.id}
