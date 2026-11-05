@@ -13,6 +13,44 @@ import { Checkbox } from "@/components/ui/Checkbox";
 import { Dialog } from "@/components/ui/Dialog";
 import { Input } from "@/components/ui/Input";
 
+import { driver } from "driver.js";
+import "driver.js/dist/driver.css";
+
+const driverObj = driver({
+  showProgress: true,
+  steps: [
+    {
+      popover: {
+        title: "Manajemen Asisten",
+        description:
+          "Tetapkan mahasiswa Teknik Geomatika sebagai asisten dan atur praktikum yang diampu oleh masing-masing asisten laboratorium.",
+      },
+    },
+    {
+      element: "#atur-asisten",
+      popover: {
+        title: "Atur Status dan Ampuan Asisten Laboratorium",
+        description:
+          "Tombol untuk mengatur role, status, dan praktikum serta plug yang diampu oleh asisten laboratorium.",
+        side: "left",
+        align: "start",
+      },
+    },
+    {
+      element: "#filter-asisten",
+      popover: {
+        title: "Filter Berdasarkan Status",
+        description:
+          "Gunakan filter untuk mencari asisten atau melihat asisten berdasarkan status.",
+        side: "bottom",
+        align: "start",
+      },
+    },
+  ],
+});
+
+driverObj.drive();
+
 const SEARCH_DEBOUNCE_MS = 400;
 
 type StatusFilter = "semua" | "asisten" | "asisten_nonaktif" | "bukan";
@@ -237,7 +275,10 @@ export default function Asisten() {
           placeholder="Cari nama atau NIM..."
           containerClassName="w-64"
         />
-        <div className="flex flex-wrap items-center gap-1.5">
+        <div
+          id="filter-asisten"
+          className="flex flex-wrap items-center gap-1.5"
+        >
           {statusFilters.map((filter) => (
             <Button
               key={filter.value}
@@ -346,6 +387,7 @@ export default function Asisten() {
                     </td>
                     <td className="px-4 py-3">
                       <Button
+                        id="atur-asisten"
                         variant="text"
                         size="sm"
                         onClick={() => openEditModal(student)}
