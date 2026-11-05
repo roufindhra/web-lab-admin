@@ -7,6 +7,7 @@ export interface KurikulumMateri {
     materi_nama: string
     deskripsi: string
     is_active: boolean
+    snippet?: string
 }
 
 export interface KurikulumPayload {
@@ -15,9 +16,10 @@ export interface KurikulumPayload {
 }
 
 export const kurikulumService = {
-    async getAll(slug: string): Promise<KurikulumMateri[]> {
+    async getAll(slug: string, search?: string): Promise<KurikulumMateri[]> {
+        const query = search ? `?search=${encodeURIComponent(search)}` : ''
         const response = await api<{ data: KurikulumMateri[] }>(
-            `/api/admin/praktikum/${encodeURIComponent(slug)}/kurikulum`,
+            `/api/admin/praktikum/${encodeURIComponent(slug)}/kurikulum${query}`,
         )
         return response.data
     },
@@ -40,6 +42,15 @@ export const kurikulumService = {
             },
         )
         return response.data
+    },
+    async reorder(slug: string, ids: number[]): Promise<void> {
+        await api<{ message: string }>(
+            `/api/admin/praktikum/${encodeURIComponent(slug)}/kurikulum/reorder`,
+            {
+                method: 'PUT',
+                body: JSON.stringify({ ids }),
+            },
+        )
     },
     async destroy(slug: string, materiId: number): Promise<void> {
         await api<void>(`/api/admin/praktikum/${encodeURIComponent(slug)}/kurikulum/${materiId}`, {

@@ -48,6 +48,8 @@ export default function PeminjamanPage() {
   const [search, setSearch] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [status, setStatus] = useState("");
+  const [dateFrom, setDateFrom] = useState("");
+  const [dateTo, setDateTo] = useState("");
   const [page, setPage] = useState(1);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -76,6 +78,8 @@ export default function PeminjamanPage() {
       .getAll({
         search: debouncedSearch || undefined,
         status: (status || undefined) as PeminjamanStatus | undefined,
+        dateFrom: dateFrom || undefined,
+        dateTo: dateTo || undefined,
         page,
       })
       .then((response) => {
@@ -98,9 +102,9 @@ export default function PeminjamanPage() {
     return () => {
       cancelled = true;
     };
-  }, [debouncedSearch, status, page, refreshKey]);
+  }, [debouncedSearch, status, dateFrom, dateTo, page, refreshKey]);
 
-  const hasActiveFilter = debouncedSearch || status;
+  const hasActiveFilter = debouncedSearch || status || dateFrom || dateTo;
 
   const statusOptions = [
     { value: "", label: "Semua status" },
@@ -133,6 +137,27 @@ export default function PeminjamanPage() {
           }}
           containerClassName="w-48"
         />
+        <Input
+          type="date"
+          value={dateFrom}
+          onChange={(event) => {
+            setPage(1);
+            setDateFrom(event.target.value);
+          }}
+          containerClassName="w-40"
+          title="Dari tanggal"
+        />
+        <span className="text-(--md-sys-color-on-surface-variant)">—</span>
+        <Input
+          type="date"
+          value={dateTo}
+          onChange={(event) => {
+            setPage(1);
+            setDateTo(event.target.value);
+          }}
+          containerClassName="w-40"
+          title="Sampai tanggal"
+        />
         {hasActiveFilter && (
           <Button
             variant="text"
@@ -140,6 +165,8 @@ export default function PeminjamanPage() {
             onClick={() => {
               setSearch("");
               setStatus("");
+              setDateFrom("");
+              setDateTo("");
               setPage(1);
             }}
           >
