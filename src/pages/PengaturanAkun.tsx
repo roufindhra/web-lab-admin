@@ -3,7 +3,8 @@ import { Button } from "@/components/ui/Buttons";
 import { Input } from "@/components/ui/Input";
 import { Card } from "@/components/ui/Card";
 import { useAdminAuth } from "@/contexts/AdminAuthContext";
-import { adminAuthService, ApiError } from "@/services";
+import { adminAuthService } from "@/services";
+import { getFormErrorMessages } from "@/utils/errors";
 
 export default function PengaturanAkun() {
   const { user } = useAdminAuth();
@@ -86,9 +87,9 @@ function UbahPasswordCard() {
         setKonfirmasi("");
       })
       .catch((err) => {
-        setError(
-          err instanceof ApiError ? err.message : "Gagal mengubah password.",
-        );
+        // Error validasi (422) tampil inline; error lain ditangani modal global.
+        const messages = getFormErrorMessages(err);
+        setError(messages.length > 0 ? messages.join(" ") : null);
       })
       .finally(() => setIsSaving(false));
   };

@@ -1,10 +1,10 @@
 import { useCallback, useEffect, useState } from "react";
 import {
-  ApiError,
   hargaSewaService,
   type AlatListMeta,
   type HargaSewa,
 } from "@/services";
+import { getFormErrorMessages } from "@/utils/errors";
 import { Button } from "@/components/ui/Buttons";
 import { Card } from "@/components/ui/Card";
 import { Dialog } from "@/components/ui/Dialog";
@@ -29,7 +29,6 @@ export default function HargaSewaPage() {
   const [meta, setMeta] = useState<AlatListMeta | null>(null);
   const [page, setPage] = useState(1);
   const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
 
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editTarget, setEditTarget] = useState<HargaSewa | null>(null);
@@ -41,7 +40,6 @@ export default function HargaSewaPage() {
   const loadHarga = useCallback(() => {
     let cancelled = false;
     setIsLoading(true);
-    setError(null);
 
     hargaSewaService
       .getAll({ page })
@@ -50,13 +48,8 @@ export default function HargaSewaPage() {
         setHargaList(response.data);
         setMeta(response.meta);
       })
-      .catch((err) => {
-        if (cancelled) return;
-        setError(
-          err instanceof ApiError
-            ? err.message
-            : "Gagal memuat daftar harga sewa.",
-        );
+      .catch(() => {
+        // Error sudah ditampilkan otomatis di modal global.
       })
       .finally(() => {
         if (!cancelled) setIsLoading(false);
@@ -103,9 +96,9 @@ export default function HargaSewaPage() {
       setIsFormOpen(false);
       loadHarga();
     } catch (err) {
-      setFormError(
-        err instanceof ApiError ? err.message : "Terjadi kesalahan.",
-      );
+      // Error validasi (422) tampil inline; error lain ditangani modal global.
+      const messages = getFormErrorMessages(err);
+      setFormError(messages.length > 0 ? messages.join(" ") : null);
       setIsSaving(false);
     }
   };
@@ -113,13 +106,12 @@ export default function HargaSewaPage() {
   const handleDelete = async () => {
     if (!deleteTarget || isSaving) return;
     setIsSaving(true);
-    setFormError(null);
     try {
       await hargaSewaService.remove(deleteTarget.id);
       setDeleteTarget(null);
       loadHarga();
-    } catch (err) {
-      setError(err instanceof ApiError ? err.message : "Terjadi kesalahan.");
+    } catch {
+      // Error sudah ditampilkan otomatis di modal global.
       setDeleteTarget(null);
     } finally {
       setIsSaving(false);
@@ -147,8 +139,6 @@ export default function HargaSewaPage() {
           + Tambah Harga
         </Button>
       </div>
-
-      {error && <p className="text-sm text-red-500">{error}</p>}
 
       <Card variant="outlined" className="p-0 overflow-x-auto">
         <table className="w-full text-left text-sm">

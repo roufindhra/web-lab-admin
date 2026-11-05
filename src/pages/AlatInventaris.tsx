@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import {
   alatService,
-  ApiError,
   KETERSEDIAAN_STATUSES,
   KONDISI_STATUSES,
   type Alat,
@@ -62,7 +61,6 @@ export default function AlatPage() {
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
   const [page, setPage] = useState(1);
   const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const [refreshKey, setRefreshKey] = useState(0);
   const [formTarget, setFormTarget] = useState<Alat | null | undefined>(
     undefined,
@@ -157,7 +155,6 @@ export default function AlatPage() {
   useEffect(() => {
     let cancelled = false;
     setIsLoading(true);
-    setError(null);
 
     alatService
       .getAll({
@@ -173,11 +170,8 @@ export default function AlatPage() {
         setAlatList(response.data);
         setMeta(response.meta);
       })
-      .catch((err) => {
-        if (cancelled) return;
-        setError(
-          err instanceof ApiError ? err.message : "Gagal memuat data alat.",
-        );
+      .catch(() => {
+        // Error sudah ditampilkan otomatis di modal global.
       })
       .finally(() => {
         if (!cancelled) setIsLoading(false);
@@ -259,8 +253,6 @@ export default function AlatPage() {
           </Button>
         )}
       </div>
-
-      {error && <p className="text-sm text-red-500">{error}</p>}
 
       <Card variant="outlined" className="p-0 overflow-x-auto">
         <table className="w-full text-left text-sm">

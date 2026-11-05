@@ -21,7 +21,6 @@ export default function Dashboard() {
   const location = useLocation();
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -31,11 +30,8 @@ export default function Dashboard() {
       .then((data) => {
         if (!cancelled) setStats(data);
       })
-      .catch((err) => {
-        if (!cancelled)
-          setError(
-            err instanceof ApiError ? err.message : "Gagal memuat statistik.",
-          );
+      .catch(() => {
+        // Error sudah ditampilkan otomatis di modal global.
       })
       .finally(() => {
         if (!cancelled) setIsLoading(false);
@@ -144,7 +140,6 @@ export default function Dashboard() {
       )}
 
       {isLoading && <DashboardSkeleton />}
-      {error && <p className="text-sm font-semibold text-red-500">{error}</p>}
 
       {!isLoading && stats && (
         <div

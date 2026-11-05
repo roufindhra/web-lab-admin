@@ -2,12 +2,12 @@ import { useEffect, useRef, useState } from "react";
 import {
   mahasiswaService,
   praktikumService,
-  ApiError,
   type Mahasiswa,
   type MahasiswaListMeta,
   type MahasiswaImportResult,
   type Praktikum,
-} from "@/services";
+} from '@/services'
+import { getFormErrorMessages } from '@/utils/errors'
 import { Button } from "@/components/ui/Buttons";
 import { Card } from "@/components/ui/Card";
 import { Checkbox } from "@/components/ui/Checkbox";
@@ -32,7 +32,6 @@ export default function Students() {
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
   const [page, setPage] = useState(1);
   const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const [refreshKey, setRefreshKey] = useState(0);
   const [isUploadOpen, setIsUploadOpen] = useState(false);
   const [uploadFile, setUploadFile] = useState<File | null>(null);
@@ -109,7 +108,6 @@ export default function Students() {
   useEffect(() => {
     let cancelled = false;
     setIsLoading(true);
-    setError(null);
 
     mahasiswaService
       .getAll({
@@ -123,13 +121,8 @@ export default function Students() {
         setStudents(response.data);
         setMeta(response.meta);
       })
-      .catch((err) => {
-        if (cancelled) return;
-        setError(
-          err instanceof ApiError
-            ? err.message
-            : "Gagal memuat data mahasiswa.",
-        );
+      .catch(() => {
+        // Error sudah ditampilkan otomatis di modal global.
       })
       .finally(() => {
         if (!cancelled) setIsLoading(false);
@@ -161,9 +154,9 @@ export default function Students() {
         setRefreshKey((key) => key + 1);
       })
       .catch((err) => {
-        setUploadError(
-          err instanceof ApiError ? err.message : "Gagal mengunggah file.",
-        );
+        // Error validasi (422) tampil inline; error lain ditangani modal global.
+        const messages = getFormErrorMessages(err)
+        setUploadError(messages.length > 0 ? messages.join(' ') : null)
       })
       .finally(() => {
         setIsUploading(false);
@@ -187,12 +180,8 @@ export default function Students() {
     praktikumService
       .getAll()
       .then((options) => setPraktikumOptions(options))
-      .catch((err) => {
-        setEditError(
-          err instanceof ApiError
-            ? err.message
-            : "Gagal memuat daftar praktikum.",
-        );
+      .catch(() => {
+        // Error sudah ditampilkan otomatis di modal global.
       })
       .finally(() => setIsLoadingOptions(false));
   };
@@ -242,9 +231,9 @@ export default function Students() {
         setRefreshKey((key) => key + 1);
       })
       .catch((err) => {
-        setEditError(
-          err instanceof ApiError ? err.message : "Gagal menyimpan perubahan.",
-        );
+        // Error validasi (422) tampil inline; error lain ditangani modal global.
+        const messages = getFormErrorMessages(err)
+        setEditError(messages.length > 0 ? messages.join(' ') : null)
       })
       .finally(() => {
         setIsSavingEdit(false);
@@ -296,8 +285,6 @@ export default function Students() {
           </Button>
         )}
       </div>
-
-      {error && <p className="text-sm text-red-500">{error}</p>}
 
       <Card variant="outlined" className="p-0 overflow-x-auto">
         <table className="w-full text-left text-sm">

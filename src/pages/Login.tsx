@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAdminAuth } from "@/contexts/AdminAuthContext";
-import { ApiError } from "@/services";
+import { getFormErrorMessages } from "@/utils/errors";
 import { Button } from "@/components/ui/Buttons";
 import { Card } from "@/components/ui/Card";
 import { Input } from "@/components/ui/Input";
@@ -22,7 +22,9 @@ export default function Login() {
       await login(nomorInduk, password);
       navigate("/");
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : "Gagal login.");
+      // Error validasi (422) tampil inline; error lain ditangani modal global.
+      const messages = getFormErrorMessages(err);
+      setError(messages.length > 0 ? messages.join(" ") : null);
     } finally {
       setIsSubmitting(false);
     }

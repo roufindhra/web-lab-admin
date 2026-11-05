@@ -4,7 +4,6 @@ import { Button } from "@/components/ui/Buttons";
 import { Input } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
 import {
-  ApiError,
   KONDISI_STATUSES,
   peminjamanService,
   type KondisiCatatan,
@@ -13,6 +12,7 @@ import {
   type Peminjaman,
   type PeminjamanItem,
 } from "@/services";
+import { getFormErrorMessages } from "@/utils/errors";
 
 const KONDISI_LABELS: Record<KondisiStatus, string> = {
   baik: "Baik",
@@ -242,7 +242,9 @@ export default function KembalikanModal({
       await peminjamanService.kembalikan(peminjaman.id, payload);
       onSuccess();
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : "Terjadi kesalahan.");
+      // Error validasi (422) tampil inline; error lain ditangani modal global.
+      const messages = getFormErrorMessages(err);
+      setError(messages.length > 0 ? messages.join(" ") : null);
       setIsSaving(false);
     }
   };

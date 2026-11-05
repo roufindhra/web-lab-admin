@@ -1,4 +1,3 @@
-import React from "react";
 import { useAdminAuth } from "@/contexts/AdminAuthContext";
 import { ThemeToggle } from "@/components/ui/ThemeToggle";
 import { Button } from "@/components/ui/Buttons";

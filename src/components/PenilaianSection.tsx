@@ -2,12 +2,12 @@ import { useEffect, useState } from "react";
 import {
   praktikumService,
   kurikulumService,
-  ApiError,
   type KurikulumMateri,
   type Pertemuan,
   type PertemuanPayload,
   type ParameterPenilaian,
 } from "@/services";
+import { getFormErrorMessages } from "@/utils/errors";
 import { Button } from "@/components/ui/Buttons";
 import { Card } from "@/components/ui/Card";
 import { Dialog } from "@/components/ui/Dialog";
@@ -44,7 +44,6 @@ export default function PenilaianSection({
   const [form, setForm] = useState<FormState>(EMPTY_FORM);
   const [isSaving, setIsSaving] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
-  const [error, setError] = useState<string | null>(null);
   const [deletingId, setDeletingId] = useState<number | null>(null);
 
   const [materiList, setMateriList] = useState<KurikulumMateri[]>([]);
@@ -117,9 +116,9 @@ export default function PenilaianSection({
         onChanged();
       })
       .catch((err) => {
-        setFormError(
-          err instanceof ApiError ? err.message : "Gagal menyimpan pertemuan.",
-        );
+        // Error validasi (422) tampil inline; error lain ditangani modal global.
+        const messages = getFormErrorMessages(err);
+        setFormError(messages.length > 0 ? messages.join(" ") : null);
       })
       .finally(() => setIsSaving(false));
   };
@@ -138,10 +137,8 @@ export default function PenilaianSection({
     praktikumService
       .destroyPertemuan(slug, item.id)
       .then(() => onChanged())
-      .catch((err) => {
-        setError(
-          err instanceof ApiError ? err.message : "Gagal menghapus pertemuan.",
-        );
+      .catch(() => {
+        // Error sudah ditampilkan otomatis di modal global.
       })
       .finally(() => setDeletingId(null));
   };
@@ -156,8 +153,6 @@ export default function PenilaianSection({
           + Tambah Pertemuan
         </Button>
       </div>
-
-      {error && <p className="text-xs text-red-500">{error}</p>}
 
       <Card variant="outlined" className="p-0 overflow-x-auto">
         <table className="w-full text-left text-sm">
