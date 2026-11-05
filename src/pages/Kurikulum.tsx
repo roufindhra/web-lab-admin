@@ -6,14 +6,15 @@ import { Card } from "@/components/ui/Card";
 export default function Kurikulum() {
   const [praktikumList, setPraktikumList] = useState<Praktikum[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
 
   useEffect(() => {
     praktikumService
       .getAll()
       .then(setPraktikumList)
-      .catch(() => setError("Gagal memuat daftar praktikum."))
+      .catch(() => {
+        // Error sudah ditampilkan otomatis di modal global.
+      })
       .finally(() => setIsLoading(false));
   }, []);
 
@@ -28,7 +29,6 @@ export default function Kurikulum() {
         </p>
       </div>
 
-      {error && <p className="text-sm text-red-500">{error}</p>}
       {isLoading && (
         <p className="text-sm text-(--md-sys-color-on-surface-variant)">
           Memuat...

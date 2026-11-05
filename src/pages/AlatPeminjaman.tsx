@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 import {
-  ApiError,
   PEMINJAMAN_STATUSES,
   peminjamanService,
   type AlatListMeta,
@@ -52,7 +51,6 @@ export default function PeminjamanPage() {
   const [dateTo, setDateTo] = useState("");
   const [page, setPage] = useState(1);
   const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const [refreshKey, setRefreshKey] = useState(0);
   const [approveTarget, setApproveTarget] = useState<Peminjaman | null>(null);
   const [tolakTarget, setTolakTarget] = useState<Peminjaman | null>(null);
@@ -72,7 +70,6 @@ export default function PeminjamanPage() {
   useEffect(() => {
     let cancelled = false;
     setIsLoading(true);
-    setError(null);
 
     peminjamanService
       .getAll({
@@ -87,13 +84,8 @@ export default function PeminjamanPage() {
         setPeminjamanList(response.data);
         setMeta(response.meta);
       })
-      .catch((err) => {
-        if (cancelled) return;
-        setError(
-          err instanceof ApiError
-            ? err.message
-            : "Gagal memuat data peminjaman.",
-        );
+      .catch(() => {
+        // Error sudah ditampilkan otomatis di modal global.
       })
       .finally(() => {
         if (!cancelled) setIsLoading(false);
@@ -174,8 +166,6 @@ export default function PeminjamanPage() {
           </Button>
         )}
       </div>
-
-      {error && <p className="text-sm text-red-500">{error}</p>}
 
       <Card variant="outlined" className="p-0 overflow-x-auto">
         <table className="w-full text-left text-sm">

@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { praktikumService, ApiError, type Praktikum, type AssignMahasiswa, type Pertemuan } from '@/services'
+import { getFormErrorMessages } from '@/utils/errors'
 import PenilaianSection from '@/components/PenilaianSection'
 import NilaiSidePanel from '@/components/NilaiSidePanel'
 import { useAdminAuth } from '@/contexts/AdminAuthContext'
@@ -82,7 +83,9 @@ function Detail({ slug }: { slug?: string }) {
       .listMahasiswa(current.slug, plugName, true)
       .then((students) => setMahasiswa(students))
       .catch((err) => {
-        setMahasiswaError(err instanceof ApiError ? err.message : 'Gagal memuat daftar mahasiswa.')
+        // Error validasi (422) tampil inline; error lain ditangani modal global.
+        const messages = getFormErrorMessages(err)
+        setMahasiswaError(messages.length > 0 ? messages.join(' ') : null)
       })
       .finally(() => setIsLoadingMahasiswa(false))
   }
@@ -91,8 +94,9 @@ function Detail({ slug }: { slug?: string }) {
     praktikumService
       .listPertemuan(current.slug)
       .then(setPertemuan)
-      .catch((err) => {
-        setError(err instanceof ApiError ? err.message : 'Gagal memuat rule penilaian.')
+      .catch(() => {
+        // Error sudah ditampilkan otomatis di modal global.
+        setError('Gagal memuat rule penilaian.')
       })
   }
 
@@ -110,11 +114,8 @@ function Detail({ slug }: { slug?: string }) {
       })
       .catch((err) => {
         if (cancelled) return
-        if (err instanceof ApiError && err.status === 404) {
-          setError('Praktikum tidak ditemukan.')
-        } else {
-          setError(err instanceof ApiError ? err.message : 'Gagal memuat data praktikum.')
-        }
+        // Detail pesan error ditampilkan modal global; di sini cukup state fallback halaman.
+        setError(err instanceof ApiError && err.status === 404 ? 'Praktikum tidak ditemukan.' : 'Gagal memuat data praktikum.')
       })
       .finally(() => {
         if (!cancelled) setIsLoading(false)

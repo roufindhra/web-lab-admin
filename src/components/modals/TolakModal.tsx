@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { Dialog } from "@/components/ui/Dialog";
 import { Button } from "@/components/ui/Buttons";
-import { ApiError, peminjamanService, type Peminjaman } from "@/services";
+import { peminjamanService, type Peminjaman } from "@/services";
+import { getFormErrorMessages } from "@/utils/errors";
 
 interface Props {
   peminjaman: Peminjaman;
@@ -28,7 +29,9 @@ export default function TolakModal({
       await peminjamanService.tolak(peminjaman.id, catatan.trim());
       onSuccess();
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : "Terjadi kesalahan.");
+      // Error validasi (422) tampil inline; error lain ditangani modal global.
+      const messages = getFormErrorMessages(err);
+      setError(messages.length > 0 ? messages.join(" ") : null);
       setIsSaving(false);
     }
   };

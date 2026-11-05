@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import {
   praktikumService,
-  ApiError,
   type AssignMahasiswa,
   type Pertemuan,
 } from "@/services";
@@ -39,7 +38,6 @@ export default function NilaiSidePanel({
     pertemuan[0]?.id ?? null,
   );
   const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const [savingId, setSavingId] = useState<number | null>(null);
   const [savedId, setSavedId] = useState<number | null>(null);
 
@@ -67,12 +65,8 @@ export default function NilaiSidePanel({
         }
         setNilai(matrix);
       })
-      .catch((err) => {
-        if (!cancelled) {
-          setError(
-            err instanceof ApiError ? err.message : "Gagal memuat data nilai.",
-          );
-        }
+      .catch(() => {
+        // Error sudah ditampilkan otomatis di modal global.
       })
       .finally(() => {
         if (!cancelled) setIsLoading(false);
@@ -121,7 +115,6 @@ export default function NilaiSidePanel({
 
     setSavingId(item.id);
     setSavedId(null);
-    setError(null);
 
     praktikumService
       .saveNilaiPlug(praktikum.slug, plug, item.id, payload)
@@ -129,10 +122,8 @@ export default function NilaiSidePanel({
         setSavedId(item.id);
         onSaved();
       })
-      .catch((err) => {
-        setError(
-          err instanceof ApiError ? err.message : "Gagal menyimpan nilai.",
-        );
+      .catch(() => {
+        // Error sudah ditampilkan otomatis di modal global.
       })
       .finally(() => setSavingId(null));
   };
@@ -301,8 +292,6 @@ export default function NilaiSidePanel({
               ))}
             </div>
           )}
-
-          {error && <p className="text-xs text-red-500">{error}</p>}
         </div>
       </div>
     </div>

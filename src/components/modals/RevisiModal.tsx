@@ -4,12 +4,12 @@ import { Button } from "@/components/ui/Buttons";
 import { Input } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
 import {
-  ApiError,
   peminjamanService,
   type AlatOption,
   type Peminjaman,
   type RevisiItemPayload,
 } from "@/services";
+import { getFormErrorMessages } from "@/utils/errors";
 
 interface Props {
   peminjaman: Peminjaman;
@@ -51,7 +51,7 @@ export default function RevisiModal({
         if (!cancelled) setOptions(data);
       })
       .catch(() => {
-        if (!cancelled) setError("Gagal memuat daftar alat.");
+        // Error sudah ditampilkan otomatis di modal global.
       });
     return () => {
       cancelled = true;
@@ -88,7 +88,9 @@ export default function RevisiModal({
       await peminjamanService.revisiItems(peminjaman.id, items);
       onSuccess();
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : "Terjadi kesalahan.");
+      // Error validasi (422) tampil inline; error lain ditangani modal global.
+      const messages = getFormErrorMessages(err);
+      setError(messages.length > 0 ? messages.join(" ") : null);
       setIsSaving(false);
     }
   };

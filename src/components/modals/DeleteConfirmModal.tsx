@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Dialog } from "@/components/ui/Dialog";
 import { Button } from "@/components/ui/Buttons";
-import { alatService, ApiError, type Alat } from "@/services";
+import { alatService, type Alat } from "@/services";
 
 interface DeleteConfirmModalProps {
   alat: Alat;
@@ -17,19 +17,15 @@ export default function DeleteConfirmModal({
   onSuccess,
 }: DeleteConfirmModalProps) {
   const [isDeleting, setIsDeleting] = useState(false);
-  const [error, setError] = useState<string | null>(null);
 
   const handleDelete = () => {
     setIsDeleting(true);
-    setError(null);
 
     alatService
       .remove(alat.id)
       .then(onSuccess)
-      .catch((err) => {
-        setError(
-          err instanceof ApiError ? err.message : "Gagal menghapus data alat.",
-        );
+      .catch(() => {
+        // Error sudah ditampilkan otomatis di modal global.
       })
       .finally(() => {
         setIsDeleting(false);
@@ -52,8 +48,6 @@ export default function DeleteConfirmModal({
           (<span className="font-mono text-xs">{alat.inventaris}</span>)?
           Tindakan ini tidak dapat dibatalkan.
         </p>
-
-        {error && <p className="text-xs text-red-600">{error}</p>}
 
         <div className="flex justify-end gap-2 border-t border-(--md-sys-color-outline-variant) pt-4">
           <Button

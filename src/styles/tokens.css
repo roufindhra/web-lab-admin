@@ -24,6 +24,11 @@
   --md-sys-state-focus-opacity: 0.12;
   --md-sys-state-pressed-opacity: 0.12;
 
+  --md-sys-color-error: #b3261e;
+  --md-sys-color-on-error: #ffffff;
+  --md-sys-color-error-container: #f9dedc;
+  --md-sys-color-on-error-container: #410e0b;
+
   --md-sys-border-width-small: 1px;
 }
 
@@ -41,4 +46,9 @@ html.dark,
   
   --md-sys-color-outline: #475569;
   --md-sys-color-outline-variant: #334155;
+
+  --md-sys-color-error: #f2b8b5;
+  --md-sys-color-on-error: #601410;
+  --md-sys-color-error-container: #8c1d18;
+  --md-sys-color-on-error-container: #f9dedc;
 }

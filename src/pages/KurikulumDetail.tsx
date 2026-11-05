@@ -18,7 +18,6 @@ import { CSS } from "@dnd-kit/utilities";
 import {
   kurikulumService,
   praktikumService,
-  ApiError,
   type KurikulumMateri,
   type Praktikum,
 } from "@/services";
@@ -65,7 +64,6 @@ export default function KurikulumDetail() {
   const [search, setSearch] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
   const [editingMateri, setEditingMateri] = useState<KurikulumMateri | null>(
     null,
@@ -86,11 +84,8 @@ export default function KurikulumDetail() {
         debouncedSearch || undefined,
       );
       setMateriList(data);
-      setError(null);
-    } catch (err) {
-      setError(
-        err instanceof ApiError ? err.message : "Gagal memuat kurikulum.",
-      );
+    } catch {
+      // Error sudah ditampilkan otomatis di modal global.
     }
   }, [slug, debouncedSearch]);
 
@@ -104,9 +99,9 @@ export default function KurikulumDetail() {
         setPraktikum(praktikumData);
         setMateriList(materiData);
       })
-      .catch((err) =>
-        setError(err instanceof ApiError ? err.message : "Gagal memuat data."),
-      )
+      .catch(() => {
+        // Error sudah ditampilkan otomatis di modal global.
+      })
       .finally(() => setIsLoading(false));
   }, [slug, debouncedSearch]);
 
@@ -115,10 +110,8 @@ export default function KurikulumDetail() {
     try {
       await kurikulumService.destroy(slug, materi.id);
       await refresh();
-    } catch (err) {
-      setError(
-        err instanceof ApiError ? err.message : "Gagal mengarsipkan materi.",
-      );
+    } catch {
+      // Error sudah ditampilkan otomatis di modal global.
     }
   };
 
@@ -127,10 +120,8 @@ export default function KurikulumDetail() {
     try {
       await kurikulumService.restore(slug, materi.id);
       await refresh();
-    } catch (err) {
-      setError(
-        err instanceof ApiError ? err.message : "Gagal memulihkan materi.",
-      );
+    } catch {
+      // Error sudah ditampilkan otomatis di modal global.
     }
   };
 
@@ -161,10 +152,8 @@ export default function KurikulumDetail() {
         slug,
         ordered.map((m) => m.id),
       );
-    } catch (err) {
-      setError(
-        err instanceof ApiError ? err.message : "Gagal memperbarui urutan.",
-      );
+    } catch {
+      // Error sudah ditampilkan otomatis di modal global.
       await refresh();
     }
   };
@@ -207,8 +196,6 @@ export default function KurikulumDetail() {
           </Button>
         </div>
       </div>
-
-      {error && <p className="text-sm text-red-500">{error}</p>}
 
       <div className="space-y-2">
         <h2 className="text-xs font-bold uppercase tracking-wider text-(--md-sys-color-on-surface-variant)">

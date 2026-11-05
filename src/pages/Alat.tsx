@@ -10,7 +10,6 @@ import { useAdminAuth } from "@/contexts/AdminAuthContext";
 import {
   alatTokenService,
   mahasiswaService,
-  ApiError,
   ALAT_PERMISSIONS,
   ALAT_PERMISSION_LABELS,
   ALAT_TOKEN_DURATIONS,
@@ -18,6 +17,7 @@ import {
   type AlatToken,
   type AlatTokenDuration,
 } from "@/services";
+import { getFormErrorMessages } from "@/utils/errors";
 
 function formatWaktu(value: string): string {
   return new Date(value).toLocaleString("id-ID", {
@@ -42,21 +42,15 @@ export default function DashboardAlat() {
 
   const [isTokenModalOpen, setIsTokenModalOpen] = useState(false);
   const [tokens, setTokens] = useState<AlatToken[]>([]);
-  const [listError, setListError] = useState<string | null>(null);
 
   const loadTokens = () => {
     return alatTokenService
       .list()
       .then((response) => {
         setTokens(response.data.filter((t) => t.status !== "dicabut"));
-        setListError(null);
       })
-      .catch((err) => {
-        setListError(
-          err instanceof ApiError
-            ? err.message
-            : "Gagal memuat daftar token.",
-        );
+      .catch(() => {
+        // Error sudah ditampilkan otomatis di modal global.
       });
   };
 
@@ -70,10 +64,8 @@ export default function DashboardAlat() {
     alatTokenService
       .revoke(id)
       .then(loadTokens)
-      .catch((err) => {
-        setListError(
-          err instanceof ApiError ? err.message : "Gagal mencabut token.",
-        );
+      .catch(() => {
+        // Error sudah ditampilkan otomatis di modal global.
       });
   };
 
@@ -167,9 +159,7 @@ export default function DashboardAlat() {
             </Button>
           </div>
 
-          {listError && <p className="text-xs text-red-600">{listError}</p>}
-
-          {tokens.length === 0 && !listError ? (
+          {tokens.length === 0 ? (
             <p className="text-xs text-(--md-sys-color-on-surface-variant)">
               Belum ada token yang diterbitkan.
             </p>
@@ -244,9 +234,9 @@ function ClaimTokenForm({
     setError(null);
     onClaimed(code.trim())
       .catch((err) => {
-        setError(
-          err instanceof ApiError ? err.message : "Gagal mengklaim token.",
-        );
+        // Error validasi (422) tampil inline; error lain ditangani modal global.
+        const messages = getFormErrorMessages(err);
+        setError(messages.length > 0 ? messages.join(" ") : null);
       })
       .finally(() => setIsClaiming(false));
   };
@@ -302,12 +292,8 @@ function TokenAdminDialog({
           })),
         ),
       )
-      .catch((err) => {
-        setError(
-          err instanceof ApiError
-            ? err.message
-            : "Gagal memuat daftar asisten.",
-        );
+      .catch(() => {
+        // Error sudah ditampilkan otomatis di modal global.
       });
   }, []);
 
@@ -340,9 +326,9 @@ function TokenAdminDialog({
         onClose();
       })
       .catch((err) => {
-        setError(
-          err instanceof ApiError ? err.message : "Gagal membuat token.",
-        );
+        // Error validasi (422) tampil inline; error lain ditangani modal global.
+        const messages = getFormErrorMessages(err);
+        setError(messages.length > 0 ? messages.join(" ") : null);
       })
       .finally(() => setIsGenerating(false));
   };

@@ -2,7 +2,8 @@ import { useState } from "react";
 import { Dialog } from "@/components/ui/Dialog";
 import { Button } from "@/components/ui/Buttons";
 import { Input } from "@/components/ui/Input";
-import { kurikulumService, ApiError, type KurikulumMateri } from "@/services";
+import { kurikulumService, type KurikulumMateri } from "@/services";
+import { getFormErrorMessages } from "@/utils/errors";
 import RichTextEditor from "../RichTextEditor";
 
 interface MateriFormModalProps {
@@ -45,9 +46,9 @@ export default function MateriFormModal({
       }
       onSuccess();
     } catch (err) {
-      setError(
-        err instanceof ApiError ? err.message : "Gagal menyimpan materi.",
-      );
+      // Error validasi (422) tampil inline; error lain ditangani modal global.
+      const messages = getFormErrorMessages(err);
+      setError(messages.length > 0 ? messages.join(" ") : null);
     } finally {
       setIsSaving(false);
     }

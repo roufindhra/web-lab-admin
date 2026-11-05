@@ -5,7 +5,6 @@ import { Input } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
 import {
   alatService,
-  ApiError,
   KONDISI_STATUSES,
   KETERSEDIAAN_STATUSES,
   type Alat,
@@ -14,6 +13,7 @@ import {
   type KondisiStatus,
   type KetersediaanStatus,
 } from "@/services";
+import { getFormErrorMessages } from "@/utils/errors";
 
 const KONDISI_LABELS: Record<KondisiStatus, string> = {
   baik: "Baik",
@@ -202,9 +202,9 @@ export default function AlatFormModal({
     request
       .then(onSuccess)
       .catch((err) => {
-        setError(
-          err instanceof ApiError ? err.message : "Gagal menyimpan data alat.",
-        );
+        // Error validasi (422) tampil inline; error lain ditangani modal global.
+        const messages = getFormErrorMessages(err);
+        setError(messages.length > 0 ? messages.join(" ") : null);
       })
       .finally(() => {
         setIsSaving(false);

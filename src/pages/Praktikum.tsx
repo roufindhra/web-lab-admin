@@ -1,11 +1,11 @@
 import { useEffect, useState } from "react";
 import {
   praktikumService,
-  ApiError,
   type Praktikum,
   type JadwalInput,
   type AssignMahasiswa,
 } from "@/services";
+import { getFormErrorMessages } from "@/utils/errors";
 import { useAdminAuth } from "@/contexts/AdminAuthContext";
 import { Button } from "@/components/ui/Buttons";
 import { Card } from "@/components/ui/Card";
@@ -60,7 +60,6 @@ export default function PraktikumPage() {
   const { isDosen } = useAdminAuth();
   const [items, setItems] = useState<Praktikum[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const [refreshKey, setRefreshKey] = useState(0);
 
   const [isFormOpen, setIsFormOpen] = useState(false);
@@ -83,20 +82,14 @@ export default function PraktikumPage() {
   useEffect(() => {
     let cancelled = false;
     setIsLoading(true);
-    setError(null);
 
     praktikumService
       .getAll()
       .then((data) => {
         if (!cancelled) setItems(data);
       })
-      .catch((err) => {
-        if (!cancelled)
-          setError(
-            err instanceof ApiError
-              ? err.message
-              : "Gagal memuat data praktikum.",
-          );
+      .catch(() => {
+        // Error sudah ditampilkan otomatis di modal global.
       })
       .finally(() => {
         if (!cancelled) setIsLoading(false);
@@ -165,11 +158,9 @@ export default function PraktikumPage() {
         setRefreshKey((key) => key + 1);
       })
       .catch((err) => {
-        setFormError(
-          err instanceof ApiError
-            ? err.message
-            : "Gagal menyimpan data praktikum.",
-        );
+        // Error validasi (422) tampil inline; error lain ditangani modal global.
+        const messages = getFormErrorMessages(err);
+        setFormError(messages.length > 0 ? messages.join(" ") : null);
       })
       .finally(() => {
         setIsSaving(false);
@@ -190,12 +181,8 @@ export default function PraktikumPage() {
     praktikumService
       .destroy(item.id)
       .then(() => setRefreshKey((key) => key + 1))
-      .catch((err) => {
-        setError(
-          err instanceof ApiError
-            ? err.message
-            : "Gagal menghapus data praktikum.",
-        );
+      .catch(() => {
+        // Error sudah ditampilkan otomatis di modal global.
       })
       .finally(() => {
         setDeletingId(null);
@@ -220,11 +207,9 @@ export default function PraktikumPage() {
         );
       })
       .catch((err) => {
-        setAssignError(
-          err instanceof ApiError
-            ? err.message
-            : "Gagal memuat daftar mahasiswa.",
-        );
+        // Error validasi (422) tampil inline; error lain ditangani modal global.
+        const messages = getFormErrorMessages(err);
+        setAssignError(messages.length > 0 ? messages.join(" ") : null);
       })
       .finally(() => setIsLoadingAssign(false));
   };
@@ -263,11 +248,9 @@ export default function PraktikumPage() {
         setRefreshKey((key) => key + 1);
       })
       .catch((err) => {
-        setAssignError(
-          err instanceof ApiError
-            ? err.message
-            : "Gagal menyimpan peserta plug.",
-        );
+        // Error validasi (422) tampil inline; error lain ditangani modal global.
+        const messages = getFormErrorMessages(err);
+        setAssignError(messages.length > 0 ? messages.join(" ") : null);
       })
       .finally(() => {
         setIsSavingAssign(false);
@@ -286,8 +269,6 @@ export default function PraktikumPage() {
           </Button>
         )}
       </div>
-
-      {error && <p className="text-sm text-red-500">{error}</p>}
 
       <Card variant="outlined" className="p-0 overflow-x-auto">
         <table className="w-full text-left text-sm">

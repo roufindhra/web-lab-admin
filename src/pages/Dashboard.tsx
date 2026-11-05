@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { useAdminAuth } from "@/contexts/AdminAuthContext";
-import { dashboardService, ApiError, type DashboardStats } from "@/services";
+import { dashboardService, type DashboardStats } from "@/services";
 import { DashboardSkeleton } from "@/components/DashboardSkeleton";
 import { Card } from "@/components/ui/Card";
 
@@ -15,7 +15,6 @@ export default function Dashboard() {
   const { user } = useAdminAuth();
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -25,11 +24,8 @@ export default function Dashboard() {
       .then((data) => {
         if (!cancelled) setStats(data);
       })
-      .catch((err) => {
-        if (!cancelled)
-          setError(
-            err instanceof ApiError ? err.message : "Gagal memuat statistik.",
-          );
+      .catch(() => {
+        // Error sudah ditampilkan otomatis di modal global.
       })
       .finally(() => {
         if (!cancelled) setIsLoading(false);
@@ -62,7 +58,6 @@ export default function Dashboard() {
       )}
 
       {isLoading && <DashboardSkeleton />}
-      {error && <p className="text-sm font-semibold text-red-500">{error}</p>}
 
       {!isLoading && stats && (
         <div className="grid grid-cols-1 gap-5 lg:grid-cols-3">
