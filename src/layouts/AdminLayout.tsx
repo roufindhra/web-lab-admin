@@ -3,7 +3,6 @@ import { useState } from "react";
 import Header from "./Header";
 import Footer from "./Footer";
 import Sidebar from "./Sidebar";
-import { WalkthroughManager } from "../components/walthrough/WalkthroughManager.tsx";
 
 export default function AdminLayout() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -29,7 +28,6 @@ export default function AdminLayout() {
         <Footer companyName="Lab Survei Geodesi dan Geometri - UPN Veteran Yogyakarta" />
       </div>
 
-      <WalkthroughManager />
     </div>
   );
 }
