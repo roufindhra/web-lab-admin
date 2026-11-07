@@ -8,6 +8,77 @@ html, body {
   transition: background-color 0.2s ease, color 0.2s ease;
 }
 
+/* Login page accent + brand panel (scoped to /login) */
+.login-page {
+  --login-accent: #0e7490;
+  --login-accent-solid: #0e7490;
+  --login-accent-solid-hover: #155e75;
+  --login-accent-soft: rgba(14, 116, 144, 0.08);
+}
+
+.dark .login-page {
+  --login-accent: #22d3ee;
+  --login-accent-solid: #0891b2;
+  --login-accent-solid-hover: #06b6d4;
+  --login-accent-soft: rgba(34, 211, 238, 0.12);
+}
+
+/* Light: shades of primary (dark navy) */
+.login-brand-panel {
+  background:
+    radial-gradient(
+      ellipse 80% 60% at 20% 20%,
+      color-mix(in srgb, var(--md-sys-color-primary) 70%, #ffffff),
+      transparent 60%
+    ),
+    radial-gradient(
+      ellipse 70% 70% at 80% 80%,
+      color-mix(in srgb, var(--md-sys-color-primary) 60%, #000000),
+      transparent 60%
+    ),
+    linear-gradient(
+      135deg,
+      color-mix(in srgb, var(--md-sys-color-primary) 95%, #000000) 0%,
+      var(--md-sys-color-primary) 55%,
+      color-mix(in srgb, var(--md-sys-color-primary) 70%, #000000) 100%
+    );
+}
+
+/* Dark: primary is light gray there, so use low mix ratios
+   to keep the panel deep slate and white text readable. */
+.dark .login-brand-panel {
+  background:
+    radial-gradient(
+      ellipse 80% 60% at 20% 20%,
+      color-mix(in srgb, var(--md-sys-color-primary) 22%, #000000),
+      transparent 60%
+    ),
+    radial-gradient(
+      ellipse 70% 70% at 80% 80%,
+      color-mix(in srgb, var(--md-sys-color-primary) 10%, #000000),
+      transparent 60%
+    ),
+    linear-gradient(
+      135deg,
+      #000000 0%,
+      color-mix(in srgb, var(--md-sys-color-primary) 8%, #000000) 55%,
+      #020617 100%
+    );
+}
+
+.login-grid {
+  background-image:
+    linear-gradient(to right, rgba(255, 255, 255, 0.06) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255, 255, 255, 0.06) 1px, transparent 1px);
+  background-size: 48px 48px;
+  mask-image: radial-gradient(ellipse at center, black 40%, transparent 85%);
+  -webkit-mask-image: radial-gradient(
+    ellipse at center,
+    black 40%,
+    transparent 85%
+  );
+}
+
 @keyframes slide-in-right {
   from {
     transform: translateX(100%);
