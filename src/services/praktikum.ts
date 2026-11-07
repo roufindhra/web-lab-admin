@@ -1,4 +1,5 @@
 import { api } from './api'
+import { appendSortParams, type SortSpec } from '../utils/tableSort'
 
 export interface Jadwal {
     id: number
@@ -74,6 +75,15 @@ export interface PraktikumPayload {
     plugs: JadwalInput[]
 }
 
+export interface PraktikumListParams {
+    search?: string
+    page?: number
+    perPage?: number
+    sortBy?: string
+    sortDirection?: 'asc' | 'desc'
+    sorts?: SortSpec[]
+}
+
 interface ListResponse {
     data: Praktikum[]
     meta: {
@@ -86,8 +96,20 @@ interface ListResponse {
 }
 
 export const praktikumService = {
-    async getAll(): Promise<Praktikum[]> {
-        const response = await api<ListResponse>('/api/admin/praktikum')
+    async getAll(params: PraktikumListParams = {}): Promise<Praktikum[]> {
+        const query = new URLSearchParams()
+        if (params.search) query.set('search', params.search)
+        if (params.page !== undefined) query.set('page', String(params.page))
+        if (params.perPage !== undefined) query.set('per_page', String(params.perPage))
+        if (params.sorts?.length) {
+            appendSortParams(query, params.sorts)
+        } else {
+            if (params.sortBy) query.set('sort_by', params.sortBy)
+            if (params.sortDirection) query.set('sort_direction', params.sortDirection)
+        }
+
+        const qs = query.toString()
+        const response = await api<ListResponse>(`/api/admin/praktikum${qs ? `?${qs}` : ''}`)
         return response.data
     },
     async getBySlug(slug: string): Promise<Praktikum> {

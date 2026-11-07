@@ -1,4 +1,5 @@
 import { api } from './api'
+import { appendSortParams, type SortSpec } from '../utils/tableSort'
 import type { AlatListMeta, KondisiEntry } from './alat'
 
 export const PEMINJAMAN_STATUSES = ['pending', 'disetujui', 'ditolak'] as const
@@ -69,6 +70,9 @@ export interface PeminjamanListParams {
   dateTo?: string
   page?: number
   perPage?: number
+  sortBy?: string
+  sortDirection?: 'asc' | 'desc'
+  sorts?: SortSpec[]
 }
 
 export interface PeminjamanListResponse {
@@ -85,6 +89,12 @@ export const peminjamanService = {
     if (params.dateTo) query.set('date_to', params.dateTo)
     if (params.page !== undefined) query.set('page', String(params.page))
     if (params.perPage !== undefined) query.set('per_page', String(params.perPage))
+    if (params.sorts?.length) {
+      appendSortParams(query, params.sorts)
+    } else {
+      if (params.sortBy) query.set('sort_by', params.sortBy)
+      if (params.sortDirection) query.set('sort_direction', params.sortDirection)
+    }
 
     const qs = query.toString()
     return api<PeminjamanListResponse>(`/api/admin/peminjaman${qs ? `?${qs}` : ''}`)

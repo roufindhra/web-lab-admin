@@ -14,6 +14,9 @@ import { Button } from "@/components/ui/Buttons";
 import { Card } from "@/components/ui/Card";
 import { Input } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
+import { SortSummary } from "@/components/ui/SortSummary";
+import { SortableTh } from "@/components/ui/SortableTh";
+import { useTableSort } from "@/hooks/useTableSort";
 import { useAdminAuth } from "@/contexts/AdminAuthContext";
 import { useLocation } from "react-router-dom";
 import { driver } from "driver.js";
@@ -58,6 +61,10 @@ export default function PeminjamanPage() {
   const [dateFrom, setDateFrom] = useState("");
   const [dateTo, setDateTo] = useState("");
   const [page, setPage] = useState(1);
+  const { sorts, toggleSort, removeSort, resetSort } = useTableSort(
+    { column: "created_at", direction: "desc" },
+    () => setPage(1),
+  );
   const [isLoading, setIsLoading] = useState(true);
   const [refreshKey, setRefreshKey] = useState(0);
   const [approveTarget, setApproveTarget] = useState<Peminjaman | null>(null);
@@ -133,6 +140,7 @@ export default function PeminjamanPage() {
         dateFrom: dateFrom || undefined,
         dateTo: dateTo || undefined,
         page,
+        sorts,
       })
       .then((response) => {
         if (cancelled) return;
@@ -149,7 +157,7 @@ export default function PeminjamanPage() {
     return () => {
       cancelled = true;
     };
-  }, [debouncedSearch, status, dateFrom, dateTo, page, refreshKey]);
+  }, [debouncedSearch, status, dateFrom, dateTo, page, sorts, refreshKey]);
 
   const hasActiveFilter = debouncedSearch || status || dateFrom || dateTo;
 
@@ -222,15 +230,41 @@ export default function PeminjamanPage() {
         )}
       </div>
 
+      <SortSummary
+        sorts={sorts}
+        onRemove={removeSort}
+        onReset={resetSort}
+      />
+
       <Card variant="outlined" className="p-0 overflow-x-auto">
         <table className="w-full text-left text-sm">
           <thead className="border-b border-(--md-sys-color-outline-variant) bg-(--md-sys-color-surface-container-low) text-xs uppercase text-(--md-sys-color-on-surface-variant)">
             <tr>
-              <th className="px-4 py-3">Diajukan</th>
-              <th className="px-4 py-3">Peminjam</th>
-              <th className="px-4 py-3">Keperluan</th>
+              <SortableTh
+                label="Diajukan"
+                column="created_at"
+                sorts={sorts}
+                onSort={toggleSort}
+              />
+              <SortableTh
+                label="Peminjam"
+                column="nama"
+                sorts={sorts}
+                onSort={toggleSort}
+              />
+              <SortableTh
+                label="Keperluan"
+                column="keperluan"
+                sorts={sorts}
+                onSort={toggleSort}
+              />
               <th className="px-4 py-3">Alat</th>
-              <th className="px-4 py-3">Status</th>
+              <SortableTh
+                label="Status"
+                column="status"
+                sorts={sorts}
+                onSort={toggleSort}
+              />
               <th className="px-4 py-3">Aksi</th>
             </tr>
           </thead>

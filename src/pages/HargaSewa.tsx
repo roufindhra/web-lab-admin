@@ -9,6 +9,9 @@ import { Button } from "@/components/ui/Buttons";
 import { Card } from "@/components/ui/Card";
 import { Dialog } from "@/components/ui/Dialog";
 import { Input } from "@/components/ui/Input";
+import { SortSummary } from "@/components/ui/SortSummary";
+import { SortableTh } from "@/components/ui/SortableTh";
+import { useTableSort } from "@/hooks/useTableSort";
 
 interface FormState {
   nama_alat: string;
@@ -28,6 +31,10 @@ export default function HargaSewaPage() {
   const [hargaList, setHargaList] = useState<HargaSewa[]>([]);
   const [meta, setMeta] = useState<AlatListMeta | null>(null);
   const [page, setPage] = useState(1);
+  const { sorts, toggleSort, removeSort, resetSort } = useTableSort(
+    { column: "nama_alat", direction: "asc" },
+    () => setPage(1),
+  );
   const [isLoading, setIsLoading] = useState(true);
 
   const [isFormOpen, setIsFormOpen] = useState(false);
@@ -42,7 +49,7 @@ export default function HargaSewaPage() {
     setIsLoading(true);
 
     hargaSewaService
-      .getAll({ page })
+      .getAll({ page, sorts })
       .then((response) => {
         if (cancelled) return;
         setHargaList(response.data);
@@ -58,7 +65,7 @@ export default function HargaSewaPage() {
     return () => {
       cancelled = true;
     };
-  }, [page]);
+  }, [page, sorts]);
 
   useEffect(() => loadHarga(), [loadHarga]);
 
@@ -140,12 +147,28 @@ export default function HargaSewaPage() {
         </Button>
       </div>
 
+      <SortSummary
+        sorts={sorts}
+        onRemove={removeSort}
+        onReset={resetSort}
+      />
+
       <Card variant="outlined" className="p-0 overflow-x-auto">
         <table className="w-full text-left text-sm">
           <thead className="border-b border-(--md-sys-color-outline-variant) bg-(--md-sys-color-surface-container-low) text-xs uppercase text-(--md-sys-color-on-surface-variant)">
             <tr>
-              <th className="px-4 py-3">Nama Alat</th>
-              <th className="px-4 py-3">Tarif per Hari</th>
+              <SortableTh
+                label="Nama Alat"
+                column="nama_alat"
+                sorts={sorts}
+                onSort={toggleSort}
+              />
+              <SortableTh
+                label="Tarif per Hari"
+                column="tarif_per_hari"
+                sorts={sorts}
+                onSort={toggleSort}
+              />
               <th className="px-4 py-3 text-right">Aksi</th>
             </tr>
           </thead>

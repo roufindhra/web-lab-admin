@@ -8,6 +8,10 @@ import { useAdminAuth } from '@/contexts/AdminAuthContext'
 import { Button } from '@/components/ui/Buttons'
 import { Card } from '@/components/ui/Card'
 import { Input } from '@/components/ui/Input'
+import { SortSummary } from '@/components/ui/SortSummary'
+import { SortableTh } from '@/components/ui/SortableTh'
+import { useTableSort } from '@/hooks/useTableSort'
+import { sortRows } from '@/utils/tableSort'
 
 function KelompokInput({
   slug,
@@ -68,6 +72,25 @@ function Detail({ slug }: { slug?: string }) {
   const [mahasiswaError, setMahasiswaError] = useState<string | null>(null)
 
   const [panelPlug, setPanelPlug] = useState<string | null>(null)
+  const { sorts, toggleSort, removeSort, resetSort } = useTableSort({
+    column: 'nim',
+    direction: 'asc',
+  })
+
+  const sortedMahasiswa = sortRows(
+    mahasiswa,
+    sorts,
+    (student, column) => {
+      if (column === 'nim') return student.nim
+      if (column === 'nama') return student.nama
+      if (column === 'kelompok') return student.kelompok ?? ''
+      if (column.startsWith('skor:')) {
+        return student.skor?.[column.slice(5)] ?? null
+      }
+
+      return null
+    },
+  )
 
   const handleKelompokSaved = (mahasiswaId: number, kelompok: string | null) => {
     setMahasiswa((current) =>
@@ -250,22 +273,62 @@ function Detail({ slug }: { slug?: string }) {
                         Belum ada mahasiswa di plug ini.
                       </p>
                     ) : (
-                      <Card variant="outlined" className="p-0 overflow-x-auto">
+                      <div className="space-y-2">
+                        <SortSummary
+                          sorts={sorts}
+                          onRemove={removeSort}
+                          onReset={resetSort}
+                          labels={{
+                            nim: "NIM",
+                            nama: "Nama",
+                            kelompok: "Kelompok",
+                            ...Object.fromEntries(
+                              pertemuan.map((p) => [
+                                `skor:${p.id}`,
+                                `M:${p.nomor}`,
+                              ]),
+                            ),
+                          }}
+                        />
+                        <Card variant="outlined" className="p-0 overflow-x-auto">
                         <table className="w-full text-left text-sm">
                           <thead className="border-b border-(--md-sys-color-outline-variant) bg-(--md-sys-color-surface-container) text-xs uppercase text-(--md-sys-color-on-surface-variant)">
                             <tr>
-                              <th className="px-3 py-2">NIM</th>
-                              <th className="px-3 py-2">Nama</th>
-                              <th className="px-3 py-2">Kelompok</th>
+                              <SortableTh
+                                label="NIM"
+                                column="nim"
+                                sorts={sorts}
+                                onSort={toggleSort}
+                                className="px-3 py-2"
+                              />
+                              <SortableTh
+                                label="Nama"
+                                column="nama"
+                                sorts={sorts}
+                                onSort={toggleSort}
+                                className="px-3 py-2"
+                              />
+                              <SortableTh
+                                label="Kelompok"
+                                column="kelompok"
+                                sorts={sorts}
+                                onSort={toggleSort}
+                                className="px-3 py-2"
+                              />
                               {pertemuan.map((p) => (
-                                <th key={p.id} className="whitespace-nowrap px-3 py-2">
-                                  M:{p.nomor}
-                                </th>
+                                <SortableTh
+                                  key={p.id}
+                                  label={`M:${p.nomor}`}
+                                  column={`skor:${p.id}`}
+                                  sorts={sorts}
+                                  onSort={toggleSort}
+                                  className="whitespace-nowrap px-3 py-2"
+                                />
                               ))}
                             </tr>
                           </thead>
                           <tbody className="divide-y divide-(--md-sys-color-outline-variant) text-(--md-sys-color-on-surface)">
-                            {mahasiswa.map((m) => (
+                            {sortedMahasiswa.map((m) => (
                               <tr key={m.id} className="hover:bg-(--md-sys-color-surface-container-high) transition-colors">
                                 <td className="px-3 py-2 font-mono text-(--md-sys-color-on-surface-variant)">{m.nim}</td>
                                 <td className="whitespace-nowrap px-3 py-2 font-medium">{m.nama}</td>
@@ -286,6 +349,7 @@ function Detail({ slug }: { slug?: string }) {
                           </tbody>
                         </table>
                       </Card>
+                      </div>
                     )}
                   </div>
                 )}

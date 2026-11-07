@@ -1,4 +1,5 @@
 import { api } from './api'
+import { appendSortParams, type SortSpec } from '../utils/tableSort'
 import type { KondisiEntry, AlatListMeta } from './alat'
 
 export type AlatLogStatus = 'pengajuan' | 'keluar' | 'masuk' | 'tambah' | 'hapus' | 'edit'
@@ -22,6 +23,9 @@ export interface AlatLogListParams {
   keperluan?: string
   page?: number
   perPage?: number
+  sortBy?: string
+  sortDirection?: 'asc' | 'desc'
+  sorts?: SortSpec[]
 }
 
 interface ListResponse {
@@ -37,6 +41,12 @@ export const alatLogService = {
     if (params.keperluan) query.set('keperluan', params.keperluan)
     if (params.page !== undefined) query.set('page', String(params.page))
     if (params.perPage !== undefined) query.set('per_page', String(params.perPage))
+    if (params.sorts?.length) {
+      appendSortParams(query, params.sorts)
+    } else {
+      if (params.sortBy) query.set('sort_by', params.sortBy)
+      if (params.sortDirection) query.set('sort_direction', params.sortDirection)
+    }
 
     const qs = query.toString()
     return api<ListResponse>(`/api/admin/alat-log${qs ? `?${qs}` : ''}`)

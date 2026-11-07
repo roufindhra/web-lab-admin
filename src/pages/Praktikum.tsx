@@ -1,4 +1,7 @@
 import { useEffect, useState } from "react";
+import { SortSummary } from "@/components/ui/SortSummary";
+import { SortableTh } from "@/components/ui/SortableTh";
+import { useTableSort } from "@/hooks/useTableSort";
 import {
   praktikumService,
   type Praktikum,
@@ -84,13 +87,17 @@ export default function PraktikumPage() {
   const [isSavingAssign, setIsSavingAssign] = useState(false);
   const [assignError, setAssignError] = useState<string | null>(null);
   const [selectedAngkatan, setSelectedAngkatan] = useState("");
+  const { sorts, toggleSort, removeSort, resetSort } = useTableSort({
+    column: "praktikum_label",
+    direction: "asc",
+  });
 
   useEffect(() => {
     let cancelled = false;
     setIsLoading(true);
 
     praktikumService
-      .getAll()
+      .getAll({ sorts })
       .then((data) => {
         if (!cancelled) setItems(data);
       })
@@ -104,7 +111,7 @@ export default function PraktikumPage() {
     return () => {
       cancelled = true;
     };
-  }, [refreshKey]);
+  }, [refreshKey, sorts]);
 
   // driver.js buat walkthrough
 
@@ -333,15 +340,41 @@ export default function PraktikumPage() {
         )}
       </div>
 
+      <SortSummary
+        sorts={sorts}
+        onRemove={removeSort}
+        onReset={resetSort}
+      />
+
       <Card variant="outlined" className="p-0 overflow-x-auto">
         <table className="w-full text-left text-sm">
           <thead className="border-b border-(--md-sys-color-outline-variant) bg-(--md-sys-color-surface-container-low) text-xs uppercase text-(--md-sys-color-on-surface-variant)">
             <tr>
-              <th className="px-4 py-3">Praktikum</th>
-              <th className="px-4 py-3">Semester</th>
-              <th className="px-4 py-3">Slug</th>
+              <SortableTh
+                label="Praktikum"
+                column="praktikum_label"
+                sorts={sorts}
+                onSort={toggleSort}
+              />
+              <SortableTh
+                label="Semester"
+                column="semester"
+                sorts={sorts}
+                onSort={toggleSort}
+              />
+              <SortableTh
+                label="Slug"
+                column="praktikum_slug"
+                sorts={sorts}
+                onSort={toggleSort}
+              />
               <th className="px-4 py-3">Jadwal</th>
-              <th className="px-4 py-3">Status</th>
+              <SortableTh
+                label="Status"
+                column="is_active"
+                sorts={sorts}
+                onSort={toggleSort}
+              />
               <th className="px-4 py-3 text-right">Aksi</th>
             </tr>
           </thead>
@@ -701,13 +734,13 @@ export default function PraktikumPage() {
             const getAngkatan = (nim: string | number) =>
               String(nim).substring(2, 5);
 
+            const searchQuery = assignSearch.trim().toLowerCase();
+
             const filteredStudents = assignStudents.filter((student) => {
               const matchSearch =
-                !assignSearch ||
-                student.nama
-                  .toLowerCase()
-                  .includes(assignSearch.toLowerCase()) ||
-                String(student.nim).includes(assignSearch);
+                !searchQuery ||
+                student.nama.toLowerCase().includes(searchQuery) ||
+                String(student.nim).toLowerCase().includes(searchQuery);
 
               const matchAngkatan =
                 !selectedAngkatan ||

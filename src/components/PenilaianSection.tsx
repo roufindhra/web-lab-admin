@@ -13,6 +13,10 @@ import { Card } from "@/components/ui/Card";
 import { Dialog } from "@/components/ui/Dialog";
 import { Input } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
+import { SortSummary } from "@/components/ui/SortSummary";
+import { SortableTh } from "@/components/ui/SortableTh";
+import { useTableSort } from "@/hooks/useTableSort";
+import { sortRows } from "@/utils/tableSort";
 
 interface FormState {
   nomor: string;
@@ -45,6 +49,23 @@ export default function PenilaianSection({
   const [isSaving, setIsSaving] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
   const [deletingId, setDeletingId] = useState<number | null>(null);
+  const { sorts, toggleSort, removeSort, resetSort } = useTableSort({
+    column: "nomor",
+    direction: "asc",
+  });
+
+  const sortedPertemuan = sortRows(
+    pertemuan,
+    sorts,
+    (item, column) => {
+      if (column === "nomor") return item.nomor;
+      if (column === "materi") return item.materi?.materi_nama ?? "";
+      if (column === "tanggal") return item.tanggal ?? "";
+      if (column === "bobot") return item.bobot;
+
+      return null;
+    },
+  );
 
   const [materiList, setMateriList] = useState<KurikulumMateri[]>([]);
   const [isLoadingMateri, setIsLoadingMateri] = useState(false);
@@ -154,14 +175,40 @@ export default function PenilaianSection({
         </Button>
       </div>
 
+      <SortSummary
+        sorts={sorts}
+        onRemove={removeSort}
+        onReset={resetSort}
+      />
+
       <Card variant="outlined" className="p-0 overflow-x-auto">
         <table className="w-full text-left text-sm">
           <thead className="border-b border-(--md-sys-color-outline-variant) bg-(--md-sys-color-surface-container-low) text-xs uppercase text-(--md-sys-color-on-surface-variant)">
             <tr>
-              <th className="px-4 py-3">No.</th>
-              <th className="px-4 py-3">Materi</th>
-              <th className="px-4 py-3">Tanggal</th>
-              <th className="px-4 py-3">Bobot</th>
+              <SortableTh
+                label="No."
+                column="nomor"
+                sorts={sorts}
+                onSort={toggleSort}
+              />
+              <SortableTh
+                label="Materi"
+                column="materi"
+                sorts={sorts}
+                onSort={toggleSort}
+              />
+              <SortableTh
+                label="Tanggal"
+                column="tanggal"
+                sorts={sorts}
+                onSort={toggleSort}
+              />
+              <SortableTh
+                label="Bobot"
+                column="bobot"
+                sorts={sorts}
+                onSort={toggleSort}
+              />
               <th className="px-4 py-3">Parameter</th>
               <th className="px-4 py-3 text-right">Aksi</th>
             </tr>
@@ -178,7 +225,7 @@ export default function PenilaianSection({
                 </td>
               </tr>
             ) : (
-              pertemuan.map((item) => (
+              sortedPertemuan.map((item) => (
                 <tr
                   key={item.id}
                   className="hover:bg-(--md-sys-color-surface-container-high) transition-colors"
