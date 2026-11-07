@@ -14,6 +14,9 @@ import { Card } from "@/components/ui/Card";
 import { Checkbox } from "@/components/ui/Checkbox";
 import { Dialog } from "@/components/ui/Dialog";
 import { Input } from "@/components/ui/Input";
+import { SortSummary } from "@/components/ui/SortSummary";
+import { SortableTh } from "@/components/ui/SortableTh";
+import { useTableSort } from "@/hooks/useTableSort";
 import { driver } from "driver.js";
 import "driver.js/dist/driver.css";
 
@@ -61,6 +64,10 @@ export default function Asisten() {
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("semua");
   const [page, setPage] = useState(1);
+  const { sorts, toggleSort, removeSort, resetSort } = useTableSort(
+    { column: "nim", direction: "asc" },
+    () => setPage(1),
+  );
   const [isLoading, setIsLoading] = useState(true);
   const [refreshKey, setRefreshKey] = useState(0);
 
@@ -93,6 +100,7 @@ export default function Asisten() {
             ? undefined
             : STATUS_FILTER_ROLE[statusFilter],
         page,
+        sorts,
       })
       .then((response) => {
         if (cancelled) return;
@@ -109,7 +117,7 @@ export default function Asisten() {
     return () => {
       cancelled = true;
     };
-  }, [debouncedSearch, statusFilter, page, refreshKey]);
+  }, [debouncedSearch, statusFilter, page, sorts, refreshKey]);
 
   // driver.js buat walkthrough
 
@@ -323,14 +331,40 @@ export default function Asisten() {
         )}
       </div>
 
+      <SortSummary
+        sorts={sorts}
+        onRemove={removeSort}
+        onReset={resetSort}
+      />
+
       <Card variant="outlined" className="p-0 overflow-x-auto">
         <table className="w-full text-left text-sm">
           <thead className="border-b border-(--md-sys-color-outline-variant) bg-(--md-sys-color-surface-container-low) text-xs uppercase text-(--md-sys-color-on-surface-variant)">
             <tr>
-              <th className="px-4 py-3">NIM</th>
-              <th className="px-4 py-3">Nama</th>
-              <th className="px-4 py-3">Angkatan</th>
-              <th className="px-4 py-3">Status</th>
+              <SortableTh
+                label="NIM"
+                column="nim"
+                sorts={sorts}
+                onSort={toggleSort}
+              />
+              <SortableTh
+                label="Nama"
+                column="nama"
+                sorts={sorts}
+                onSort={toggleSort}
+              />
+              <SortableTh
+                label="Angkatan"
+                column="angkatan"
+                sorts={sorts}
+                onSort={toggleSort}
+              />
+              <SortableTh
+                label="Status"
+                column="is_active_asisten"
+                sorts={sorts}
+                onSort={toggleSort}
+              />
               <th className="px-4 py-3">Pengampu</th>
               <th className="px-4 py-3">Aksi</th>
             </tr>

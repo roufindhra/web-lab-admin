@@ -1,4 +1,5 @@
 import { api } from './api'
+import { appendSortParams, type SortSpec } from '../utils/tableSort'
 import type { AlatListMeta } from './alat'
 
 export interface HargaSewa {
@@ -11,6 +12,9 @@ export interface HargaSewaListParams {
   search?: string
   page?: number
   perPage?: number
+  sortBy?: string
+  sortDirection?: 'asc' | 'desc'
+  sorts?: SortSpec[]
 }
 
 export interface HargaSewaListResponse {
@@ -29,6 +33,12 @@ export const hargaSewaService = {
     if (params.search) query.set('search', params.search)
     if (params.page !== undefined) query.set('page', String(params.page))
     if (params.perPage !== undefined) query.set('per_page', String(params.perPage))
+    if (params.sorts?.length) {
+      appendSortParams(query, params.sorts)
+    } else {
+      if (params.sortBy) query.set('sort_by', params.sortBy)
+      if (params.sortDirection) query.set('sort_direction', params.sortDirection)
+    }
 
     const qs = query.toString()
     return api<HargaSewaListResponse>(`/api/admin/harga-sewa${qs ? `?${qs}` : ''}`)

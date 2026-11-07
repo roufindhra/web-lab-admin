@@ -4,7 +4,7 @@ import {
   praktikumService,
   type Mahasiswa,
   type MahasiswaListMeta,
-  type MahasiswaImportResult,
+  type MahasiswaImportStatus,
   type Praktikum,
 } from '@/services'
 import { getFormErrorMessages } from '@/utils/errors'
@@ -14,6 +14,9 @@ import { Checkbox } from "@/components/ui/Checkbox";
 import { Dialog } from "@/components/ui/Dialog";
 import { Input } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
+import { SortSummary } from "@/components/ui/SortSummary";
+import { SortableTh } from "@/components/ui/SortableTh";
+import { useTableSort } from "@/hooks/useTableSort";
 import { useAdminAuth } from "@/contexts/AdminAuthContext";
 import { useLocation } from "react-router-dom";
 import { driver } from "driver.js";
@@ -29,24 +32,37 @@ export default function Students() {
   const [search, setSearch] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [angkatan, setAngkatan] = useState("");
-  const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
+  const [statusFilter, setStatusFilter] = useState<"active" | "inactive" | "all">("active");
   const [page, setPage] = useState(1);
+  const { sorts, toggleSort, removeSort, resetSort } = useTableSort(
+    { column: "nim", direction: "asc" },
+    () => setPage(1),
+  );
   const [isLoading, setIsLoading] = useState(true);
   const [refreshKey, setRefreshKey] = useState(0);
   const [isUploadOpen, setIsUploadOpen] = useState(false);
   const [uploadFile, setUploadFile] = useState<File | null>(null);
-  const [isUploading, setIsUploading] = useState(false);
-  const [uploadResult, setUploadResult] =
-    useState<MahasiswaImportResult | null>(null);
+  const [isStartingImport, setIsStartingImport] = useState(false);
+  const [importJob, setImportJob] = useState<MahasiswaImportStatus | null>(null);
   const [uploadError, setUploadError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const pollTimerRef = useRef<number | null>(null);
+  const isUploadOpenRef = useRef(false);
   const [editingStudent, setEditingStudent] = useState<Mahasiswa | null>(null);
   const [praktikumOptions, setPraktikumOptions] = useState<Praktikum[]>([]);
   const [editPlugs, setEditPlugs] = useState<Record<string, string>>({});
   const [isLoadingOptions, setIsLoadingOptions] = useState(false);
   const [isSavingEdit, setIsSavingEdit] = useState(false);
   const [editError, setEditError] = useState<string | null>(null);
-  const { user } = useAdminAuth();
+  const [statusStudent, setStatusStudent] = useState<Mahasiswa | null>(null);
+  const [statusValue, setStatusValue] = useState<"active" | "inactive">("active");
+  const [isSavingStatus, setIsSavingStatus] = useState(false);
+  const [statusError, setStatusError] = useState<string | null>(null);
+  const [isConfirmingReset, setIsConfirmingReset] = useState(false);
+  const [isResettingPassword, setIsResettingPassword] = useState(false);
+  const [resetMessage, setResetMessage] = useState<string | null>(null);
+  const [resetError, setResetError] = useState<string | null>(null);
+  const { user, isDosen } = useAdminAuth();
   const location = useLocation();
 
   useEffect(() => {
@@ -113,8 +129,9 @@ export default function Students() {
       .getAll({
         search: debouncedSearch || undefined,
         angkatan: angkatan ? Number(angkatan) : undefined,
+        status: statusFilter,
         page,
-        sortDirection,
+        sorts,
       })
       .then((response) => {
         if (cancelled) return;
@@ -131,27 +148,91 @@ export default function Students() {
     return () => {
       cancelled = true;
     };
-  }, [debouncedSearch, angkatan, page, sortDirection, refreshKey]);
+  }, [debouncedSearch, angkatan, statusFilter, page, sorts, refreshKey]);
+
+  useEffect(() => {
+    return () => {
+      if (pollTimerRef.current !== null) {
+        clearTimeout(pollTimerRef.current);
+      }
+    };
+  }, []);
+
+  const stopPolling = () => {
+    if (pollTimerRef.current !== null) {
+      clearTimeout(pollTimerRef.current);
+      pollTimerRef.current = null;
+    }
+  };
+
+  const pollImport = (id: number) => {
+    stopPolling();
+
+    pollTimerRef.current = window.setTimeout(async () => {
+      try {
+        const job = await mahasiswaService.getImportStatus(id);
+        setImportJob(job);
+
+        if (job.status === "completed" || job.status === "failed") {
+          pollTimerRef.current = null;
+
+          if (job.status === "completed") {
+            setRefreshKey((key) => key + 1);
+          }
+
+          return;
+        }
+
+        pollImport(id);
+      } catch {
+        pollTimerRef.current = null;
+      }
+    }, 1500);
+  };
+
+  const openUploadModal = () => {
+    isUploadOpenRef.current = true;
+    setIsUploadOpen(true);
+
+    // Pulihkan import yang masih berjalan bila modal ditutup lalu dibuka lagi.
+    mahasiswaService
+      .getLatestImport()
+      .then((job) => {
+        if (!isUploadOpenRef.current || !job) return;
+        if (job.status !== "queued" && job.status !== "processing") return;
+
+        setImportJob(job);
+        pollImport(job.id);
+      })
+      .catch(() => {
+        // Diamkan; error global sudah ditangani modal error.
+      });
+  };
 
   const closeUploadModal = () => {
+    isUploadOpenRef.current = false;
+    stopPolling();
     setIsUploadOpen(false);
     setUploadFile(null);
-    setUploadResult(null);
+    setImportJob(null);
     setUploadError(null);
+    setIsStartingImport(false);
     if (fileInputRef.current) fileInputRef.current.value = "";
   };
 
   const handleUpload = () => {
     if (!uploadFile) return;
 
-    setIsUploading(true);
+    setIsStartingImport(true);
     setUploadError(null);
 
     mahasiswaService
-      .importCsv(uploadFile)
-      .then((result) => {
-        setUploadResult(result);
-        setRefreshKey((key) => key + 1);
+      .startImportCsv(uploadFile)
+      .then((job) => {
+        if (!isUploadOpenRef.current) return;
+
+        setImportJob(job);
+        pollImport(job.id);
       })
       .catch((err) => {
         // Error validasi (422) tampil inline; error lain ditangani modal global.
@@ -159,11 +240,86 @@ export default function Students() {
         setUploadError(messages.length > 0 ? messages.join(' ') : null)
       })
       .finally(() => {
-        setIsUploading(false);
+        setIsStartingImport(false);
       });
   };
 
-  const hasActiveFilter = debouncedSearch || angkatan;
+  const openStatusModal = (student: Mahasiswa) => {
+    setStatusStudent(student);
+    setStatusValue(student.is_active_user ? "active" : "inactive");
+    setStatusError(null);
+    setIsConfirmingReset(false);
+    setIsResettingPassword(false);
+    setResetMessage(null);
+    setResetError(null);
+  };
+
+  const closeStatusModal = () => {
+    setStatusStudent(null);
+    setStatusError(null);
+    setIsConfirmingReset(false);
+    setIsResettingPassword(false);
+    setResetMessage(null);
+    setResetError(null);
+    setIsSavingStatus(false);
+  };
+
+  const handleResetPassword = () => {
+    if (!statusStudent) return;
+
+    setIsResettingPassword(true);
+    setResetError(null);
+    setResetMessage(null);
+
+    mahasiswaService
+      .resetPassword(statusStudent.id)
+      .then((response) => {
+        setResetMessage(response.message);
+        setIsConfirmingReset(false);
+      })
+      .catch((err) => {
+        // Error validasi (422) tampil inline; error lain ditangani modal global.
+        const messages = getFormErrorMessages(err)
+        setResetError(messages.length > 0 ? messages.join(' ') : null)
+      })
+      .finally(() => {
+        setIsResettingPassword(false);
+      });
+  };
+
+  const handleSaveStatus = () => {
+    if (!statusStudent) return;
+
+    setIsSavingStatus(true);
+    setStatusError(null);
+
+    mahasiswaService
+      .updateStatus(statusStudent.id, statusValue === "active")
+      .then(() => {
+        closeStatusModal();
+        setRefreshKey((key) => key + 1);
+      })
+      .catch((err) => {
+        // Error validasi (422) tampil inline; error lain ditangani modal global.
+        const messages = getFormErrorMessages(err)
+        setStatusError(messages.length > 0 ? messages.join(' ') : null)
+      })
+      .finally(() => {
+        setIsSavingStatus(false);
+      });
+  };
+
+  const hasActiveFilter =
+    debouncedSearch || angkatan || statusFilter !== "active";
+  const isImportRunning =
+    importJob?.status === "queued" || importJob?.status === "processing";
+  const importProgress =
+    importJob && importJob.total_rows > 0
+      ? Math.min(
+          100,
+          Math.round((importJob.processed_rows / importJob.total_rows) * 100),
+        )
+      : 0;
 
   const openEditModal = (student: Mahasiswa) => {
     setEditingStudent(student);
@@ -250,7 +406,7 @@ export default function Students() {
         <Button
           id="import-csv"
           variant="filled"
-          onClick={() => setIsUploadOpen(true)}
+          onClick={openUploadModal}
         >
           Import CSV
         </Button>
@@ -271,6 +427,19 @@ export default function Students() {
           placeholder="Angkatan"
           containerClassName="w-32"
         />
+        <Select
+          value={statusFilter}
+          onValueChange={(value) => {
+            setPage(1);
+            setStatusFilter(value as "active" | "inactive" | "all");
+          }}
+          options={[
+            { value: "active", label: "Aktif" },
+            { value: "inactive", label: "Nonaktif" },
+            { value: "all", label: "Semua" },
+          ]}
+          containerClassName="w-36"
+        />
         {hasActiveFilter && (
           <Button
             variant="text"
@@ -278,6 +447,7 @@ export default function Students() {
             onClick={() => {
               setSearch("");
               setAngkatan("");
+              setStatusFilter("active");
               setPage(1);
             }}
           >
@@ -286,29 +456,46 @@ export default function Students() {
         )}
       </div>
 
+      <SortSummary
+        sorts={sorts}
+        onRemove={removeSort}
+        onReset={resetSort}
+      />
+
       <Card variant="outlined" className="p-0 overflow-x-auto">
         <table className="w-full text-left text-sm">
           <thead className="border-b border-(--md-sys-color-outline-variant) bg-(--md-sys-color-surface-container-low) text-xs uppercase text-(--md-sys-color-on-surface-variant)">
             <tr>
-              <th className="px-4 py-3">
-                <button
-                  onClick={() => {
-                    setPage(1);
-                    setSortDirection((current) =>
-                      current === "asc" ? "desc" : "asc",
-                    );
-                  }}
-                  className="flex items-center gap-1 uppercase hover:text-(--md-sys-color-on-surface) transition-colors"
-                >
-                  NIM
-                  <span className="text-[10px]">
-                    {sortDirection === "asc" ? "▲" : "▼"}
-                  </span>
-                </button>
-              </th>
-              <th className="px-4 py-3">Nama</th>
-              <th className="px-4 py-3">Angkatan</th>
-              <th className="px-4 py-3">Email</th>
+              <SortableTh
+                label="NIM"
+                column="nim"
+                sorts={sorts}
+                onSort={toggleSort}
+              />
+              <SortableTh
+                label="Nama"
+                column="nama"
+                sorts={sorts}
+                onSort={toggleSort}
+              />
+              <SortableTh
+                label="Angkatan"
+                column="angkatan"
+                sorts={sorts}
+                onSort={toggleSort}
+              />
+              <SortableTh
+                label="Email"
+                column="surel"
+                sorts={sorts}
+                onSort={toggleSort}
+              />
+              <SortableTh
+                label="Status"
+                column="is_active_user"
+                sorts={sorts}
+                onSort={toggleSort}
+              />
               <th className="px-4 py-3">Praktikum</th>
               <th className="px-4 py-3">Aksi</th>
             </tr>
@@ -317,7 +504,7 @@ export default function Students() {
             {isLoading ? (
               <tr>
                 <td
-                  colSpan={6}
+                  colSpan={7}
                   className="px-4 py-12 text-center text-(--md-sys-color-on-surface-variant)"
                 >
                   Memuat...
@@ -326,7 +513,7 @@ export default function Students() {
             ) : students.length === 0 ? (
               <tr>
                 <td
-                  colSpan={6}
+                  colSpan={7}
                   className="px-4 py-12 text-center text-(--md-sys-color-on-surface-variant)"
                 >
                   {hasActiveFilter
@@ -347,18 +534,41 @@ export default function Students() {
                     {student.surel ?? "-"}
                   </td>
                   <td className="px-4 py-3">
+                    <span
+                      className={
+                        student.is_active_user
+                          ? "inline-flex rounded-full bg-(--md-sys-color-primary-container) px-2 py-0.5 text-[11px] font-semibold text-(--md-sys-color-on-primary-container)"
+                          : "inline-flex rounded-full bg-(--md-sys-color-error-container) px-2 py-0.5 text-[11px] font-semibold text-(--md-sys-color-on-error-container)"
+                      }
+                    >
+                      {student.is_active_user ? "Aktif" : "Nonaktif"}
+                    </span>
+                  </td>
+                  <td className="px-4 py-3">
                     {student.praktikum?.length ?? 0} praktikum
                   </td>
                   <td className="px-4 py-3">
-                    <Button
-                      id="edit-praktikan"
-                      variant="text"
-                      size="sm"
-                      onClick={() => openEditModal(student)}
-                      className="hover:underline px-2 py-1"
-                    >
-                      Edit
-                    </Button>
+                    <div className="flex items-center gap-1">
+                      <Button
+                        id="edit-praktikan"
+                        variant="text"
+                        size="sm"
+                        onClick={() => openEditModal(student)}
+                        className="hover:underline px-2 py-1"
+                      >
+                        Edit
+                      </Button>
+                      {isDosen && (
+                        <Button
+                          variant="text"
+                          size="sm"
+                          onClick={() => openStatusModal(student)}
+                          className="hover:underline px-2 py-1"
+                        >
+                          Status
+                        </Button>
+                      )}
+                    </div>
                   </td>
                 </tr>
               ))
@@ -410,12 +620,13 @@ export default function Students() {
             angkatan akan diisi otomatis dari NIM.
           </p>
 
-          {!uploadResult ? (
+          {!importJob ? (
             <>
               <input
                 ref={fileInputRef}
                 type="file"
                 accept=".csv,text/csv"
+                disabled={isStartingImport}
                 onChange={(event) =>
                   setUploadFile(event.target.files?.[0] ?? null)
                 }
@@ -428,7 +639,7 @@ export default function Students() {
                 <Button
                   variant="outlined"
                   onClick={closeUploadModal}
-                  disabled={isUploading}
+                  disabled={isStartingImport}
                 >
                   Batal
                 </Button>
@@ -436,31 +647,71 @@ export default function Students() {
                 <Button
                   variant="filled"
                   onClick={handleUpload}
-                  disabled={!uploadFile || isUploading}
+                  disabled={!uploadFile || isStartingImport}
                 >
-                  {isUploading ? "Mengunggah..." : "Upload"}
+                  {isStartingImport ? "Mengunggah..." : "Upload"}
                 </Button>
               </div>
             </>
           ) : (
             <>
-              <div className="rounded-(--md-sys-shape-corner-medium) border border-(--md-sys-color-outline-variant) bg-(--md-sys-color-surface-container-low) p-4 text-xs">
-                <p className="font-medium text-(--md-sys-color-on-surface)">
-                  {uploadResult.message}
-                </p>
-                {uploadResult.failed.length > 0 && (
-                  <ul className="mt-2 list-inside list-disc space-y-1 text-red-500">
-                    {uploadResult.failed.map((item) => (
-                      <li key={item.row}>
-                        Baris {item.row}: {item.message}
-                      </li>
-                    ))}
-                  </ul>
+              <div className="space-y-3 rounded-(--md-sys-shape-corner-medium) border border-(--md-sys-color-outline-variant) bg-(--md-sys-color-surface-container-low) p-4 text-xs">
+                {isImportRunning ? (
+                  <>
+                    <p className="font-medium text-(--md-sys-color-on-surface)">
+                      {importJob.status === "queued"
+                        ? "Menunggu worker memproses file..."
+                        : "Memproses file..."}
+                    </p>
+                    <div className="h-2 w-full overflow-hidden rounded-full bg-(--md-sys-color-surface-container-high)">
+                      <div
+                        className="h-full rounded-full bg-(--md-sys-color-primary) transition-all"
+                        style={{ width: `${importProgress}%` }}
+                      />
+                    </div>
+                    <p className="text-(--md-sys-color-on-surface-variant)">
+                      {importJob.processed_rows} / {importJob.total_rows} baris
+                      {" · "}
+                      {importJob.imported} baru
+                      {" · "}
+                      {importJob.updated} diperbarui
+                      {" · "}
+                      {importJob.failed_count} gagal
+                    </p>
+                    <p className="text-(--md-sys-color-on-surface-variant)">
+                      Import berjalan di background. Kamu boleh menutup dialog
+                      ini; proses tetap berlanjut.
+                    </p>
+                  </>
+                ) : (
+                  <p className="font-medium text-(--md-sys-color-on-surface)">
+                    {importJob.status === "failed"
+                      ? `Import gagal: ${importJob.error_message ?? "terjadi kesalahan."}`
+                      : `Import selesai: ${importJob.imported} mahasiswa baru, ${importJob.updated} diperbarui, ${importJob.failed_count} gagal.`}
+                  </p>
+                )}
+
+                {!isImportRunning && importJob.failures.length > 0 && (
+                  <>
+                    <ul className="list-inside list-disc space-y-1 text-red-500">
+                      {importJob.failures.map((item) => (
+                        <li key={item.row}>
+                          Baris {item.row}: {item.message}
+                        </li>
+                      ))}
+                    </ul>
+                    {importJob.failed_count > importJob.failures.length && (
+                      <p className="text-(--md-sys-color-on-surface-variant)">
+                        Menampilkan {importJob.failures.length} dari{" "}
+                        {importJob.failed_count} baris gagal.
+                      </p>
+                    )}
+                  </>
                 )}
               </div>
               <div className="pt-2 flex justify-end">
                 <Button variant="filled" onClick={closeUploadModal}>
-                  Selesai
+                  {isImportRunning ? "Tutup" : "Selesai"}
                 </Button>
               </div>
             </>
@@ -553,6 +804,114 @@ export default function Students() {
               >
                 {isSavingEdit ? "Menyimpan..." : "Simpan"}
               </Button>
+            </div>
+          </div>
+        )}
+      </Dialog>
+
+      {/* Modal Status Mahasiswa */}
+      <Dialog
+        isOpen={!!statusStudent}
+        onClose={closeStatusModal}
+        title="Status Mahasiswa"
+      >
+        {statusStudent && (
+          <div className="space-y-4">
+            <p className="text-xs text-(--md-sys-color-on-surface-variant)">
+              {statusStudent.nama} ({statusStudent.nim})
+            </p>
+
+            <Select
+              label="Status keaktifan"
+              value={statusValue}
+              onValueChange={(value) =>
+                setStatusValue(value as "active" | "inactive")
+              }
+              options={[
+                { value: "active", label: "Aktif" },
+                { value: "inactive", label: "Nonaktif" },
+              ]}
+            />
+
+            <p className="text-xs text-(--md-sys-color-on-surface-variant)">
+              Nonaktif mencakup mahasiswa yang sedang cuti atau sudah lulus.
+              Mahasiswa nonaktif tidak dapat login dan disembunyikan dari filter
+              Aktif.
+            </p>
+
+            {statusError && (
+              <p className="text-xs text-red-500">{statusError}</p>
+            )}
+
+            <div className="pt-2 flex justify-end gap-2">
+              <Button
+                variant="outlined"
+                onClick={closeStatusModal}
+                disabled={isSavingStatus}
+              >
+                Batal
+              </Button>
+              <Button
+                variant="filled"
+                onClick={handleSaveStatus}
+                disabled={isSavingStatus}
+              >
+                {isSavingStatus ? "Menyimpan..." : "Simpan"}
+              </Button>
+            </div>
+
+            <div className="space-y-2 border-t border-(--md-sys-color-outline-variant) pt-4">
+              <p className="text-xs font-semibold text-(--md-sys-color-on-surface)">
+                Reset Password
+              </p>
+              <p className="text-xs text-(--md-sys-color-on-surface-variant)">
+                Reset password mahasiswa ke NIM. Setelah itu mahasiswa harus
+                login ulang dengan NIM dan mengganti password.
+              </p>
+
+              {resetMessage && (
+                <p className="text-xs text-emerald-600 dark:text-emerald-400">
+                  {resetMessage}
+                </p>
+              )}
+              {resetError && (
+                <p className="text-xs text-red-500">{resetError}</p>
+              )}
+
+              {isConfirmingReset ? (
+                <div className="space-y-2 rounded-(--md-sys-shape-corner-medium) border border-red-300 p-3">
+                  <p className="text-xs text-(--md-sys-color-on-surface)">
+                    Password akan menjadi NIM dan semua sesi aktif akan keluar.
+                    Lanjutkan?
+                  </p>
+                  <div className="flex justify-end gap-2">
+                    <Button
+                      variant="outlined"
+                      size="sm"
+                      onClick={() => setIsConfirmingReset(false)}
+                      disabled={isResettingPassword}
+                    >
+                      Batal
+                    </Button>
+                    <Button
+                      variant="filled"
+                      size="sm"
+                      onClick={handleResetPassword}
+                      disabled={isResettingPassword}
+                    >
+                      {isResettingPassword ? "Mereset..." : "Ya, reset"}
+                    </Button>
+                  </div>
+                </div>
+              ) : (
+                <Button
+                  variant="outlined"
+                  size="sm"
+                  onClick={() => setIsConfirmingReset(true)}
+                >
+                  Reset password ke NIM
+                </Button>
+              )}
             </div>
           </div>
         )}

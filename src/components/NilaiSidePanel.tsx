@@ -7,6 +7,10 @@ import {
 import { Button } from "@/components/ui/Buttons";
 import { Card } from "@/components/ui/Card";
 import { Input } from "@/components/ui/Input";
+import { SortSummary } from "@/components/ui/SortSummary";
+import { SortableTh } from "@/components/ui/SortableTh";
+import { useTableSort } from "@/hooks/useTableSort";
+import { sortRows } from "@/utils/tableSort";
 
 interface PraktikumInfo {
   id: number;
@@ -40,6 +44,10 @@ export default function NilaiSidePanel({
   const [isLoading, setIsLoading] = useState(true);
   const [savingId, setSavingId] = useState<number | null>(null);
   const [savedId, setSavedId] = useState<number | null>(null);
+  const { sorts, toggleSort, removeSort, resetSort } = useTableSort({
+    column: "nim",
+    direction: "asc",
+  });
 
   useEffect(() => {
     let cancelled = false;
@@ -82,6 +90,18 @@ export default function NilaiSidePanel({
     pertemuanId: number,
     param: string,
   ): string => nilai[String(mahasiswaId)]?.[String(pertemuanId)]?.[param] ?? "";
+
+  const sortedStudentsFor = (item: Pertemuan): AssignMahasiswa[] =>
+    sortRows(students, sorts, (student, column) => {
+      if (column === "nim") return student.nim;
+      if (column === "nama") return student.nama;
+      if (column.startsWith("nilai:")) {
+        const raw = getInput(student.id, item.id, column.slice(6));
+        return raw === "" ? null : Number(raw);
+      }
+
+      return null;
+    });
 
   const setInput = (
     mahasiswaId: number,
@@ -211,21 +231,53 @@ export default function NilaiSidePanel({
 
                   {expandedId === item.id && (
                     <div className="border-t border-(--md-sys-color-outline-variant) bg-(--md-sys-color-surface)">
+                      <div className="px-4 pt-3">
+                        <SortSummary
+                          sorts={sorts}
+                          onRemove={removeSort}
+                          onReset={resetSort}
+                          labels={Object.fromEntries(
+                            pertemuan.flatMap((item) =>
+                              item.parameter.map((param) => [
+                                `nilai:${param.nama}`,
+                                param.nama,
+                              ]),
+                            ),
+                          )}
+                        />
+                      </div>
                       <div className="overflow-x-auto">
                         <table className="w-full text-left text-sm">
                           <thead className="border-b border-(--md-sys-color-outline-variant) bg-(--md-sys-color-surface-container-low) text-xs uppercase text-(--md-sys-color-on-surface-variant)">
                             <tr>
-                              <th className="px-4 py-2">NIM</th>
-                              <th className="px-4 py-2">Nama</th>
+                              <SortableTh
+                                label="NIM"
+                                column="nim"
+                                sorts={sorts}
+                                onSort={toggleSort}
+                                className="px-4 py-2"
+                              />
+                              <SortableTh
+                                label="Nama"
+                                column="nama"
+                                sorts={sorts}
+                                onSort={toggleSort}
+                                className="px-4 py-2"
+                              />
                               {item.parameter.map((p) => (
-                                <th key={p.nama} className="px-4 py-2">
-                                  {p.nama} ({p.bobot}%)
-                                </th>
+                                <SortableTh
+                                  key={p.nama}
+                                  label={`${p.nama} (${p.bobot}%)`}
+                                  column={`nilai:${p.nama}`}
+                                  sorts={sorts}
+                                  onSort={toggleSort}
+                                  className="px-4 py-2"
+                                />
                               ))}
                             </tr>
                           </thead>
                           <tbody className="divide-y divide-(--md-sys-color-outline-variant) text-(--md-sys-color-on-surface)">
-                            {students.map((student) => (
+                            {sortedStudentsFor(item).map((student) => (
                               <tr
                                 key={student.id}
                                 className="hover:bg-(--md-sys-color-surface-container-high) transition-colors"

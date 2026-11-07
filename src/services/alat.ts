@@ -1,4 +1,5 @@
 import { api } from './api'
+import { appendSortParams, type SortSpec } from '../utils/tableSort'
 
 export const KONDISI_STATUSES = ['baik', 'rusak_ringan', 'rusak_berat', 'maintenance'] as const
 
@@ -52,7 +53,9 @@ export interface AlatListParams {
   ketersediaan?: KetersediaanStatus
   page?: number
   perPage?: number
+  sortBy?: string
   sortDirection?: 'asc' | 'desc'
+  sorts?: SortSpec[]
 }
 
 export interface AlatListMeta {
@@ -74,7 +77,12 @@ export const alatService = {
     if (params.ketersediaan) query.set('ketersediaan', params.ketersediaan)
     if (params.page !== undefined) query.set('page', String(params.page))
     if (params.perPage !== undefined) query.set('per_page', String(params.perPage))
-    if (params.sortDirection) query.set('sort_direction', params.sortDirection)
+    if (params.sorts?.length) {
+      appendSortParams(query, params.sorts)
+    } else {
+      if (params.sortBy) query.set('sort_by', params.sortBy)
+      if (params.sortDirection) query.set('sort_direction', params.sortDirection)
+    }
 
     const qs = query.toString()
     return api<ListResponse>(`/api/admin/alat${qs ? `?${qs}` : ''}`)

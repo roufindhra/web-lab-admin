@@ -16,6 +16,9 @@ import { Button } from "@/components/ui/Buttons";
 import { Card } from "@/components/ui/Card";
 import { Input } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
+import { SortSummary } from "@/components/ui/SortSummary";
+import { SortableTh } from "@/components/ui/SortableTh";
+import { useTableSort } from "@/hooks/useTableSort";
 import { useLocation } from "react-router-dom";
 import { driver } from "driver.js";
 import "driver.js/dist/driver.css";
@@ -58,8 +61,11 @@ export default function AlatPage() {
   const [search, setSearch] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [ketersediaan, setKetersediaan] = useState("");
-  const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
   const [page, setPage] = useState(1);
+  const { sorts, toggleSort, removeSort, resetSort } = useTableSort(
+    { column: "nama_alat", direction: "asc" },
+    () => setPage(1),
+  );
   const [isLoading, setIsLoading] = useState(true);
   const [refreshKey, setRefreshKey] = useState(0);
   const [formTarget, setFormTarget] = useState<Alat | null | undefined>(
@@ -163,7 +169,7 @@ export default function AlatPage() {
           | KetersediaanStatus
           | undefined,
         page,
-        sortDirection,
+        sorts,
       })
       .then((response) => {
         if (cancelled) return;
@@ -180,7 +186,7 @@ export default function AlatPage() {
     return () => {
       cancelled = true;
     };
-  }, [debouncedSearch, ketersediaan, page, sortDirection, refreshKey]);
+  }, [debouncedSearch, ketersediaan, page, sorts, refreshKey]);
 
   const hasActiveFilter = debouncedSearch || ketersediaan;
 
@@ -254,32 +260,53 @@ export default function AlatPage() {
         )}
       </div>
 
+      <SortSummary
+        sorts={sorts}
+        onRemove={removeSort}
+        onReset={resetSort}
+      />
+
       <Card variant="outlined" className="p-0 overflow-x-auto">
         <table className="w-full text-left text-sm">
           <thead className="border-b border-(--md-sys-color-outline-variant) bg-(--md-sys-color-surface-container-low) text-xs uppercase text-(--md-sys-color-on-surface-variant)">
             <tr>
-              <th className="px-4 py-3">Inventaris</th>
-              <th className="px-4 py-3">
-                <button
-                  onClick={() => {
-                    setPage(1);
-                    setSortDirection((current) =>
-                      current === "asc" ? "desc" : "asc",
-                    );
-                  }}
-                  className="flex items-center gap-1 uppercase hover:text-(--md-sys-color-on-surface) transition-colors"
-                >
-                  Nama Alat
-                  <span className="text-[10px]">
-                    {sortDirection === "asc" ? "▲" : "▼"}
-                  </span>
-                </button>
-              </th>
-              <th className="px-4 py-3">Serial Number</th>
-              <th className="px-4 py-3">Jumlah</th>
+              <SortableTh
+                label="Inventaris"
+                column="inventaris"
+                sorts={sorts}
+                onSort={toggleSort}
+              />
+              <SortableTh
+                label="Nama Alat"
+                column="nama_alat"
+                sorts={sorts}
+                onSort={toggleSort}
+              />
+              <SortableTh
+                label="Serial Number"
+                column="serial_number"
+                sorts={sorts}
+                onSort={toggleSort}
+              />
+              <SortableTh
+                label="Jumlah"
+                column="jumlah"
+                sorts={sorts}
+                onSort={toggleSort}
+              />
               <th className="px-4 py-3">Kondisi</th>
-              <th className="px-4 py-3">Lokasi</th>
-              <th className="px-4 py-3">Ketersediaan</th>
+              <SortableTh
+                label="Lokasi"
+                column="lokasi_penyimpanan"
+                sorts={sorts}
+                onSort={toggleSort}
+              />
+              <SortableTh
+                label="Ketersediaan"
+                column="ketersediaan"
+                sorts={sorts}
+                onSort={toggleSort}
+              />
               <th className="px-4 py-3">Aksi</th>
             </tr>
           </thead>
