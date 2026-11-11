@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { useAdminAuth } from "@/contexts/AdminAuthContext";
 import { useLocation } from "react-router-dom";
-import { dashboardService, ApiError, type DashboardStats } from "@/services";
+import { dashboardService, type DashboardStats } from "@/services";
 import { DashboardSkeleton } from "@/components/DashboardSkeleton";
 import { Card } from "@/components/ui/Card";
 import { driver } from "driver.js";

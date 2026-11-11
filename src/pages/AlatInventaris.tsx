@@ -13,6 +13,7 @@ import DeleteConfirmModal from "../components/modals/DeleteConfirmModal";
 import KondisiDetailModal from "../components/modals/KondisiDetailModal";
 import { useAdminAuth } from "@/contexts/AdminAuthContext";
 import { Button } from "@/components/ui/Buttons";
+import { ActionIconButton } from "@/components/ui/ActionIconButton";
 import { Card } from "@/components/ui/Card";
 import { Input } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
@@ -378,9 +379,9 @@ export default function AlatPage() {
                   </td>
                   <td className="px-4 py-3">
                     <div id="edit-inventarisasi" className="flex gap-1">
-                      <Button
-                        variant="text"
-                        size="sm"
+                      <ActionIconButton
+                        symbol="✎"
+                        label="Edit"
                         onClick={() => setFormTarget(alat)}
                         disabled={!canEditSomething}
                         title={
@@ -388,13 +389,11 @@ export default function AlatPage() {
                             ? undefined
                             : "Klaim token izin untuk mengedit"
                         }
-                        className="hover:underline px-2 py-1"
-                      >
-                        Edit
-                      </Button>
-                      <Button
-                        variant="text"
-                        size="sm"
+                      />
+                      <ActionIconButton
+                        symbol="🗑"
+                        label="Hapus"
+                        tone="danger"
                         onClick={() => setDeleteTarget(alat)}
                         disabled={!canCrud}
                         title={
@@ -402,10 +401,7 @@ export default function AlatPage() {
                             ? undefined
                             : "Klaim token izin untuk mengedit"
                         }
-                        className="text-red-600 dark:text-red-400 hover:underline px-2 py-1"
-                      >
-                        Hapus
-                      </Button>
+                      />
                     </div>
                   </td>
                 </tr>

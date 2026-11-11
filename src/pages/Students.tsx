@@ -9,6 +9,7 @@ import {
 } from '@/services'
 import { getFormErrorMessages } from '@/utils/errors'
 import { Button } from "@/components/ui/Buttons";
+import { ActionIconButton } from "@/components/ui/ActionIconButton";
 import { Card } from "@/components/ui/Card";
 import { Checkbox } from "@/components/ui/Checkbox";
 import { Dialog } from "@/components/ui/Dialog";
@@ -549,15 +550,12 @@ export default function Students() {
                   </td>
                   <td className="px-4 py-3">
                     <div className="flex items-center gap-1">
-                      <Button
+                      <ActionIconButton
                         id="edit-praktikan"
-                        variant="text"
-                        size="sm"
+                        symbol="✎"
+                        label="Edit"
                         onClick={() => openEditModal(student)}
-                        className="hover:underline px-2 py-1"
-                      >
-                        Edit
-                      </Button>
+                      />
                       {isDosen && (
                         <Button
                           variant="text"
