@@ -34,6 +34,8 @@ export const SORT_LABELS: Record<string, string> = {
   is_active: "Status",
   materi: "Materi",
   tanggal: "Tanggal",
+  tanggal_mulai: "Tanggal Mulai",
+  tanggal_selesai: "Tanggal Selesai",
   bobot: "Bobot",
   nomor: "No.",
   kelompok: "Kelompok",

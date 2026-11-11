@@ -11,6 +11,7 @@ import { SortSummary } from "@/components/ui/SortSummary";
 import { SortableTh } from "@/components/ui/SortableTh";
 import { useTableSort } from "@/hooks/useTableSort";
 import { sortRows } from "@/utils/tableSort";
+import { formatTanggal } from "@/utils/format-date";
 
 interface PraktikumInfo {
   id: number;
@@ -213,6 +214,12 @@ export default function NilaiSidePanel({
                           {item.materi.materi_nama}
                         </span>
                       )}
+                      <div className="mt-0.5 text-xs text-(--md-sys-color-on-surface-variant)">
+                        {formatTanggal(item.tanggal_mulai)}
+                        {item.tanggal_selesai
+                          ? ` – ${formatTanggal(item.tanggal_selesai)}`
+                          : ""}
+                      </div>
                       <div className="mt-1 flex flex-wrap gap-1">
                         {item.parameter.map((p) => (
                           <span

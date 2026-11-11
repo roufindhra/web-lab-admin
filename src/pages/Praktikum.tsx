@@ -11,6 +11,7 @@ import {
 import { getFormErrorMessages } from "@/utils/errors";
 import { useAdminAuth } from "@/contexts/AdminAuthContext";
 import { Button } from "@/components/ui/Buttons";
+import { ActionIconButton } from "@/components/ui/ActionIconButton";
 import { Card } from "@/components/ui/Card";
 import { Checkbox } from "@/components/ui/Checkbox";
 import { Dialog } from "@/components/ui/Dialog";
@@ -442,24 +443,22 @@ export default function PraktikumPage() {
                     {isDosen && (
                       <div
                         id="edit-praktikum"
-                        className="flex justify-end gap-2"
+                        className="flex justify-end gap-1"
                       >
-                        <Button
-                          variant="outlined"
-                          size="sm"
+                        <ActionIconButton
+                          symbol="✎"
+                          label="Edit"
                           onClick={() => openEdit(item)}
-                        >
-                          Edit
-                        </Button>
-                        <Button
-                          variant="outlined"
-                          size="sm"
+                        />
+                        <ActionIconButton
+                          symbol="🗑"
+                          label={
+                            deletingId === item.id ? "Menghapus..." : "Hapus"
+                          }
+                          tone="danger"
                           onClick={() => handleDelete(item)}
                           disabled={deletingId === item.id}
-                          className="border-red-500/50 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/20"
-                        >
-                          {deletingId === item.id ? "Menghapus..." : "Hapus"}
-                        </Button>
+                        />
                       </div>
                     )}
                   </td>

@@ -48,7 +48,8 @@ export interface Pertemuan {
     id: number
     nomor: number
     materi: PertemuanMateri | null
-    tanggal: string | null
+    tanggal_mulai: string
+    tanggal_selesai: string | null
     bobot: number
     parameter: ParameterPenilaian[]
 }
@@ -56,7 +57,8 @@ export interface Pertemuan {
 export interface PertemuanPayload {
     nomor: number
     materi_id: number
-    tanggal: string | null
+    tanggal_mulai: string
+    tanggal_selesai: string | null
     bobot: number
     parameter: ParameterPenilaian[]
 }

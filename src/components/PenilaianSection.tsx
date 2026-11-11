@@ -8,7 +8,9 @@ import {
   type ParameterPenilaian,
 } from "@/services";
 import { getFormErrorMessages } from "@/utils/errors";
+import { formatTanggal } from "@/utils/format-date";
 import { Button } from "@/components/ui/Buttons";
+import { ActionIconButton } from "@/components/ui/ActionIconButton";
 import { Card } from "@/components/ui/Card";
 import { Dialog } from "@/components/ui/Dialog";
 import { Input } from "@/components/ui/Input";
@@ -21,7 +23,8 @@ import { sortRows } from "@/utils/tableSort";
 interface FormState {
   nomor: string;
   materi: string;
-  tanggal: string;
+  tanggal_mulai: string;
+  tanggal_selesai: string;
   bobot: string;
   parameter: { nama: string; bobot: string }[];
 }
@@ -29,7 +32,8 @@ interface FormState {
 const EMPTY_FORM: FormState = {
   nomor: "",
   materi: "",
-  tanggal: "",
+  tanggal_mulai: "",
+  tanggal_selesai: "",
   bobot: "1",
   parameter: [{ nama: "", bobot: "" }],
 };
@@ -60,7 +64,8 @@ export default function PenilaianSection({
     (item, column) => {
       if (column === "nomor") return item.nomor;
       if (column === "materi") return item.materi?.materi_nama ?? "";
-      if (column === "tanggal") return item.tanggal ?? "";
+      if (column === "tanggal_mulai") return item.tanggal_mulai;
+      if (column === "tanggal_selesai") return item.tanggal_selesai ?? "";
       if (column === "bobot") return item.bobot;
 
       return null;
@@ -100,7 +105,8 @@ export default function PenilaianSection({
     setForm({
       nomor: String(item.nomor),
       materi: item.materi ? String(item.materi.id) : "",
-      tanggal: item.tanggal ?? "",
+      tanggal_mulai: item.tanggal_mulai ?? "",
+      tanggal_selesai: item.tanggal_selesai ?? "",
       bobot: String(item.bobot),
       parameter: item.parameter.map((p) => ({
         nama: p.nama,
@@ -122,7 +128,8 @@ export default function PenilaianSection({
     const payload: PertemuanPayload = {
       nomor: Number(form.nomor),
       materi_id: Number(form.materi),
-      tanggal: form.tanggal || null,
+      tanggal_mulai: form.tanggal_mulai,
+      tanggal_selesai: form.tanggal_selesai || null,
       bobot: Number(form.bobot),
       parameter,
     };
@@ -198,8 +205,14 @@ export default function PenilaianSection({
                 onSort={toggleSort}
               />
               <SortableTh
-                label="Tanggal"
-                column="tanggal"
+                label="Mulai"
+                column="tanggal_mulai"
+                sorts={sorts}
+                onSort={toggleSort}
+              />
+              <SortableTh
+                label="Selesai"
+                column="tanggal_selesai"
                 sorts={sorts}
                 onSort={toggleSort}
               />
@@ -217,7 +230,7 @@ export default function PenilaianSection({
             {pertemuan.length === 0 ? (
               <tr>
                 <td
-                  colSpan={6}
+                  colSpan={7}
                   className="px-4 py-8 text-center text-(--md-sys-color-on-surface-variant)"
                 >
                   Belum ada rule penilaian. Tambahkan pertemuan untuk mulai
@@ -245,8 +258,13 @@ export default function PenilaianSection({
                       </span>
                     )}
                   </td>
-                  <td className="px-4 py-3">
-                    {item.tanggal ?? (
+                  <td className="px-4 py-3 whitespace-nowrap">
+                    {formatTanggal(item.tanggal_mulai)}
+                  </td>
+                  <td className="px-4 py-3 whitespace-nowrap">
+                    {item.tanggal_selesai ? (
+                      formatTanggal(item.tanggal_selesai)
+                    ) : (
                       <span className="text-(--md-sys-color-on-surface-variant) opacity-50">
                         -
                       </span>
@@ -266,23 +284,19 @@ export default function PenilaianSection({
                     </div>
                   </td>
                   <td className="px-4 py-3 text-right">
-                    <div className="flex justify-end gap-2">
-                      <Button
-                        variant="outlined"
-                        size="sm"
+                    <div className="flex justify-end gap-1">
+                      <ActionIconButton
+                        symbol="✎"
+                        label="Edit"
                         onClick={() => openEdit(item)}
-                      >
-                        Edit
-                      </Button>
-                      <Button
-                        variant="outlined"
-                        size="sm"
+                      />
+                      <ActionIconButton
+                        symbol="🗑"
+                        label={deletingId === item.id ? "Menghapus..." : "Hapus"}
+                        tone="danger"
                         onClick={() => handleDelete(item)}
                         disabled={deletingId === item.id}
-                        className="border-red-500/50 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/20"
-                      >
-                        {deletingId === item.id ? "Menghapus..." : "Hapus"}
-                      </Button>
+                      />
                     </div>
                   </td>
                 </tr>
@@ -302,7 +316,7 @@ export default function PenilaianSection({
         }
       >
         <div className="space-y-4">
-          <div className="grid grid-cols-3 gap-3">
+          <div className="grid grid-cols-2 gap-3">
             <Input
               label="Nomor"
               type="number"
@@ -323,11 +337,20 @@ export default function PenilaianSection({
               }
             />
             <Input
-              label="Tanggal"
+              label="Tanggal Mulai"
               type="date"
-              value={form.tanggal}
+              value={form.tanggal_mulai}
               onChange={(event) =>
-                setForm((c) => ({ ...c, tanggal: event.target.value }))
+                setForm((c) => ({ ...c, tanggal_mulai: event.target.value }))
+              }
+            />
+            <Input
+              label="Tanggal Selesai"
+              type="date"
+              min={form.tanggal_mulai || undefined}
+              value={form.tanggal_selesai}
+              onChange={(event) =>
+                setForm((c) => ({ ...c, tanggal_selesai: event.target.value }))
               }
             />
           </div>
@@ -443,6 +466,13 @@ export default function PenilaianSection({
             </p>
           </div>
 
+          {form.tanggal_selesai !== "" &&
+            form.tanggal_selesai < form.tanggal_mulai && (
+              <p className="text-xs text-red-500">
+                Tanggal selesai tidak boleh sebelum tanggal mulai.
+              </p>
+            )}
+
           {formError && <p className="text-xs text-red-500">{formError}</p>}
 
           <div className="pt-2 flex justify-end gap-2">
@@ -459,9 +489,12 @@ export default function PenilaianSection({
               disabled={
                 !form.materi ||
                 !form.nomor ||
+                !form.tanggal_mulai ||
                 !form.bobot ||
                 form.parameter.some((p) => !p.nama || !p.bobot) ||
                 totalBobot !== 100 ||
+                (form.tanggal_selesai !== "" &&
+                  form.tanggal_selesai < form.tanggal_mulai) ||
                 isSaving
               }
             >

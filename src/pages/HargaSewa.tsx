@@ -6,6 +6,7 @@ import {
 } from "@/services";
 import { getFormErrorMessages } from "@/utils/errors";
 import { Button } from "@/components/ui/Buttons";
+import { ActionIconButton } from "@/components/ui/ActionIconButton";
 import { Card } from "@/components/ui/Card";
 import { Dialog } from "@/components/ui/Dialog";
 import { Input } from "@/components/ui/Input";
@@ -202,23 +203,18 @@ export default function HargaSewaPage() {
                     {formatTarif(harga.tarif_per_hari)}
                   </td>
                   <td className="px-4 py-3 text-right">
-                    <div className="flex justify-end gap-2">
-                      <Button
-                        variant="text"
-                        size="sm"
+                    <div className="flex justify-end gap-1">
+                      <ActionIconButton
+                        symbol="✎"
+                        label="Edit"
                         onClick={() => openEdit(harga)}
-                        className="hover:underline px-2 py-1"
-                      >
-                        Edit
-                      </Button>
-                      <Button
-                        variant="text"
-                        size="sm"
+                      />
+                      <ActionIconButton
+                        symbol="🗑"
+                        label="Hapus"
+                        tone="danger"
                         onClick={() => setDeleteTarget(harga)}
-                        className="text-red-600 dark:text-red-400 hover:underline px-2 py-1"
-                      >
-                        Hapus
-                      </Button>
+                      />
                     </div>
                   </td>
                 </tr>

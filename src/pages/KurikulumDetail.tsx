@@ -23,6 +23,7 @@ import {
 } from "@/services";
 import MateriFormModal from "../components/modals/MateriFormModal";
 import { Button } from "@/components/ui/Buttons";
+import { ActionIconButton } from "@/components/ui/ActionIconButton";
 import { Card } from "@/components/ui/Card";
 import { Input } from "@/components/ui/Input";
 
@@ -367,23 +368,14 @@ function SortableMateriRow({
         )}
       </td>
       <td className="px-4 py-3 text-right">
-        <div className="flex justify-end gap-2">
-          <Button
-            variant="text"
-            size="sm"
-            onClick={onEdit}
-            className="hover:underline px-2 py-1"
-          >
-            Edit
-          </Button>
-          <Button
-            variant="text"
-            size="sm"
+        <div className="flex justify-end gap-1">
+          <ActionIconButton symbol="✎" label="Edit" onClick={onEdit} />
+          <ActionIconButton
+            symbol="🗄"
+            label="Arsipkan"
+            tone="danger"
             onClick={onArsipkan}
-            className="text-red-600 dark:text-red-400 hover:underline px-2 py-1"
-          >
-            Arsipkan
-          </Button>
+          />
         </div>
       </td>
     </tr>
