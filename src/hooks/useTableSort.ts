@@ -1,8 +1,12 @@
 import { useState } from "react";
 import { toggleSortSpec, type SortSpec } from "@/utils/tableSort";
 
-export function useTableSort(defaultSort: SortSpec, onChange?: () => void) {
-  const [sorts, setSorts] = useState<SortSpec[]>([defaultSort]);
+export function useTableSort(
+  defaultSort: SortSpec | SortSpec[],
+  onChange?: () => void,
+) {
+  const defaults = Array.isArray(defaultSort) ? defaultSort : [defaultSort];
+  const [sorts, setSorts] = useState<SortSpec[]>(defaults);
 
   const toggleSort = (column: string, additive = false) => {
     setSorts((current) => toggleSortSpec(current, column, additive));
@@ -18,7 +22,7 @@ export function useTableSort(defaultSort: SortSpec, onChange?: () => void) {
   };
 
   const resetSort = () => {
-    setSorts([defaultSort]);
+    setSorts(defaults);
     onChange?.();
   };
 

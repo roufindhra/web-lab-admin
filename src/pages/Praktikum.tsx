@@ -12,6 +12,7 @@ import { getFormErrorMessages } from "@/utils/errors";
 import { useAdminAuth } from "@/contexts/AdminAuthContext";
 import { Button } from "@/components/ui/Buttons";
 import { ActionIconButton } from "@/components/ui/ActionIconButton";
+import { Badge } from "@/components/ui/Badge";
 import { Card } from "@/components/ui/Card";
 import { Checkbox } from "@/components/ui/Checkbox";
 import { Dialog } from "@/components/ui/Dialog";
@@ -356,27 +357,31 @@ export default function PraktikumPage() {
                 column="praktikum_label"
                 sorts={sorts}
                 onSort={toggleSort}
+                align="center"
               />
               <SortableTh
                 label="Semester"
                 column="semester"
                 sorts={sorts}
                 onSort={toggleSort}
+                align="center"
               />
               <SortableTh
                 label="Slug"
                 column="praktikum_slug"
                 sorts={sorts}
                 onSort={toggleSort}
+                align="center"
               />
-              <th className="px-4 py-3">Jadwal</th>
+              <th className="px-4 py-3 text-center">Jadwal</th>
               <SortableTh
                 label="Status"
                 column="is_active"
                 sorts={sorts}
                 onSort={toggleSort}
+                align="center"
               />
-              <th className="px-4 py-3 text-right">Aksi</th>
+              <th className="px-4 py-3 text-center">Aksi</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-(--md-sys-color-outline-variant) text-(--md-sys-color-on-surface)">
@@ -404,12 +409,12 @@ export default function PraktikumPage() {
                   key={item.id}
                   className="hover:bg-(--md-sys-color-surface-container-high) transition-colors"
                 >
-                  <td className="px-4 py-3 font-medium">{item.label}</td>
-                  <td className="px-4 py-3">{item.semester}</td>
-                  <td className="px-4 py-3 font-mono text-(--md-sys-color-on-surface-variant)">
+                  <td className="px-4 py-3 text-center font-medium">{item.label}</td>
+                  <td className="px-4 py-3 text-center">{item.semester}</td>
+                  <td className="px-4 py-3 text-center font-mono text-(--md-sys-color-on-surface-variant)">
                     {item.slug}
                   </td>
-                  <td className="px-4 py-3">
+                  <td className="px-4 py-3 text-center">
                     {item.plugs.length === 0 ? (
                       <span className="text-(--md-sys-color-on-surface-variant) opacity-50">
                         -
@@ -428,22 +433,16 @@ export default function PraktikumPage() {
                       </div>
                     )}
                   </td>
-                  <td className="px-4 py-3">
-                    <span
-                      className={`rounded-full px-2 py-0.5 text-xs font-medium ${
-                        item.is_active
-                          ? "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300"
-                          : "bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400"
-                      }`}
-                    >
+                  <td className="px-4 py-3 text-center">
+                    <Badge tone={item.is_active ? "success" : "neutral"}>
                       {item.is_active ? "Aktif" : "Nonaktif"}
-                    </span>
+                    </Badge>
                   </td>
-                  <td className="px-4 py-3 text-right">
+                  <td className="px-4 py-3 text-center">
                     {isDosen && (
                       <div
                         id="edit-praktikum"
-                        className="flex justify-end gap-1"
+                        className="flex justify-center gap-1"
                       >
                         <ActionIconButton
                           symbol="✎"

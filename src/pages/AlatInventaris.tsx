@@ -14,6 +14,7 @@ import KondisiDetailModal from "../components/modals/KondisiDetailModal";
 import { useAdminAuth } from "@/contexts/AdminAuthContext";
 import { Button } from "@/components/ui/Buttons";
 import { ActionIconButton } from "@/components/ui/ActionIconButton";
+import { Badge } from "@/components/ui/Badge";
 import { Card } from "@/components/ui/Card";
 import { Input } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
@@ -41,12 +42,13 @@ const KETERSEDIAAN_LABELS: Record<KetersediaanStatus, string> = {
   perbaikan: "Perbaikan",
 };
 
-const KETERSEDIAAN_BADGE_CLASSES: Record<KetersediaanStatus, string> = {
-  tersedia:
-    "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300",
-  dipinjam:
-    "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300",
-  perbaikan: "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300",
+const KETERSEDIAAN_TONES: Record<
+  KetersediaanStatus,
+  "success" | "warning" | "danger"
+> = {
+  tersedia: "success",
+  dipinjam: "warning",
+  perbaikan: "danger",
 };
 
 export default function AlatPage() {
@@ -282,33 +284,38 @@ export default function AlatPage() {
                 column="nama_alat"
                 sorts={sorts}
                 onSort={toggleSort}
+                align="center"
               />
               <SortableTh
                 label="Serial Number"
                 column="serial_number"
                 sorts={sorts}
                 onSort={toggleSort}
+                align="center"
               />
               <SortableTh
                 label="Jumlah"
                 column="jumlah"
                 sorts={sorts}
                 onSort={toggleSort}
+                align="center"
               />
-              <th className="px-4 py-3">Kondisi</th>
+              <th className="px-4 py-3 text-center">Kondisi</th>
               <SortableTh
                 label="Lokasi"
                 column="lokasi_penyimpanan"
                 sorts={sorts}
                 onSort={toggleSort}
+                align="center"
               />
               <SortableTh
                 label="Ketersediaan"
                 column="ketersediaan"
                 sorts={sorts}
                 onSort={toggleSort}
+                align="center"
               />
-              <th className="px-4 py-3">Aksi</th>
+              <th className="px-4 py-3 text-center">Aksi</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-(--md-sys-color-outline-variant) text-(--md-sys-color-on-surface)">
@@ -339,17 +346,17 @@ export default function AlatPage() {
                   className="hover:bg-(--md-sys-color-surface-container-high) transition-colors"
                 >
                   <td className="px-4 py-3 font-mono">{alat.inventaris}</td>
-                  <td className="px-4 py-3">
+                  <td className="px-4 py-3 text-center">
                     <span className="font-medium">{alat.nama_alat}</span>
                     <span className="block text-xs text-(--md-sys-color-on-surface-variant)">
                       {alat.merk} {alat.tipe}
                     </span>
                   </td>
-                  <td className="px-4 py-3 font-mono text-(--md-sys-color-on-surface-variant)">
+                  <td className="px-4 py-3 text-center font-mono text-(--md-sys-color-on-surface-variant)">
                     {alat.serial_number}
                   </td>
-                  <td className="px-4 py-3">{alat.jumlah}</td>
-                  <td className="px-4 py-3">
+                  <td className="px-4 py-3 text-center">{alat.jumlah}</td>
+                  <td className="px-4 py-3 text-center">
                     <span className="text-(--md-sys-color-on-surface-variant)">
                       {kondisiRingkas(alat) || "-"}
                     </span>
@@ -363,22 +370,19 @@ export default function AlatPage() {
                       Detail
                     </Button>
                   </td>
-                  <td className="px-4 py-3 text-(--md-sys-color-on-surface-variant)">
+                  <td className="px-4 py-3 text-center text-(--md-sys-color-on-surface-variant)">
                     {alat.lokasi_penyimpanan}
                   </td>
-                  <td className="px-4 py-3">
-                    <span
-                      className={`rounded-full px-2 py-0.5 text-xs font-medium ${
-                        KETERSEDIAAN_BADGE_CLASSES[alat.ketersediaan] ??
-                        "bg-gray-100 text-gray-800"
-                      }`}
+                  <td className="px-4 py-3 text-center">
+                    <Badge
+                      tone={KETERSEDIAAN_TONES[alat.ketersediaan] ?? "neutral"}
                     >
                       {KETERSEDIAAN_LABELS[alat.ketersediaan] ??
                         alat.ketersediaan}
-                    </span>
+                    </Badge>
                   </td>
-                  <td className="px-4 py-3">
-                    <div id="edit-inventarisasi" className="flex gap-1">
+                  <td className="px-4 py-3 text-center">
+                    <div id="edit-inventarisasi" className="flex justify-center gap-1">
                       <ActionIconButton
                         symbol="✎"
                         label="Edit"

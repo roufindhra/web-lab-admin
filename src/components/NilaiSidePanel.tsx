@@ -1,12 +1,12 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, type KeyboardEvent } from "react";
 import {
   praktikumService,
   type AssignMahasiswa,
   type Pertemuan,
 } from "@/services";
+import { cn } from "@/utils/cn";
 import { Button } from "@/components/ui/Buttons";
 import { Card } from "@/components/ui/Card";
-import { Input } from "@/components/ui/Input";
 import { SortSummary } from "@/components/ui/SortSummary";
 import { SortableTh } from "@/components/ui/SortableTh";
 import { useTableSort } from "@/hooks/useTableSort";
@@ -21,6 +21,15 @@ interface PraktikumInfo {
 
 // mahasiswaId -> pertemuanId -> nama parameter -> nilai mentah (string agar enak diketik)
 type NilaiState = Record<string, Record<string, Record<string, string>>>;
+
+const STICKY_HEADER_BG = "bg-(--md-sys-color-surface-container-low)";
+const STICKY_BODY_BG = "bg-(--md-sys-color-surface)";
+
+function isInvalidScore(raw: string): boolean {
+  if (raw.trim() === "") return false;
+  const value = Number(raw);
+  return !Number.isFinite(value) || value < 0 || value > 100;
+}
 
 export default function NilaiSidePanel({
   praktikum,
@@ -149,6 +158,63 @@ export default function NilaiSidePanel({
       .finally(() => setSavingId(null));
   };
 
+  const handleCellKeyDown = (
+    event: KeyboardEvent<HTMLInputElement>,
+    paramCount: number,
+  ) => {
+    const input = event.currentTarget;
+    const row = Number(input.dataset.row);
+    const col = Number(input.dataset.col);
+
+    if (Number.isNaN(row) || Number.isNaN(col)) return;
+
+    const table = input.closest("table");
+    if (!table) return;
+
+    let nextRow = row;
+    let nextCol = col;
+
+    switch (event.key) {
+      case "ArrowUp":
+        nextRow -= 1;
+        break;
+      case "ArrowDown":
+      case "Enter":
+        nextRow += event.shiftKey ? -1 : 1;
+        break;
+      case "ArrowLeft":
+        nextCol -= 1;
+        break;
+      case "ArrowRight":
+        nextCol += 1;
+        break;
+      case "Home":
+        nextCol = 0;
+        break;
+      case "End":
+        nextCol = paramCount - 1;
+        break;
+      case "Escape":
+        event.preventDefault();
+        input.blur();
+        return;
+      default:
+        return;
+    }
+
+    if (nextCol < 0 || nextCol >= paramCount || nextRow < 0) return;
+
+    const next = table.querySelector<HTMLInputElement>(
+      `input[data-cell="${nextRow}-${nextCol}"]`,
+    );
+
+    if (!next) return;
+
+    event.preventDefault();
+    next.focus();
+    next.select();
+  };
+
   return (
     <div className="fixed inset-0 z-50">
       <div
@@ -190,165 +256,218 @@ export default function NilaiSidePanel({
             </p>
           ) : (
             <div className="space-y-3">
-              {pertemuan.map((item) => (
-                <Card
-                  key={item.id}
-                  variant="outlined"
-                  className="p-0 overflow-hidden"
-                >
-                  <button
-                    onClick={() =>
-                      setExpandedId(expandedId === item.id ? null : item.id)
-                    }
-                    className="flex w-full items-center justify-between px-4 py-3 text-left hover:bg-(--md-sys-color-surface-container-high) transition-colors"
+              {pertemuan.map((item) => {
+                const rows = sortedStudentsFor(item);
+
+                return (
+                  <Card
+                    key={item.id}
+                    variant="outlined"
+                    className="p-0 overflow-hidden"
                   >
-                    <div>
-                      <span className="font-semibold text-sm text-(--md-sys-color-on-surface)">
-                        Pertemuan {item.nomor}
-                      </span>
-                      {item.materi && (
-                        <span className="ml-2 text-xs text-(--md-sys-color-on-surface-variant)">
-                          <span className="mr-1 font-mono">
-                            M{item.materi.materi_id}
-                          </span>
-                          {item.materi.materi_nama}
+                    <button
+                      onClick={() =>
+                        setExpandedId(expandedId === item.id ? null : item.id)
+                      }
+                      className="flex w-full items-center justify-between px-4 py-3 text-left hover:bg-(--md-sys-color-surface-container-high) transition-colors"
+                    >
+                      <div>
+                        <span className="font-semibold text-sm text-(--md-sys-color-on-surface)">
+                          Pertemuan {item.nomor}
                         </span>
-                      )}
-                      <div className="mt-0.5 text-xs text-(--md-sys-color-on-surface-variant)">
-                        {formatTanggal(item.tanggal_mulai)}
-                        {item.tanggal_selesai
-                          ? ` – ${formatTanggal(item.tanggal_selesai)}`
-                          : ""}
-                      </div>
-                      <div className="mt-1 flex flex-wrap gap-1">
-                        {item.parameter.map((p) => (
-                          <span
-                            key={p.nama}
-                            className="rounded-full bg-(--md-sys-color-surface-container) px-2 py-0.5 text-[11px] text-(--md-sys-color-on-surface-variant)"
-                          >
-                            {p.nama} {p.bobot}%
-                          </span>
-                        ))}
-                      </div>
-                    </div>
-                    <span className="text-xs text-(--md-sys-color-on-surface-variant)">
-                      {expandedId === item.id ? "▾" : "▸"}
-                    </span>
-                  </button>
-
-                  {expandedId === item.id && (
-                    <div className="border-t border-(--md-sys-color-outline-variant) bg-(--md-sys-color-surface)">
-                      <div className="px-4 pt-3">
-                        <SortSummary
-                          sorts={sorts}
-                          onRemove={removeSort}
-                          onReset={resetSort}
-                          labels={Object.fromEntries(
-                            pertemuan.flatMap((item) =>
-                              item.parameter.map((param) => [
-                                `nilai:${param.nama}`,
-                                param.nama,
-                              ]),
-                            ),
-                          )}
-                        />
-                      </div>
-                      <div className="overflow-x-auto">
-                        <table className="w-full text-left text-sm">
-                          <thead className="border-b border-(--md-sys-color-outline-variant) bg-(--md-sys-color-surface-container-low) text-xs uppercase text-(--md-sys-color-on-surface-variant)">
-                            <tr>
-                              <SortableTh
-                                label="NIM"
-                                column="nim"
-                                sorts={sorts}
-                                onSort={toggleSort}
-                                className="px-4 py-2"
-                              />
-                              <SortableTh
-                                label="Nama"
-                                column="nama"
-                                sorts={sorts}
-                                onSort={toggleSort}
-                                className="px-4 py-2"
-                              />
-                              {item.parameter.map((p) => (
-                                <SortableTh
-                                  key={p.nama}
-                                  label={`${p.nama} (${p.bobot}%)`}
-                                  column={`nilai:${p.nama}`}
-                                  sorts={sorts}
-                                  onSort={toggleSort}
-                                  className="px-4 py-2"
-                                />
-                              ))}
-                            </tr>
-                          </thead>
-                          <tbody className="divide-y divide-(--md-sys-color-outline-variant) text-(--md-sys-color-on-surface)">
-                            {sortedStudentsFor(item).map((student) => (
-                              <tr
-                                key={student.id}
-                                className="hover:bg-(--md-sys-color-surface-container-high) transition-colors"
-                              >
-                                <td className="px-4 py-2 font-mono text-xs text-(--md-sys-color-on-surface-variant)">
-                                  {student.nim}
-                                </td>
-                                <td className="whitespace-nowrap px-4 py-2 font-medium">
-                                  {student.nama}
-                                </td>
-                                {item.parameter.map((p) => (
-                                  <td key={p.nama} className="px-4 py-2">
-                                    <Input
-                                      type="number"
-                                      min={0}
-                                      max={100}
-                                      step="0.5"
-                                      disabled={!canEdit}
-                                      value={getInput(
-                                        student.id,
-                                        item.id,
-                                        p.nama,
-                                      )}
-                                      onChange={(event) =>
-                                        setInput(
-                                          student.id,
-                                          item.id,
-                                          p.nama,
-                                          event.target.value,
-                                        )
-                                      }
-                                      containerClassName="w-24"
-                                    />
-                                  </td>
-                                ))}
-                              </tr>
-                            ))}
-                          </tbody>
-                        </table>
-                      </div>
-
-                      <div className="flex items-center justify-end gap-3 border-t border-(--md-sys-color-outline-variant) bg-(--md-sys-color-surface-container-low) px-4 py-3">
-                        {savedId === item.id && (
-                          <span className="text-xs font-semibold text-emerald-600 dark:text-emerald-400">
-                            Tersimpan.
+                        {item.materi && (
+                          <span className="ml-2 text-xs text-(--md-sys-color-on-surface-variant)">
+                            <span className="mr-1 font-mono">
+                              M{item.materi.materi_id}
+                            </span>
+                            {item.materi.materi_nama}
                           </span>
                         )}
-                        <Button
-                          variant="filled"
-                          size="sm"
-                          onClick={() => handleSave(item)}
-                          disabled={!canEdit || savingId === item.id}
-                        >
-                          {!canEdit
-                            ? "Hanya lihat"
-                            : savingId === item.id
-                              ? "Menyimpan..."
-                              : "Simpan Nilai"}
-                        </Button>
+                        <div className="mt-0.5 text-xs text-(--md-sys-color-on-surface-variant)">
+                          {formatTanggal(item.tanggal_mulai)}
+                          {item.tanggal_selesai
+                            ? ` – ${formatTanggal(item.tanggal_selesai)}`
+                            : ""}
+                          {` · ${item.parameter.length} parameter`}
+                        </div>
                       </div>
-                    </div>
-                  )}
-                </Card>
-              ))}
+                      <span className="text-xs text-(--md-sys-color-on-surface-variant)">
+                        {expandedId === item.id ? "▾" : "▸"}
+                      </span>
+                    </button>
+
+                    {expandedId === item.id && (
+                      <div className="border-t border-(--md-sys-color-outline-variant) bg-(--md-sys-color-surface)">
+                        <div className="px-4 pt-3">
+                          <SortSummary
+                            sorts={sorts}
+                            onRemove={removeSort}
+                            onReset={resetSort}
+                            labels={Object.fromEntries(
+                              pertemuan.flatMap((row) =>
+                                row.parameter.map((param) => [
+                                  `nilai:${param.nama}`,
+                                  param.nama,
+                                ]),
+                              ),
+                            )}
+                          />
+                        </div>
+
+                        <div className="flex flex-wrap items-center gap-x-3 gap-y-1 px-4 py-2 text-[11px] text-(--md-sys-color-on-surface-variant)">
+                          {item.parameter.map((param, index) => (
+                            <span key={param.nama}>
+                              <span className="font-semibold text-(--md-sys-color-on-surface)">
+                                P{index + 1}
+                              </span>
+                              : {param.nama}{" "}
+                              <span className="opacity-70">
+                                ({param.bobot}%)
+                              </span>
+                            </span>
+                          ))}
+                        </div>
+
+                        <div className="max-h-[55vh] overflow-auto border-y border-(--md-sys-color-outline-variant)">
+                          <table className="min-w-full border-separate border-spacing-0 text-left text-sm">
+                            <thead className="text-xs uppercase text-(--md-sys-color-on-surface-variant)">
+                              <tr>
+                                <SortableTh
+                                  label="NIM"
+                                  column="nim"
+                                  sorts={sorts}
+                                  onSort={toggleSort}
+                                  align="center"
+                                  className={cn(
+                                    "sticky left-0 top-0 z-30 w-28 border-b border-r border-(--md-sys-color-outline-variant) py-2",
+                                    STICKY_HEADER_BG,
+                                  )}
+                                />
+                                <SortableTh
+                                  label="Nama"
+                                  column="nama"
+                                  sorts={sorts}
+                                  onSort={toggleSort}
+                                  className={cn(
+                                    "sticky left-28 top-0 z-30 w-48 border-b border-r border-(--md-sys-color-outline-variant) py-2",
+                                    STICKY_HEADER_BG,
+                                  )}
+                                />
+                                {item.parameter.map((param, index) => (
+                                  <SortableTh
+                                    key={param.nama}
+                                    label={`P${index + 1}`}
+                                    column={`nilai:${param.nama}`}
+                                    sorts={sorts}
+                                    onSort={toggleSort}
+                                    align="center"
+                                    className={cn(
+                                      "sticky top-0 z-20 w-24 border-b border-r border-(--md-sys-color-outline-variant) py-2",
+                                      STICKY_HEADER_BG,
+                                    )}
+                                  />
+                                ))}
+                              </tr>
+                            </thead>
+                            <tbody className="text-(--md-sys-color-on-surface)">
+                              {rows.map((student, rowIndex) => (
+                                <tr key={student.id}>
+                                  <td
+                                    className={cn(
+                                      "sticky left-0 z-10 w-28 border-b border-r border-(--md-sys-color-outline-variant) px-3 py-0 text-center font-mono text-xs text-(--md-sys-color-on-surface-variant)",
+                                      STICKY_BODY_BG,
+                                    )}
+                                  >
+                                    {student.nim}
+                                  </td>
+                                  <td
+                                    className={cn(
+                                      "sticky left-28 z-10 w-48 whitespace-nowrap border-b border-r border-(--md-sys-color-outline-variant) px-3 py-0 font-medium",
+                                      STICKY_BODY_BG,
+                                    )}
+                                  >
+                                    {student.nama}
+                                  </td>
+                                  {item.parameter.map((param, colIndex) => {
+                                    const raw = getInput(
+                                      student.id,
+                                      item.id,
+                                      param.nama,
+                                    );
+                                    const invalid = isInvalidScore(raw);
+
+                                    return (
+                                      <td
+                                        key={param.nama}
+                                        className="border-b border-r border-(--md-sys-color-outline-variant) p-0"
+                                      >
+                                        <input
+                                          type="number"
+                                          min={0}
+                                          max={100}
+                                          step="0.5"
+                                          data-row={rowIndex}
+                                          data-col={colIndex}
+                                          data-cell={`${rowIndex}-${colIndex}`}
+                                          disabled={!canEdit}
+                                          value={raw}
+                                          onChange={(event) =>
+                                            setInput(
+                                              student.id,
+                                              item.id,
+                                              param.nama,
+                                              event.target.value,
+                                            )
+                                          }
+                                          onFocus={(event) =>
+                                            event.currentTarget.select()
+                                          }
+                                          onKeyDown={(event) =>
+                                            handleCellKeyDown(
+                                              event,
+                                              item.parameter.length,
+                                            )
+                                          }
+                                          aria-label={`P${colIndex + 1} ${student.nama}`}
+                                          className={cn(
+                                            "sheet-cell h-9 w-full min-w-20 border-0 bg-transparent px-2 text-right font-mono text-sm tabular-nums text-(--md-sys-color-on-surface) outline-none transition-colors focus:bg-(--md-sys-color-surface-container-high) focus:ring-2 focus:ring-inset focus:ring-(--md-sys-color-primary) disabled:cursor-not-allowed disabled:opacity-60",
+                                            invalid &&
+                                              "bg-red-50 text-red-700 ring-1 ring-inset ring-red-400 dark:bg-red-950/30 dark:text-red-300",
+                                          )}
+                                        />
+                                      </td>
+                                    );
+                                  })}
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
+                        </div>
+
+                        <div className="flex items-center justify-end gap-3 border-t border-(--md-sys-color-outline-variant) bg-(--md-sys-color-surface-container-low) px-4 py-3">
+                          {savedId === item.id && (
+                            <span className="text-xs font-semibold text-emerald-600 dark:text-emerald-400">
+                              Tersimpan.
+                            </span>
+                          )}
+                          <Button
+                            variant="filled"
+                            size="sm"
+                            onClick={() => handleSave(item)}
+                            disabled={!canEdit || savingId === item.id}
+                          >
+                            {!canEdit
+                              ? "Hanya lihat"
+                              : savingId === item.id
+                                ? "Menyimpan..."
+                                : "Simpan Nilai"}
+                          </Button>
+                        </div>
+                      </div>
+                    )}
+                  </Card>
+                );
+              })}
             </div>
           )}
         </div>

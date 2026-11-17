@@ -2,6 +2,10 @@
 @import "./styles/tokens.css";
 @import "./styles/components.css";
 
+/* Tailwind v4 defaults `dark:` to the OS preference. This app toggles a
+   `.dark` class on <html>, so bind the variant to that class instead. */
+@custom-variant dark (&:where(.dark, .dark *));
+
 html, body {
   background-color: var(--md-sys-color-surface) !important;
   color: var(--md-sys-color-on-surface) !important;
@@ -103,4 +107,16 @@ html, body {
 
 .animate-fade-in {
   animation: fade-in 0.2s ease-out;
+}
+
+/* Excel-like cells: remove native number spinners. */
+.sheet-cell {
+  appearance: textfield;
+  -moz-appearance: textfield;
+}
+
+.sheet-cell::-webkit-outer-spin-button,
+.sheet-cell::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
 }

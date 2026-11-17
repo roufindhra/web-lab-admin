@@ -4,54 +4,15 @@ import { praktikumService, ApiError, type Praktikum, type AssignMahasiswa, type 
 import { getFormErrorMessages } from '@/utils/errors'
 import PenilaianSection from '@/components/PenilaianSection'
 import NilaiSidePanel from '@/components/NilaiSidePanel'
+import KelompokModal from '@/components/KelompokModal'
 import { useAdminAuth } from '@/contexts/AdminAuthContext'
+import { Badge } from '@/components/ui/Badge'
 import { Button } from '@/components/ui/Buttons'
 import { Card } from '@/components/ui/Card'
-import { Input } from '@/components/ui/Input'
 import { SortSummary } from '@/components/ui/SortSummary'
 import { SortableTh } from '@/components/ui/SortableTh'
 import { useTableSort } from '@/hooks/useTableSort'
 import { sortRows } from '@/utils/tableSort'
-
-function KelompokInput({
-  slug,
-  student,
-  onSaved,
-}: {
-  slug: string
-  student: AssignMahasiswa
-  onSaved: (mahasiswaId: number, kelompok: string | null) => void
-}) {
-  const [value, setValue] = useState(student.kelompok ?? '')
-  const [isSaving, setIsSaving] = useState(false)
-
-  const save = () => {
-    const next = value.trim()
-    if (next === (student.kelompok ?? '')) return
-
-    setIsSaving(true)
-    praktikumService
-      .updateKelompok(slug, student.id, next)
-      .then((kelompok) => onSaved(student.id, kelompok))
-      .catch(() => setValue(student.kelompok ?? ''))
-      .finally(() => setIsSaving(false))
-  }
-
-  return (
-    <Input
-      type="text"
-      value={value}
-      onChange={(event) => setValue(event.target.value)}
-      onBlur={save}
-      onKeyDown={(event) => {
-        if (event.key === 'Enter') event.currentTarget.blur()
-      }}
-      placeholder="Kelompok..."
-      disabled={isSaving}
-      containerClassName="w-32"
-    />
-  )
-}
 
 export default function PraktikumDetail() {
   const { slug } = useParams<{ slug: string }>()
@@ -72,10 +33,11 @@ function Detail({ slug }: { slug?: string }) {
   const [mahasiswaError, setMahasiswaError] = useState<string | null>(null)
 
   const [panelPlug, setPanelPlug] = useState<string | null>(null)
-  const { sorts, toggleSort, removeSort, resetSort } = useTableSort({
-    column: 'nim',
-    direction: 'asc',
-  })
+  const [kelompokPlug, setKelompokPlug] = useState<string | null>(null)
+  const { sorts, toggleSort, removeSort, resetSort } = useTableSort([
+    { column: 'kelompok', direction: 'asc' },
+    { column: 'nim', direction: 'asc' },
+  ])
 
   const sortedMahasiswa = sortRows(
     mahasiswa,
@@ -83,7 +45,7 @@ function Detail({ slug }: { slug?: string }) {
     (student, column) => {
       if (column === 'nim') return student.nim
       if (column === 'nama') return student.nama
-      if (column === 'kelompok') return student.kelompok ?? ''
+      if (column === 'kelompok') return student.kelompok?.trim() || null
       if (column.startsWith('skor:')) {
         return student.skor?.[column.slice(5)] ?? null
       }
@@ -91,12 +53,6 @@ function Detail({ slug }: { slug?: string }) {
       return null
     },
   )
-
-  const handleKelompokSaved = (mahasiswaId: number, kelompok: string | null) => {
-    setMahasiswa((current) =>
-      current.map((m) => (m.id === mahasiswaId ? { ...m, kelompok } : m)),
-    )
-  }
 
   const loadMahasiswa = (current: Praktikum, plugName: string) => {
     setIsLoadingMahasiswa(true)
@@ -194,15 +150,9 @@ function Detail({ slug }: { slug?: string }) {
           <h1 className="text-2xl font-bold text-(--md-sys-color-on-surface)">
             {praktikum.label}
           </h1>
-          <span
-            className={`rounded-full px-2 py-0.5 text-xs font-medium ${
-              praktikum.is_active
-                ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300'
-                : 'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400'
-            }`}
-          >
+          <Badge tone={praktikum.is_active ? 'success' : 'neutral'}>
             {praktikum.is_active ? 'Aktif' : 'Nonaktif'}
-          </span>
+          </Badge>
         </div>
         <p className="mt-1 text-sm text-(--md-sys-color-on-surface-variant)">
           Semester {praktikum.semester} &middot;{' '}
@@ -239,7 +189,16 @@ function Detail({ slug }: { slug?: string }) {
                     </span>
                   </div>
 
-                  <div className="flex gap-2">
+                  <div className="flex flex-wrap gap-2">
+                    <Button
+                      variant="outlined"
+                      size="sm"
+                      onClick={() => setKelompokPlug(jadwal.plug)}
+                      disabled={!canAmpuPlug(slug, jadwal.plug)}
+                      title={canAmpuPlug(slug, jadwal.plug) ? undefined : 'Di luar plug ampuan Anda'}
+                    >
+                      Pengaturan Kelompok
+                    </Button>
                     <Button
                       variant="outlined"
                       size="sm"
@@ -295,22 +254,24 @@ function Detail({ slug }: { slug?: string }) {
                           <thead className="border-b border-(--md-sys-color-outline-variant) bg-(--md-sys-color-surface-container) text-xs uppercase text-(--md-sys-color-on-surface-variant)">
                             <tr>
                               <SortableTh
+                                label="Kelompok"
+                                column="kelompok"
+                                sorts={sorts}
+                                onSort={toggleSort}
+                                className="px-3 py-2"
+                                align="center"
+                              />
+                              <SortableTh
                                 label="NIM"
                                 column="nim"
                                 sorts={sorts}
                                 onSort={toggleSort}
                                 className="px-3 py-2"
+                                align="center"
                               />
                               <SortableTh
                                 label="Nama"
                                 column="nama"
-                                sorts={sorts}
-                                onSort={toggleSort}
-                                className="px-3 py-2"
-                              />
-                              <SortableTh
-                                label="Kelompok"
-                                column="kelompok"
                                 sorts={sorts}
                                 onSort={toggleSort}
                                 className="px-3 py-2"
@@ -323,6 +284,7 @@ function Detail({ slug }: { slug?: string }) {
                                   sorts={sorts}
                                   onSort={toggleSort}
                                   className="whitespace-nowrap px-3 py-2"
+                                  align="center"
                                 />
                               ))}
                             </tr>
@@ -330,15 +292,11 @@ function Detail({ slug }: { slug?: string }) {
                           <tbody className="divide-y divide-(--md-sys-color-outline-variant) text-(--md-sys-color-on-surface)">
                             {sortedMahasiswa.map((m) => (
                               <tr key={m.id} className="hover:bg-(--md-sys-color-surface-container-high) transition-colors">
-                                <td className="px-3 py-2 font-mono text-(--md-sys-color-on-surface-variant)">{m.nim}</td>
-                                <td className="whitespace-nowrap px-3 py-2 font-medium">{m.nama}</td>
-                                <td className="px-3 py-2">
-                                  <KelompokInput
-                                    slug={praktikum.slug}
-                                    student={m}
-                                    onSaved={handleKelompokSaved}
-                                  />
+                                <td className="px-3 py-2 text-center text-(--md-sys-color-on-surface-variant)">
+                                  {m.kelompok?.trim() || '-'}
                                 </td>
+                                <td className="px-3 py-2 text-center font-mono text-(--md-sys-color-on-surface-variant)">{m.nim}</td>
+                                <td className="whitespace-nowrap px-3 py-2 font-medium">{m.nama}</td>
                                 {pertemuan.map((p) => (
                                   <td key={p.id} className="px-3 py-2 text-center text-(--md-sys-color-on-surface-variant)">
                                     {m.skor?.[String(p.id)] ?? '-'}
@@ -370,6 +328,21 @@ function Detail({ slug }: { slug?: string }) {
           onSaved={() => {
             if (expandedPlug === panelPlug) {
               loadMahasiswa(praktikum, panelPlug)
+            }
+          }}
+        />
+      )}
+
+      {kelompokPlug !== null && (
+        <KelompokModal
+          key={kelompokPlug}
+          slug={praktikum.slug}
+          label={praktikum.label}
+          plug={kelompokPlug}
+          onClose={() => setKelompokPlug(null)}
+          onSaved={() => {
+            if (expandedPlug === kelompokPlug) {
+              loadMahasiswa(praktikum, kelompokPlug)
             }
           }}
         />

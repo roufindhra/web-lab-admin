@@ -197,33 +197,38 @@ export default function PenilaianSection({
                 column="nomor"
                 sorts={sorts}
                 onSort={toggleSort}
+                align="center"
               />
               <SortableTh
                 label="Materi"
                 column="materi"
                 sorts={sorts}
                 onSort={toggleSort}
+                align="center"
               />
               <SortableTh
                 label="Mulai"
                 column="tanggal_mulai"
                 sorts={sorts}
                 onSort={toggleSort}
+                align="center"
               />
               <SortableTh
                 label="Selesai"
                 column="tanggal_selesai"
                 sorts={sorts}
                 onSort={toggleSort}
+                align="center"
               />
               <SortableTh
                 label="Bobot"
                 column="bobot"
                 sorts={sorts}
                 onSort={toggleSort}
+                align="center"
               />
-              <th className="px-4 py-3">Parameter</th>
-              <th className="px-4 py-3 text-right">Aksi</th>
+              <th className="px-4 py-3 text-center">Parameter</th>
+              <th className="px-4 py-3 text-center">Aksi</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-(--md-sys-color-outline-variant) text-(--md-sys-color-on-surface)">
@@ -243,8 +248,8 @@ export default function PenilaianSection({
                   key={item.id}
                   className="hover:bg-(--md-sys-color-surface-container-high) transition-colors"
                 >
-                  <td className="px-4 py-3 font-medium">{item.nomor}</td>
-                  <td className="px-4 py-3">
+                  <td className="px-4 py-3 text-center font-medium">{item.nomor}</td>
+                  <td className="px-4 py-3 text-center">
                     {item.materi ? (
                       <span>
                         <span className="mr-1.5 font-mono text-xs text-(--md-sys-color-on-surface-variant)">
@@ -258,10 +263,10 @@ export default function PenilaianSection({
                       </span>
                     )}
                   </td>
-                  <td className="px-4 py-3 whitespace-nowrap">
+                  <td className="px-4 py-3 whitespace-nowrap text-center">
                     {formatTanggal(item.tanggal_mulai)}
                   </td>
-                  <td className="px-4 py-3 whitespace-nowrap">
+                  <td className="px-4 py-3 whitespace-nowrap text-center">
                     {item.tanggal_selesai ? (
                       formatTanggal(item.tanggal_selesai)
                     ) : (
@@ -270,9 +275,9 @@ export default function PenilaianSection({
                       </span>
                     )}
                   </td>
-                  <td className="px-4 py-3">{item.bobot}%</td>
-                  <td className="px-4 py-3">
-                    <div className="flex flex-wrap gap-1">
+                  <td className="px-4 py-3 text-center">{item.bobot}%</td>
+                  <td className="px-4 py-3 text-center">
+                    <div className="flex flex-wrap justify-center gap-1">
                       {item.parameter.map((p) => (
                         <span
                           key={p.nama}
@@ -283,8 +288,8 @@ export default function PenilaianSection({
                       ))}
                     </div>
                   </td>
-                  <td className="px-4 py-3 text-right">
-                    <div className="flex justify-end gap-1">
+                  <td className="px-4 py-3 text-center">
+                    <div className="flex justify-center gap-1">
                       <ActionIconButton
                         symbol="✎"
                         label="Edit"

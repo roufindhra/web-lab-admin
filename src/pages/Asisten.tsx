@@ -9,7 +9,9 @@ import {
   type Praktikum,
 } from "@/services";
 import { getFormErrorMessages } from "@/utils/errors";
+import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Buttons";
+import { ActionIconButton } from "@/components/ui/ActionIconButton";
 import { Card } from "@/components/ui/Card";
 import { Checkbox } from "@/components/ui/Checkbox";
 import { Dialog } from "@/components/ui/Dialog";
@@ -37,20 +39,12 @@ const STATUS_FILTER_ROLE: Record<
 
 function StatusBadge({ mahasiswa }: { mahasiswa: Mahasiswa }) {
   if (!mahasiswa.is_asisten) {
-    return (
-      <span className="rounded-full bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-600 dark:bg-gray-800 dark:text-gray-300">
-        Bukan Asisten
-      </span>
-    );
+    return <Badge tone="neutral">Bukan Asisten</Badge>;
   }
   return mahasiswa.is_active_asisten ? (
-    <span className="rounded-full bg-green-100 px-2 py-0.5 text-xs font-medium text-green-800 dark:bg-green-900/30 dark:text-green-300">
-      Asisten Aktif
-    </span>
+    <Badge tone="success">Asisten Aktif</Badge>
   ) : (
-    <span className="rounded-full bg-yellow-100 px-2 py-0.5 text-xs font-medium text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300">
-      Asisten Nonaktif
-    </span>
+    <Badge tone="warning">Asisten Nonaktif</Badge>
   );
 }
 
@@ -346,27 +340,31 @@ export default function Asisten() {
                 column="nim"
                 sorts={sorts}
                 onSort={toggleSort}
+                align="center"
               />
               <SortableTh
                 label="Nama"
                 column="nama"
                 sorts={sorts}
                 onSort={toggleSort}
+                align="center"
               />
               <SortableTh
                 label="Angkatan"
                 column="angkatan"
                 sorts={sorts}
                 onSort={toggleSort}
+                align="center"
               />
               <SortableTh
                 label="Status"
                 column="is_active_asisten"
                 sorts={sorts}
                 onSort={toggleSort}
+                align="center"
               />
-              <th className="px-4 py-3">Pengampu</th>
-              <th className="px-4 py-3">Aksi</th>
+              <th className="px-4 py-3 text-center">Pengampu</th>
+              <th className="px-4 py-3 text-center">Aksi</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-(--md-sys-color-outline-variant) text-(--md-sys-color-on-surface)">
@@ -398,13 +396,13 @@ export default function Asisten() {
                     key={student.id}
                     className="hover:bg-(--md-sys-color-surface-container-high) transition-colors"
                   >
-                    <td className="px-4 py-3 font-mono">{student.nim}</td>
-                    <td className="px-4 py-3 font-medium">{student.nama}</td>
-                    <td className="px-4 py-3">{student.angkatan}</td>
-                    <td className="px-4 py-3">
+                    <td className="px-4 py-3 text-center font-mono">{student.nim}</td>
+                    <td className="px-4 py-3 text-center font-medium">{student.nama}</td>
+                    <td className="px-4 py-3 text-center">{student.angkatan}</td>
+                    <td className="px-4 py-3 text-center">
                       <StatusBadge mahasiswa={student} />
                     </td>
-                    <td className="px-4 py-3">
+                    <td className="px-4 py-3 text-center">
                       {pengampu.length === 0 ? (
                         <span className="text-(--md-sys-color-on-surface-variant) opacity-50">
                           -
@@ -432,16 +430,15 @@ export default function Asisten() {
                         </ul>
                       )}
                     </td>
-                    <td className="px-4 py-3">
-                      <Button
-                        id="atur-asisten"
-                        variant="text"
-                        size="sm"
-                        onClick={() => openEditModal(student)}
-                        className="hover:underline px-2 py-1"
-                      >
-                        Atur
-                      </Button>
+                    <td className="px-4 py-3 text-center">
+                      <div className="flex justify-center">
+                        <ActionIconButton
+                          id="atur-asisten"
+                          symbol="✎"
+                          label="Atur"
+                          onClick={() => openEditModal(student)}
+                        />
+                      </div>
                     </td>
                   </tr>
                 );

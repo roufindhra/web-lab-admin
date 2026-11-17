@@ -147,6 +147,19 @@ export const praktikumService = {
             body: JSON.stringify({ mahasiswa_ids: mahasiswaIds }),
         })
     },
+    async syncKelompok(
+        slug: string,
+        plug: string,
+        kelompok: Record<string, string | null>,
+    ): Promise<void> {
+        await api<void>(
+            `/api/admin/praktikum/${encodeURIComponent(slug)}/plugs/${encodeURIComponent(plug)}/kelompok`,
+            {
+                method: 'PUT',
+                body: JSON.stringify({ kelompok }),
+            },
+        )
+    },
     async updateKelompok(slug: string, mahasiswaId: number, kelompok: string): Promise<string | null> {
         const response = await api<{ kelompok: string | null }>(
             `/api/admin/praktikum/${encodeURIComponent(slug)}/mahasiswa/${mahasiswaId}/kelompok`,

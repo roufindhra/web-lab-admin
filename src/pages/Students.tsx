@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { UserRound } from "lucide-react";
 import {
   mahasiswaService,
   praktikumService,
@@ -10,6 +11,7 @@ import {
 import { getFormErrorMessages } from '@/utils/errors'
 import { Button } from "@/components/ui/Buttons";
 import { ActionIconButton } from "@/components/ui/ActionIconButton";
+import { Badge } from "@/components/ui/Badge";
 import { Card } from "@/components/ui/Card";
 import { Checkbox } from "@/components/ui/Checkbox";
 import { Dialog } from "@/components/ui/Dialog";
@@ -472,6 +474,7 @@ export default function Students() {
                 column="nim"
                 sorts={sorts}
                 onSort={toggleSort}
+                align="center"
               />
               <SortableTh
                 label="Nama"
@@ -484,21 +487,24 @@ export default function Students() {
                 column="angkatan"
                 sorts={sorts}
                 onSort={toggleSort}
+                align="center"
               />
               <SortableTh
                 label="Email"
                 column="surel"
                 sorts={sorts}
                 onSort={toggleSort}
+                align="center"
               />
               <SortableTh
                 label="Status"
                 column="is_active_user"
                 sorts={sorts}
                 onSort={toggleSort}
+                align="center"
               />
-              <th className="px-4 py-3">Praktikum</th>
-              <th className="px-4 py-3">Aksi</th>
+              <th className="px-4 py-3 text-center">Praktikum</th>
+              <th className="px-4 py-3 text-center">Aksi</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-(--md-sys-color-outline-variant) text-(--md-sys-color-on-surface)">
@@ -528,28 +534,22 @@ export default function Students() {
                   key={student.id}
                   className="hover:bg-(--md-sys-color-surface-container-high) transition-colors"
                 >
-                  <td className="px-4 py-3 font-mono">{student.nim}</td>
+                  <td className="px-4 py-3 text-center font-mono">{student.nim}</td>
                   <td className="px-4 py-3 font-medium">{student.nama}</td>
-                  <td className="px-4 py-3">{student.angkatan}</td>
-                  <td className="px-4 py-3 text-(--md-sys-color-on-surface-variant)">
+                  <td className="px-4 py-3 text-center">{student.angkatan}</td>
+                  <td className="px-4 py-3 text-center text-(--md-sys-color-on-surface-variant)">
                     {student.surel ?? "-"}
                   </td>
-                  <td className="px-4 py-3">
-                    <span
-                      className={
-                        student.is_active_user
-                          ? "inline-flex rounded-full bg-(--md-sys-color-primary-container) px-2 py-0.5 text-[11px] font-semibold text-(--md-sys-color-on-primary-container)"
-                          : "inline-flex rounded-full bg-(--md-sys-color-error-container) px-2 py-0.5 text-[11px] font-semibold text-(--md-sys-color-on-error-container)"
-                      }
-                    >
+                  <td className="px-4 py-3 text-center">
+                    <Badge tone={student.is_active_user ? "success" : "neutral"}>
                       {student.is_active_user ? "Aktif" : "Nonaktif"}
-                    </span>
+                    </Badge>
                   </td>
-                  <td className="px-4 py-3">
+                  <td className="px-4 py-3 text-center">
                     {student.praktikum?.length ?? 0} praktikum
                   </td>
-                  <td className="px-4 py-3">
-                    <div className="flex items-center gap-1">
+                  <td className="px-4 py-3 text-center">
+                    <div className="flex items-center justify-center gap-1">
                       <ActionIconButton
                         id="edit-praktikan"
                         symbol="✎"
@@ -557,14 +557,11 @@ export default function Students() {
                         onClick={() => openEditModal(student)}
                       />
                       {isDosen && (
-                        <Button
-                          variant="text"
-                          size="sm"
+                        <ActionIconButton
+                          symbol={<UserRound size={16} strokeWidth={2} />}
+                          label="Status"
                           onClick={() => openStatusModal(student)}
-                          className="hover:underline px-2 py-1"
-                        >
-                          Status
-                        </Button>
+                        />
                       )}
                     </div>
                   </td>

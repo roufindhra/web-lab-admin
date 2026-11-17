@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Buttons";
 import { Input } from "@/components/ui/Input";
 import { Card } from "@/components/ui/Card";
@@ -197,15 +198,12 @@ export default function DashboardAlat() {
             Belum ada izin edit aktif.
           </p>
         )}
-        <span
-          className={`shrink-0 rounded-full px-2 py-0.5 text-[10px] font-semibold ${
-            isDosen || hasActivePermission
-              ? "bg-emerald-100 text-emerald-800"
-              : "bg-gray-100 text-gray-600"
-          }`}
+        <Badge
+          tone={isDosen || hasActivePermission ? "success" : "neutral"}
+          className="shrink-0 text-[10px] font-semibold"
         >
           {isDosen || hasActivePermission ? "Aktif" : "Nonaktif"}
-        </span>
+        </Badge>
       </Card>
 
       {isDosen && (
