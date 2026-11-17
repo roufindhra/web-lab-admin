@@ -163,14 +163,16 @@ export default function HargaSewaPage() {
                 column="nama_alat"
                 sorts={sorts}
                 onSort={toggleSort}
+                align="center"
               />
               <SortableTh
                 label="Tarif per Hari"
                 column="tarif_per_hari"
                 sorts={sorts}
                 onSort={toggleSort}
+                align="center"
               />
-              <th className="px-4 py-3 text-right">Aksi</th>
+              <th className="px-4 py-3 text-center">Aksi</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-(--md-sys-color-outline-variant) text-(--md-sys-color-on-surface)">
@@ -198,12 +200,12 @@ export default function HargaSewaPage() {
                   key={harga.id}
                   className="hover:bg-(--md-sys-color-surface-container-high) transition-colors"
                 >
-                  <td className="px-4 py-3 font-medium">{harga.nama_alat}</td>
-                  <td className="px-4 py-3 text-(--md-sys-color-on-surface-variant)">
+                  <td className="px-4 py-3 text-center font-medium">{harga.nama_alat}</td>
+                  <td className="px-4 py-3 text-center text-(--md-sys-color-on-surface-variant)">
                     {formatTarif(harga.tarif_per_hari)}
                   </td>
-                  <td className="px-4 py-3 text-right">
-                    <div className="flex justify-end gap-1">
+                  <td className="px-4 py-3 text-center">
+                    <div className="flex justify-center gap-1">
                       <ActionIconButton
                         symbol="✎"
                         label="Edit"

@@ -10,6 +10,8 @@ import ConfirmActionModal from "../components/modals/ConfirmActionModal";
 import KembalikanModal from "../components/modals/KembalikanModal";
 import RevisiModal from "../components/modals/RevisiModal";
 import TolakModal from "../components/modals/TolakModal";
+import { ActionIconButton } from "@/components/ui/ActionIconButton";
+import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Buttons";
 import { Card } from "@/components/ui/Card";
 import { Input } from "@/components/ui/Input";
@@ -32,12 +34,13 @@ const STATUS_LABELS: Record<PeminjamanStatus, string> = {
   ditolak: "Ditolak",
 };
 
-const STATUS_BADGE_CLASSES: Record<PeminjamanStatus, string> = {
-  pending:
-    "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300",
-  disetujui:
-    "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300",
-  ditolak: "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300",
+const STATUS_TONES: Record<
+  PeminjamanStatus,
+  "success" | "warning" | "danger"
+> = {
+  pending: "warning",
+  disetujui: "success",
+  ditolak: "danger",
 };
 
 function formatWaktu(value: string): string {
@@ -245,27 +248,31 @@ export default function PeminjamanPage() {
                 column="created_at"
                 sorts={sorts}
                 onSort={toggleSort}
+                align="center"
               />
               <SortableTh
                 label="Peminjam"
                 column="nama"
                 sorts={sorts}
                 onSort={toggleSort}
+                align="center"
               />
               <SortableTh
                 label="Keperluan"
                 column="keperluan"
                 sorts={sorts}
                 onSort={toggleSort}
+                align="center"
               />
-              <th className="px-4 py-3">Alat</th>
+              <th className="px-4 py-3 text-center">Alat</th>
               <SortableTh
                 label="Status"
                 column="status"
                 sorts={sorts}
                 onSort={toggleSort}
+                align="center"
               />
-              <th className="px-4 py-3">Aksi</th>
+              <th className="px-4 py-3 text-center">Aksi</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-(--md-sys-color-outline-variant) text-(--md-sys-color-on-surface)">
@@ -300,10 +307,10 @@ export default function PeminjamanPage() {
                     key={peminjaman.id}
                     className="hover:bg-(--md-sys-color-surface-container-high) transition-colors"
                   >
-                    <td className="whitespace-nowrap px-4 py-3 text-(--md-sys-color-on-surface-variant)">
+                    <td className="whitespace-nowrap px-4 py-3 text-center text-(--md-sys-color-on-surface-variant)">
                       {formatWaktu(peminjaman.dibuat_pada)}
                     </td>
-                    <td className="px-4 py-3">
+                    <td className="px-4 py-3 text-center">
                       <span className="font-medium">{peminjaman.nama}</span>
                       {peminjaman.keperluan === "penyewaan_komersil" ? (
                         <span className="block text-xs text-(--md-sys-color-on-surface-variant)">
@@ -316,7 +323,7 @@ export default function PeminjamanPage() {
                         </span>
                       )}
                     </td>
-                    <td className="max-w-48 px-4 py-3">
+                    <td className="max-w-48 px-4 py-3 text-center">
                       {peminjaman.keperluan_label}
                       {peminjaman.praktikum_slug && (
                         <span className="block font-mono text-xs text-(--md-sys-color-on-surface-variant)">
@@ -332,7 +339,7 @@ export default function PeminjamanPage() {
                           </span>
                         )}
                     </td>
-                    <td className="px-4 py-3">
+                    <td className="px-4 py-3 text-center">
                       <ul className="space-y-0.5">
                         {peminjaman.items.map((item) => (
                           <li
@@ -347,14 +354,10 @@ export default function PeminjamanPage() {
                         ))}
                       </ul>
                     </td>
-                    <td className="px-4 py-3">
-                      <span
-                        className={`whitespace-nowrap rounded-full px-2 py-0.5 text-xs font-medium ${
-                          STATUS_BADGE_CLASSES[peminjaman.status]
-                        }`}
-                      >
+                    <td className="px-4 py-3 text-center">
+                      <Badge tone={STATUS_TONES[peminjaman.status]}>
                         {STATUS_LABELS[peminjaman.status]}
-                      </span>
+                      </Badge>
                       {peminjaman.status === "disetujui" && (
                         <span className="mt-1 block text-xs text-(--md-sys-color-on-surface-variant)">
                           {peminjaman.returned_at
@@ -369,35 +372,28 @@ export default function PeminjamanPage() {
                           </span>
                         )}
                     </td>
-                    <td className="px-4 py-3">
-                      <div className="flex flex-wrap gap-1">
+                    <td className="px-4 py-3 text-center">
+                      <div className="flex flex-wrap items-center justify-center gap-1">
                         {peminjaman.status === "pending" &&
                           (peminjaman.can_process ? (
                             <>
-                              <Button
-                                variant="text"
-                                size="sm"
+                              <ActionIconButton
+                                symbol="✓"
+                                label="Setujui"
+                                tone="success"
                                 onClick={() => setApproveTarget(peminjaman)}
-                                className="text-green-600 dark:text-green-400 hover:underline px-2 py-1"
-                              >
-                                Setujui
-                              </Button>
-                              <Button
-                                variant="text"
-                                size="sm"
+                              />
+                              <ActionIconButton
+                                symbol="✎"
+                                label="Revisi"
                                 onClick={() => setRevisiTarget(peminjaman)}
-                                className="hover:underline px-2 py-1"
-                              >
-                                Revisi
-                              </Button>
-                              <Button
-                                variant="text"
-                                size="sm"
+                              />
+                              <ActionIconButton
+                                symbol="✕"
+                                label="Tolak"
+                                tone="danger"
                                 onClick={() => setTolakTarget(peminjaman)}
-                                className="text-red-600 dark:text-red-400 hover:underline px-2 py-1"
-                              >
-                                Tolak
-                              </Button>
+                              />
                             </>
                           ) : (
                             <span
@@ -409,14 +405,11 @@ export default function PeminjamanPage() {
                           ))}
                         {sedangBerjalan &&
                           (peminjaman.can_process ? (
-                            <Button
-                              variant="text"
-                              size="sm"
+                            <ActionIconButton
+                              symbol="↩"
+                              label="Konfirmasi Pengembalian"
                               onClick={() => setKembalikanTarget(peminjaman)}
-                              className="hover:underline px-2 py-1"
-                            >
-                              Konfirmasi Pengembalian
-                            </Button>
+                            />
                           ) : (
                             <span
                               className="text-xs text-(--md-sys-color-on-surface-variant) opacity-60"

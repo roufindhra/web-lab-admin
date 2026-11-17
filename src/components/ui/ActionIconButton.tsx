@@ -3,11 +3,11 @@ import { cn } from "@/utils/cn";
 
 interface ActionIconButtonProps
   extends React.ButtonHTMLAttributes<HTMLButtonElement> {
-  /** Karakter unicode yang ditampilkan sebagai ikon aksi. */
-  symbol: string;
+  /** Karakter unicode atau ikon yang ditampilkan sebagai ikon aksi. */
+  symbol: React.ReactNode;
   /** Dipakai sebagai tooltip dan aria-label. */
   label: string;
-  tone?: "default" | "danger";
+  tone?: "default" | "danger" | "success" | "warning";
 }
 
 export const ActionIconButton = React.forwardRef<
@@ -36,7 +36,11 @@ export const ActionIconButton = React.forwardRef<
         "inline-flex h-8 w-8 shrink-0 cursor-pointer items-center justify-center rounded-full text-base leading-none transition-colors active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-40 disabled:active:scale-100",
         tone === "danger"
           ? "text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-950/30"
-          : "text-(--md-sys-color-on-surface) hover:bg-(--md-sys-color-surface-container-high)",
+          : tone === "success"
+            ? "text-emerald-600 hover:bg-emerald-50 dark:text-emerald-400 dark:hover:bg-emerald-950/30"
+            : tone === "warning"
+              ? "text-amber-600 hover:bg-amber-50 dark:text-amber-400 dark:hover:bg-amber-950/30"
+              : "text-(--md-sys-color-on-surface) hover:bg-(--md-sys-color-surface-container-high)",
         className,
       )}
     >

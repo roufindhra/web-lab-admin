@@ -5,6 +5,7 @@ import {
   type AlatListMeta,
   type AlatLogStatus,
 } from "@/services";
+import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Buttons";
 import { Card } from "@/components/ui/Card";
 import { Input } from "@/components/ui/Input";
@@ -24,15 +25,16 @@ const STATUS_LABELS: Record<AlatLogStatus, string> = {
   edit: "Edit",
 };
 
-const STATUS_BADGE_CLASSES: Record<AlatLogStatus, string> = {
-  pengajuan: "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300",
-  keluar:
-    "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300",
-  masuk: "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300",
-  tambah:
-    "bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-300",
-  hapus: "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300",
-  edit: "bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-300",
+const STATUS_TONES: Record<
+  AlatLogStatus,
+  "success" | "warning" | "danger" | "neutral" | "info"
+> = {
+  pengajuan: "info",
+  keluar: "warning",
+  masuk: "success",
+  tambah: "success",
+  hapus: "danger",
+  edit: "neutral",
 };
 
 const formatWaktu = (waktu: string) =>
@@ -166,36 +168,42 @@ export default function AlatLogPage() {
                 column="created_at"
                 sorts={sorts}
                 onSort={toggleSort}
+                align="center"
               />
               <SortableTh
                 label="ID Log"
                 column="id_log"
                 sorts={sorts}
                 onSort={toggleSort}
+                align="center"
               />
               <SortableTh
                 label="Keperluan"
                 column="keperluan"
                 sorts={sorts}
                 onSort={toggleSort}
+                align="center"
               />
               <SortableTh
                 label="PIC"
                 column="nama_pic"
                 sorts={sorts}
                 onSort={toggleSort}
+                align="center"
               />
               <SortableTh
                 label="Alat"
                 column="inventaris"
                 sorts={sorts}
                 onSort={toggleSort}
+                align="center"
               />
               <SortableTh
                 label="Status"
                 column="status"
                 sorts={sorts}
                 onSort={toggleSort}
+                align="center"
               />
             </tr>
           </thead>
@@ -226,12 +234,12 @@ export default function AlatLogPage() {
                   key={log.id}
                   className="hover:bg-(--md-sys-color-surface-container-high) transition-colors"
                 >
-                  <td className="px-4 py-3 whitespace-nowrap text-(--md-sys-color-on-surface-variant)">
+                  <td className="px-4 py-3 whitespace-nowrap text-center text-(--md-sys-color-on-surface-variant)">
                     {formatWaktu(log.waktu)}
                   </td>
-                  <td className="px-4 py-3 font-mono">{log.id_log}</td>
-                  <td className="px-4 py-3">{log.keperluan}</td>
-                  <td className="px-4 py-3">
+                  <td className="px-4 py-3 text-center font-mono">{log.id_log}</td>
+                  <td className="px-4 py-3 text-center">{log.keperluan}</td>
+                  <td className="px-4 py-3 text-center">
                     {log.nim_pic ? (
                       <>
                         <span className="font-medium">{log.nim_pic}</span>
@@ -250,21 +258,16 @@ export default function AlatLogPage() {
                       </>
                     )}
                   </td>
-                  <td className="px-4 py-3">
+                  <td className="px-4 py-3 text-center">
                     <span className="font-mono">{log.inventaris}</span>
                     <span className="block text-xs text-(--md-sys-color-on-surface-variant)">
                       {log.nama_alat ?? "(alat dihapus)"}
                     </span>
                   </td>
-                  <td className="px-4 py-3">
-                    <span
-                      className={`rounded-full px-2 py-0.5 text-xs font-medium ${
-                        STATUS_BADGE_CLASSES[log.status] ??
-                        "bg-gray-100 text-gray-800"
-                      }`}
-                    >
+                  <td className="px-4 py-3 text-center">
+                    <Badge tone={STATUS_TONES[log.status] ?? "neutral"}>
                       {STATUS_LABELS[log.status] ?? log.status}
-                    </span>
+                    </Badge>
                   </td>
                 </tr>
               ))
