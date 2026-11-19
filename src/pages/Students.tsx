@@ -481,6 +481,7 @@ export default function Students() {
                 column="nama"
                 sorts={sorts}
                 onSort={toggleSort}
+                align='center'
               />
               <SortableTh
                 label="Angkatan"
