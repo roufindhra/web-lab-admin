@@ -397,7 +397,7 @@ export default function Asisten() {
                     className="hover:bg-(--md-sys-color-surface-container-high) transition-colors"
                   >
                     <td className="px-4 py-3 text-center font-mono">{student.nim}</td>
-                    <td className="px-4 py-3 text-center font-medium">{student.nama}</td>
+                    <td className="px-4 py-3 font-medium">{student.nama}</td>
                     <td className="px-4 py-3 text-center">{student.angkatan}</td>
                     <td className="px-4 py-3 text-center">
                       <StatusBadge mahasiswa={student} />
